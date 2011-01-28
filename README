@@ -1,1 +1,6 @@
 Tools and code for Causal Dynamical Triangulations
+
+* Dataviz - Mathematica file to convert CDT output files into nice movies
+* SurfaceOfResolution - Algorithms
+
+TODO: Import into Mathematica 7
