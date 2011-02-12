@@ -1,0 +1,6 @@
+(load "cdt2p1.lisp")
+(let ((ids (list (make-3simplex 1 0 1 1 2 3 4)
+		 (make-3simplex 2 0 1 1 5 3 4)
+		 (make-3simplex 3 0 1 1 5 6 3))))
+  (connect-3simplices-within-list ids))
+(set-last-used-pt 6)
