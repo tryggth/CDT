@@ -9,5 +9,4 @@ Tools and code for Causal Dynamical Triangulations
 
 2p1 and 3p1 code by Rajesh Kommu
 
-TODO: Import into Mathematica 7
-TODO: Recode from LISP
+TODO: Recode from LISP (and learn from Rajesh' code)
