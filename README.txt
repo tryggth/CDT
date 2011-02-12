@@ -7,5 +7,7 @@ Tools and code for Causal Dynamical Triangulations
 * 3p1 - 3+1 spacetime code (LISP)
 * cdt-random-state-n-rndccl - Seed files
 
+2p1 and 3p1 code by Rajesh Kommu
+
 TODO: Import into Mathematica 7
 TODO: Recode from LISP
