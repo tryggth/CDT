@@ -1,159 +1,131 @@
-; cdt-3plus1-initialization-pbc.lisp --- R x S3 initialization with periodic boundary conditions
+;; cdt-3plus1-initialization-pbc.lisp --- R x S3 initialization with periodic 
+;; boundary conditions
 
-(defun initialize-S3-triangulation-pbc (num-time-intervals)
-
+(defun initialize-S3-triangulation (num-time-intervals)
   (setf NUM-T num-time-intervals)
-  (setf BCTYPE 'periodic)
-
-;  (do ((n 0 (1+ n))) ((>= n (/ num-time-intervals 2)))
-
   (for (n 0 (1- (/ num-time-intervals 2)))
-       ;; t = 1/2, 5/2, 9/2, ...
        (dolist (fivepts S3-1/2-41)
-	 (make-4simplex 4 (+ 1/2 (* 2 n))
-			(+ (* n 10) (first fivepts))
-			(+ (* n 10) (second fivepts))
-			(+ (* n 10) (third fivepts))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))))
+	 (make-4simplex-v3 4 (* 2 n) (1+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (third fivepts)) 
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))))
        (dolist (fivepts S3-1/2-32)
-	 (make-4simplex 3 (+ 1/2 (* 2 n))
-			(+ (* n 10) (first fivepts))
-			(+ (* n 10) (second fivepts))
-			(+ (* n 10) (third fivepts))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))))
+	 (make-4simplex-v3 3 (* 2 n) (1+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (third fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))))
        (dolist (fivepts S3-1/2-23)
-	 (make-4simplex 2 (+ 1/2 (* 2 n))
-			(+ (* n 10) (first fivepts))
-			(+ (* n 10) (second fivepts))
-			(+ (* n 10) (third fivepts))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))))
+	 (make-4simplex-v3 2 (* 2 n) (1+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (third fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))))
        (dolist (fivepts S3-1/2-14)
-	 (make-4simplex 1 (+ 1/2 (* 2 n))
-			(+ (* n 10) (first fivepts))
-			(+ (* n 10) (second fivepts))
-			(+ (* n 10) (third fivepts))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))))
-       
-       ;; t = 3/2, 7/2, 11/2, ...
+	 (make-4simplex-v3 1 (* 2 n) (1+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (third fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))))
        (dolist (fivepts S3-1/2-41)
-	 (make-4simplex 1 (+ 3/2 (* 2 n))
-			(+ (* n 10) (fifth fivepts))
-			(+ (* (+ n 1) 10) (first fivepts))
-			(+ (* (+ n 1) 10) (second fivepts))
-			(+ (* (+ n 1) 10) (third fivepts))
-			(+ (* (+ n 1) 10) (fourth fivepts))))
-       
+	 (make-4simplex-v3 1 (1+ (* 2 n)) (2+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (third fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (fourth fivepts))))
        (dolist (fivepts S3-1/2-32)
-	 (make-4simplex 2 (+ 3/2 (* 2 n))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))
-			(+ (* (+ n 1) 10) (first fivepts))
-			(+ (* (+ n 1) 10) (second fivepts))
-			(+ (* (+ n 1) 10) (third fivepts))))
-       
+	 (make-4simplex-v3 2 (1+ (* 2 n)) (2+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (third fivepts))))
        (dolist (fivepts S3-1/2-23)
-	 (make-4simplex 3 (+ 3/2 (* 2 n))
-			(+ (* n 10) (third fivepts))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))
-			(+ (* (+ n 1) 10) (first fivepts))
-			(+ (* (+ n 1) 10) (second fivepts))))
-       
+	 (make-4simplex-v3 3 (1+ (* 2 n)) (2+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (third fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fivepts))))
        (dolist (fivepts S3-1/2-14)
-	 (make-4simplex 4 (+ 3/2 (* 2 n))
-			(+ (* n 10) (second fivepts))
-			(+ (* n 10) (third fivepts))
-			(+ (* n 10) (fourth fivepts))
-			(+ (* n 10) (fifth fivepts))
-			(+ (* (+ n 1) 10) (first fivepts)))))
+	 (make-4simplex-v3 4 (1+ (* 2 n)) (2+ (* 2 n))
+			   (+ (* 2 n N0-PER-SLICE) (second fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (third fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fourth fivepts))
+			   (+ (* 2 n N0-PER-SLICE) (fifth fivepts))
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fivepts)))))
   
-  
-  ;; for periodic boundary conditions, the points in the NUM-T slice need to be identified with the points
-  ;; in the 0 slice; this can be done by subtracting (* 5 NUM-T) from the the hi-points of all the
-  ;; simplices in the ts=(- NUM-T 1/2) sandwich
-  (maphash #'(lambda (k v)
-	       (declare (ignore k))
-	       (if (= (- NUM-T 1/2) (second v))
-		   (cond ((= 1 (first v))
-			  (decf (second (third v)) (* 5 NUM-T))
-			  (decf (third (third v)) (* 5 NUM-T))
-			  (decf (fourth (third v)) (* 5 NUM-T))
-			  (decf (fifth (third v)) (* 5 NUM-T)))
-			 ((= 2 (first v))
-			  (decf (third (third v)) (* 5 NUM-T))
-			  (decf (fourth (third v)) (* 5 NUM-T))
-			  (decf (fifth (third v)) (* 5 NUM-T)))
-			 ((= 3 (first v))
-			  (decf (fourth (third v)) (* 5 NUM-T))
-			  (decf (fifth (third v)) (* 5 NUM-T)))
-			 ((= 4 (first v))
-			  (decf (fifth (third v)) (* 5 NUM-T))))))
-	   *4SIMPLEX-STORE*)
+  (when (string= BCTYPE "PERIODIC")
 
-  ;; connect the 4simplices in all the sandwiches including the last one; T+1/2 mod T equals 1/2. this
-  ;; pairs up the T-1/2 sandwich with the 1/2 sandwich, which is what we want for pbc
-  (for (ts 1/2 (- NUM-T 1/2))
-       (connect-4simplices-in-slice ts)
-       (connect-4simplices-in-adjacent-slices ts (+ ts 1)))
-  
-  ;; if num-t = 4, we have t=0,1,2,3 and use up points upto 20
-  ;; if num-t = 6, we have t=0,1,2,3,4,5 and use up points upto 30
-  ;; if num-t = 8, .... use up points upto 40
-  (setf NEXT-PT (* NUM-T 5))
-  
-  ;; now to connect the spatial tetrahedra to the (1,4) and (4,1) simplicies
-  ;; when ts = NUM-T - 1/2, (mod (+ ts 1/2) NUM-T) equals 0, which is what we want for periodic b.c.
-  (for (ts 1/2 (- NUM-T 1/2))
-       (connect-3simplices-to-4simplices (get-3simplices-at-time (- ts 1/2))
-					 (get-4simplices-of-type-at-time 4 ts))
-       (connect-3simplices-to-4simplices (get-3simplices-at-time (mod (+ ts 1/2) NUM-T))
-					 (get-4simplices-of-type-at-time 1 ts)))
+    (for (ts 0 (- NUM-T 1))
+	 (connect-simplices-in-sandwich ts (1+ ts))
+	 (connect-simplices-in-adjacent-sandwiches ts (+ ts 1) (+ ts 2)))
 
-  ;; need to set the f-vector correctly
-)
+    (set-last-used-pt (* NUM-T N0-PER-SLICE))
 
+    (set-f-vector (* NUM-T N0-PER-SLICE) ;; N0
+		  (* NUM-T N1-SL-PER-SLICE) ;; N1-SL
+		  (* NUM-T N1-TL-PER-SLICE) ;; N1-TL
+		  (* NUM-T N2-SL-PER-SLICE) ;; N2-SL
+		  (* NUM-T N2-TL-PER-SLICE) ;; N2-TL
+		  (* NUM-T N3-SL-PER-SLICE) ;; N3-SL
+		  (* NUM-T (+ N3-TL-13-PER-SLICE N3-TL-31-PER-SLICE));; N3-TL-13
+		  (* NUM-T N3-TL-22-PER-SLICE);; N3-TL-22
+		  (* NUM-T (+ N4-TL-14-PER-SLICE N4-TL-41-PER-SLICE))
+		  (* NUM-T (+ N4-TL-23-PER-SLICE N4-TL-32-PER-SLICE))))
 
-(defun initialize-T-slices-with-V-volume-pbc (&key num-time-slices target-volume)
-  (setf SPATIAL-TOPOLOGY "S3")
-  (initialize-S3-triangulation-pbc num-time-slices)
+  (when (string= BCTYPE "OPEN")
+    (error "open boundary conditions not yet implemented")))
 
-  (format t "initial count = ~A~%" (count-4simplices-of-all-types))
-  (finish-output)
+(defun initialize-T-slices-with-V-volume (&key num-time-slices target-volume 
+					  boundary-conditions)
+  (setf STOPOLOGY "S3")
+  (setf BCTYPE (string-upcase boundary-conditions))
+  (initialize-S3-triangulation num-time-slices)
+
+  (format t "initial count = ~A~%" (count-simplices-of-all-types))
+
   ;; choice of (2,8) (2,4)v1 (2,4)v2 and (4,6) to increase the volume 
-  (while (<= (N4) target-volume)
-    
-    ;; increase the number of (1,4) and (4,1) simplices
-    (dolist (id41 (get-4simplices-of-type 4))
-      (when (get-4simplex id41)
-	(46-move id41)))
 
-    ;; increase the number of (2,3) simplices
-    (dolist (id23 (get-4simplices-of-type 2))
-      (when (get-4simplex id23)
-	(24-move-v1 id23)))
-    
-    ;; increase the number of (2,3) and (3,2) simplices
-    (dolist (id23 (get-4simplices-of-type 2))
-      (when (get-4simplex id23)
-    	(24-move-v2 id23)))
-    
-    ;; increase the number of (3,2) simplices
-    (dolist (id32 (get-4simplices-of-type 3))
-      (when (get-4simplex id32)
-	(24-move-v1 id32)))
+  (loop named tv
+     do
+     ;; increase the number of (1,4) and (4,1) simplices
+       (dolist (id41 (get-simplices-of-type 4))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->6 id41))
+	     (3plus1move movedata)))
+	 (if (>= (N4) target-volume)
+	     (return-from tv)))
+       
+     ;; increase the number of (2,3) simplices
+       (dolist (id23 (get-simplices-of-type 3))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->4-v1 id23))
+	     (3plus1move movedata)))
+	 (if (>= (N4) target-volume)
+	     (return-from tv)))
+       
+     ;; increase the number of (3,2) simplices
+       (dolist (id32 (get-simplices-of-type 2))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->4-v1 id32))
+	     (3plus1move movedata)))
+	 (if (>= (N4) target-volume)
+	     (return-from tv)))
 
-    ;; increase the number if (1,4) and (4,1) simplices
-    (dolist (id14 (get-4simplices-of-type 1))
-      (when (get-4simplex id14)
-	(46-move id14)))
+     ;; increase the number if (1,4) and (4,1) simplices
+       (dolist (id14 (get-simplices-of-type 1))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->8 id14))
+	     (3plus1move movedata)))
+	 (if (>= (N4) target-volume)
+	     (return-from tv))))
     
-    (format t "intermediate count ~A~%" (count-4simplices-of-all-types))
-    (finish-output))
-    
-  (format t "final count = ~A~%" (count-4simplices-of-all-types))
-
+  (format t "final count = ~A~%" (count-simplices-of-all-types))
   (setf N-INIT (N4)))

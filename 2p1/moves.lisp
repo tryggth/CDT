@@ -1,12 +1,6 @@
-;; try-a->b methods returns the following list, IF and ONLY IF the move can be successfully 
+;; try-a->b methods returns the following list, IFF the move can be successfully made
 ;; (new3sxids nbors old3sxids old2sxids fvector)
 ;;
-;; so a->b will look like 
-;; (let ((movelst (try-a->b sxid)))
-;;   (when movelst
-;;     (connect-3simplices-within-list (first movelst))
-;;     (connect-3simplices-across-lists (first movelst) (second movelst))
-;;     
 
 (defun 2plus1move (sxdata) ;;new3sxdata 3sxnbors old3sxids old2sxids fvector)
   (let ((new3sxids (make-3simplices-in-bulk (first sxdata))))
@@ -15,42 +9,38 @@
     (remove-3simplices (third sxdata))
     (remove-2simplices (fourth sxdata))
     (update-f-vector (fifth sxdata))))
-				  
-(defun try-2->6 (sxid)
-  "the (2,6) move implemented on sxid."
-  (let ((sx nil) (sx-other-id 0) (sx-other nil) (old-internal-triangle nil) (bigtr nil)
-	(lopt 0) (hipt 0) (newpt (next-pt)) (nbors nil) (newsxdata nil)
-	(13tmlo nil) (13tmhi nil) (31tmlo nil) (31tmhi nil))
+
+(defun 2->6-subcomplex (sxid)
+  (let ((subcmplx nil)
+	(sx nil))
     (when (setf sx (get-3simplex sxid))
       (cond ((= 1 (3sx-type sx))
-	     (setf sx-other-id (nth 0 (3sx-sx3ids sx)))
-	     (setf 13tmlo (3sx-tmlo sx)) (setf 13tmhi (3sx-tmhi sx))
-	     (if (not (setf sx-other (get-3simplex sx-other-id)))
-		 (return-from try-2->6 nil))
-	     (setf 31tmlo (3sx-tmlo sx-other)) (setf 31tmhi (3sx-tmhi sx-other))
-	     (push (nth 0 (3sx-sx2ids sx)) old-internal-triangle)
-	     (setf lopt (nth-point sx 0))
-	     (setf hipt (nth-point sx-other 3)))
-	    ((= 3 (first sx))
-	     (setf sx-other-id (nth 3 (3sx-sx3ids sx)))
-	     (setf 31tmlo (3sx-tmlo sx)) (setf 31tmhi (3sx-tmhi sx))
-	     (if (not (setf sx-other (get-3simplex sx-other-id)))
-		 (return-from try-2->6 nil))
-	     (setf 13tmlo (3sx-tmlo sx-other)) (setf 13tmhi (3sx-tmhi sx-other))
-	     (push (nth 3 (3sx-sx2ids sx)) old-internal-triangle)
-	     (setf lopt (nth-point sx-other 0))
-	     (setf hipt (nth-point sx 3)))
-	    ((= 2 (3sx-type sx))
-	     (return-from try-2->6 nil)))
-      (setf bigtr (2sx-points (get-2simplex (first old-internal-triangle))))
-      (setf nbors (set-difference (append (3sx-sx3ids sx) (3sx-sx3ids sx-other)) (list 0 sxid sx-other-id)))
-      (setf newsxdata (list (list 1 13tmlo 13tmhi (list lopt newpt (first bigtr) (second bigtr)))
+	     (when (/= 0 (nth 0 (3sx-sx3ids sx)))
+	       (push (list sxid (nth 0 (3sx-sx3ids sx))) subcmplx)))
+	    ((= 3 (3sx-type sx))
+	     (when (/= 0 (nth 3 (3sx-sx3ids sx)))
+	       (push (list (nth 3 (3sx-sx3ids sx)) sxid) subcmplx)))))
+    subcmplx))
+				  
+(defun try-2->6 (sxid)
+  (dolist (curr (2->6-subcomplex sxid))
+    (let* ((sx13 (get-3simplex (first curr)))
+	   (sx31 (get-3simplex (second curr)))
+	   (old-internal-triangle (nth 0 (3sx-sx2ids sx13)))
+	   (nbors (set-difference (union (3sx-sx3ids sx13) (3sx-sx3ids sx31)) curr))
+	   (lopt (nth-point sx13 0))
+	   (hipt (nth-point sx31 3))
+	   (bigtr (2sx-points (get-2simplex old-internal-triangle)))
+	   (13tmlo (3sx-tmlo sx13)) (13tmhi (3sx-tmhi sx13))
+	   (31tmlo (3sx-tmlo sx31)) (31tmhi (3sx-tmhi sx31))
+	   (newpt (next-pt))
+	   (newsxdata (list (list 1 13tmlo 13tmhi (list lopt newpt (first bigtr) (second bigtr)))
 			    (list 1 13tmlo 13tmhi (list lopt newpt (second bigtr) (third bigtr)))
 			    (list 1 13tmlo 13tmhi (list lopt newpt (third bigtr) (first bigtr)))
 			    (list 3 31tmlo 31tmhi (list (first bigtr) (second bigtr) newpt hipt))
 			    (list 3 31tmlo 31tmhi (list (second bigtr) (third bigtr) newpt hipt))
-			    (list 3 31tmlo 31tmhi (list (third bigtr) (first bigtr) newpt hipt))))
-      (list newsxdata nbors (list sxid sx-other-id) old-internal-triangle DF26))))
+			    (list 3 31tmlo 31tmhi (list (third bigtr) (first bigtr) newpt hipt)))))
+      (return-from try-2->6 (list newsxdata nbors curr (list old-internal-triangle) DF26)))))
 
 (defun 6->2-subcomplex (sxid)
   "returns a list of the form ((13id1 13id2 13id3 31id3 31id2 31id1)...)"
@@ -236,10 +226,10 @@ type of the simplex participating in the move"
   (let ((13sx nil) (22sx nil))
     (when (and (setf 13sx (get-3simplex 13id)) (setf 22sx (get-3simplex 22id)))
       (let* ((old2 (link-id 13id 22id))
-	     (pts234 (hi-points 13sx))    ;; hi points of the 1,3 simplex
-	     (pts34 (hi-points 22sx))  ;; hi points of the 2,2 simplex
-	     (pts15 (lo-points 22sx));; lo points of the 2,2 simplex
-	     (pt5 (set-difference pts15 (lo-points 13sx)))
+	     (pts234 (3sx-hipts 13sx))    ;; hi points of the 1,3 simplex
+	     (pts34 (3sx-hipts 22sx))  ;; hi points of the 2,2 simplex
+	     (pts15 (3sx-lopts 22sx));; lo points of the 2,2 simplex
+	     (pt5 (set-difference pts15 (3sx-lopts 13sx)))
 	     (pt2 (set-difference pts234 pts34))
 	     (new-internal-tlt-1 (list 1 (3sx-tmlo 13sx) (3sx-tmhi 13sx) 
 				       (append pt5 pt2 (butlast pts34))))
@@ -265,10 +255,10 @@ type of the simplex participating in the move"
     (let ((31sx nil) (22sx nil))
     (when (and (setf 31sx (get-3simplex 31id)) (setf 22sx (get-3simplex 22id)))
       (let* ((old2 (link-id 31id 22id))
-	     (pts234 (lo-points 31sx))    ;; lo points of the 3,1 simplex
-	     (pts34 (lo-points 22sx))  ;; lo points of the 2,2 simplex
-	     (pts15 (hi-points 22sx));; hi points of the 2,2 simplex
-	     (pt5 (set-difference pts15 (hi-points 31sx)))
+	     (pts234 (3sx-lopts 31sx))    ;; lo points of the 3,1 simplex
+	     (pts34 (3sx-lopts 22sx))  ;; lo points of the 2,2 simplex
+	     (pts15 (3sx-hipts 22sx));; hi points of the 2,2 simplex
+	     (pt5 (set-difference pts15 (3sx-hipts 31sx)))
 	     (pt2 (set-difference pts234 pts34))
 	     (new-internal-tlt-1 (list 2 (3sx-tmlo 31sx) (3sx-tmhi 31sx) 
 				       (append pt2 (butlast pts34) pt5)))
@@ -340,10 +330,10 @@ about the type of the simplex participating in the move"
 	       (setf 22sx1 (get-3simplex 22id1))
 	       (setf 22sx2 (get-3simplex 22id2)))
       (let* ((old2s (list (link-id 13id 22id1) (link-id 13id 22id2) (link-id 22id1 22id2)))
-	     (pts234 (hi-points 13sx))
-	     (pts15 (lo-points 22sx1))
-	     (pt1 (set-difference pts15 (lo-points 13sx)))
-	     (pts34 (set-exclusive-or (hi-points 22sx1) (hi-points 22sx2)))
+	     (pts234 (3sx-hipts 13sx))
+	     (pts15 (3sx-lopts 22sx1))
+	     (pt1 (set-difference pts15 (3sx-lopts 13sx)))
+	     (pts34 (set-exclusive-or (3sx-hipts 22sx1) (3sx-hipts 22sx2)))
 	     (new-internal-triangle (list 1 (3sx-tmlo 13sx) (3sx-tmhi 13sx) (append pt1 pts34)))
 	     (new-13-pts (append pt1 pts234))
 	     (new-22-pts (append pts15 pts34))
@@ -362,10 +352,10 @@ about the type of the simplex participating in the move"
 	       (setf 22sx1 (get-3simplex 22id1))
 	       (setf 22sx2 (get-3simplex 22id2)))
       (let* ((old2s (list (link-id 31id 22id1) (link-id 31id 22id2) (link-id 22id1 22id2)))
-	     (pts234 (lo-points 31sx)) ;; lo points of 3,1
-	     (pts15 (hi-points 22sx1))   ;; hi points of 2,2
-	     (pt1 (set-difference pts15 (hi-points 31sx))) ;; 2,2 hi - 3,1 hi
-	     (pts34 (set-exclusive-or (lo-points 22sx1) (lo-points 22sx2)))
+	     (pts234 (3sx-lopts 31sx)) ;; lo points of 3,1
+	     (pts15 (3sx-hipts 22sx1))   ;; hi points of 2,2
+	     (pt1 (set-difference pts15 (3sx-hipts 31sx))) ;; 2,2 hi - 3,1 hi
+	     (pts34 (set-exclusive-or (3sx-lopts 22sx1) (3sx-lopts 22sx2)))
 	     (new-internal-triangle (list 2 (3sx-tmlo 31sx) (3sx-tmhi 31sx) (append pts34 pt1)))
 	     (new-31-pts (append pts234 pt1))
 	     (new-22-pts (append pts34 pts15))
