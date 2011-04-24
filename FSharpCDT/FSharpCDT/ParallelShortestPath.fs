@@ -4,8 +4,8 @@ open System.Collections.Generic
 open System.Collections.Concurrent
 
 type City =
-    | Boise     | LosAngeles    | New York      | Seattle
-    | StLouis   | Phoenix       | Boston        | Chicago
+    | Boise     | LosAngeles    | NewYork   | Seattle
+    | StLouis   | Phoenix       | Boston    | Chicago
     | Denver
 
 // Known distances
@@ -88,8 +88,7 @@ let shortestPathBetween startingCity finalDestination =
                                     curCity distanceSoFar citiesVisitedSoFar)
 
             visitAvailableDestinations()
-        else // Ignore, we have already found a faster way to get here
-            ()
+        
 
     // Create the master task to find the shortest path between the two cities
     let t =
