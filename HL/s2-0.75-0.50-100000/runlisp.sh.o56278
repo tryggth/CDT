@@ -1,6 +1,6 @@
 Module GCC 4.5.0 Loaded.
 Module SBCL v1.0.47 loaded.
-c0-14
+c0-8
 
 ; in: DEFUN RESET-GLOBAL-STATE
 ;     (MAKE-ARRAY CDT-HL::NUM-T :INITIAL-ELEMENT 0)
@@ -31,14 +31,14 @@ c0-14
 REGGE COUPLING :: #C(0.0d0 -6.283185307179586d0) #C(-0.0d0 -6.283185307179586d0) #C(-0.0 7.5036077) #C(-0.0 7.5036077) 
 unhandled SB-C::INPUT-ERROR-IN-COMPILE-FILE in thread #<SB-THREAD:THREAD
                                                         "initial thread" RUNNING
-                                                        {1002959541}>:
+                                                        {10029596D1}>:
   READ failure in COMPILE-FILE at character 29824:
     end of file on #<SB-SYS:FD-STREAM
                      for "file /home/adam/cdt-release-1.0/HL/montecarlo.lisp"
                      {1002CCCF81}>
 
 0: (SB-DEBUG::MAP-BACKTRACE
-    #<CLOSURE (LAMBDA #) {100366ED19}>
+    #<CLOSURE (LAMBDA #) {10036D3009}>
     :START
     0
     :COUNT
@@ -47,16 +47,16 @@ unhandled SB-C::INPUT-ERROR-IN-COMPILE-FILE in thread #<SB-THREAD:THREAD
     128
     #<SYNONYM-STREAM :SYMBOL SB-SYS:*STDERR* {1000167951}>)
 2: (SB-DEBUG::DEBUGGER-DISABLED-HOOK
-    #<SB-C::INPUT-ERROR-IN-COMPILE-FILE {100366B1D1}>
+    #<SB-C::INPUT-ERROR-IN-COMPILE-FILE {10036CF3E1}>
     #<unavailable argument>)
 3: (SB-DEBUG::RUN-HOOK
     SB-EXT:*INVOKE-DEBUGGER-HOOK*
-    #<SB-C::INPUT-ERROR-IN-COMPILE-FILE {100366B1D1}>)
-4: (INVOKE-DEBUGGER #<SB-C::INPUT-ERROR-IN-COMPILE-FILE {100366B1D1}>)
+    #<SB-C::INPUT-ERROR-IN-COMPILE-FILE {10036CF3E1}>)
+4: (INVOKE-DEBUGGER #<SB-C::INPUT-ERROR-IN-COMPILE-FILE {10036CF3E1}>)
 5: (ERROR
     SB-C::INPUT-ERROR-IN-COMPILE-FILE
     :CONDITION
-    #<END-OF-FILE {100366AFE1}>
+    #<END-OF-FILE {10036CF1F1}>
     :POSITION
     29824)
 6: (SB-C::READ-FOR-COMPILE-FILE
@@ -113,6 +113,6 @@ unhandled SB-C::INPUT-ERROR-IN-COMPILE-FILE in thread #<SB-THREAD:THREAD
 
 unhandled condition in --disable-debugger mode, quitting
 
-real	0m1.854s
-user	0m1.429s
-sys	0m0.081s
+real	0m1.858s
+user	0m1.440s
+sys	0m0.078s
