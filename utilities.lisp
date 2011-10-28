@@ -1,3 +1,7 @@
+(declaim (optimize (speed 3)
+		   (compilation-speed 0)
+		   (debug 0)
+		   (safety 0)))
 ;+-----------------------------------------------------------------------------+
 ;| cdt-utilities.lisp --- various utility functions and macros, mostly from 
 ;| Paul Graham's "On Lisp". Only dimension independent utilites are in this file
@@ -199,3 +203,20 @@ Suffix is defined as the string following the LAST . in filename"
 			   (make-string (length newsuffix) 
 					:initial-element #\space))))
     (replace cpy newsuffix :start1 (1+ dotpos))))
+
+(defun nthhash (n h)
+  "returns element number n of hashtable h"
+  (maphash #'(lambda (k v) 
+	       (when (zerop n) 
+		 (if (null v)
+		     (format t "returning a nuuuuuuuuuul~%"))
+		 (return-from nthhash (values v k)))
+	       (decf n)) 
+	   h))
+
+(defun rndhash (h)
+  "returns a random element from the hashtable h"
+  (if (= 0 (hash-table-count h))
+      (format t "we have a problem~%"))
+  (nthhash 0 h))
+  ;;(nthhash (random (hash-table-count h)) h))
