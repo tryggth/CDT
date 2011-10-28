@@ -1,10 +1,17 @@
-;+---------------------------------------------------------------------------------------------------------+
-;| cdt-utilities.lisp --- various utility functions and macros, mostly from Paul Graham's On Lisp
-;| Only dimension independent utilites are in this file
-;+---------------------------------------------------------------------------------------------------------+
+;+-----------------------------------------------------------------------------+
+;| cdt-utilities.lisp --- various utility functions and macros, mostly from 
+;| Paul Graham's "On Lisp". Only dimension independent utilites are in this file
+;+-----------------------------------------------------------------------------+
+(defmacro sum (lst)
+  "sums the elements of lst"
+  `(apply #'+ ,lst))
+
+(defmacro random-element (lst)
+  "returns a random element from lst"
+  `(nth (random (length ,lst)) ,lst))
+
 (defmacro circular-nth (n lst)
   `(nth (mod ,n (length ,lst)) ,lst))
-
 (defmacro circular-subseq (seq start num)
   "return num elements from seq starting at 0-based index start"
   `(unless (> ,num (length ,seq))
@@ -16,23 +23,27 @@
 
 (defmacro take (num lst)
   `(subseq ,lst 0 ,num))
-
 (defmacro drop (num lst)
   `(subseq ,lst ,num))
 
-;; these return the specified element, but in the form of a list
+(defmacro 2+ (num)
+  `(+ ,num 2))
+
+(defmacro nthl (n lst)
+  "same as nth, but element is returned as (val) rather than val"
+  `(subseq ,lst ,n (1+ ,n)))
 (defmacro firstl (lst)
-  `(subseq ,lst 0 1))
+  `(nthl 0 ,lst))
 (defmacro secondl (lst)
-  `(subseq ,lst 1 2))
+  `(nthl 1 ,lst))
 (defmacro thirdl (lst)
-  `(subseq ,lst 2 3))
+  `(nthl 2 ,lst))
 (defmacro fourthl (lst)
-  `(subseq ,lst 3 4))
+  `(nthl 3 ,lst))
 (defmacro fifthl (lst)
-  `(subseq ,lst 4 5))
+  `(nthl 4 ,lst))
 (defmacro sixthl (lst)
-  `(subseq ,lst 5 6))
+  `(nthl 5 ,lst))
 
 (defun flatten (x)
   (labels ((rec (x acc)
@@ -161,16 +172,30 @@
 
 ;; (set-equal? '(2 3 4 1) '(4 1 2 3)) => T
 (defun set-equal? (set1 set2)
-  (and (eql (set-difference set1 set2) nil) (eql (set-difference set2 set1) nil)))
-
-(defmacro yyyy (lst) `(nth 5 ,lst))
-(defmacro mm (lst) `(nth 4 ,lst))
-(defmacro dd (lst) `(nth 3 ,lst))
-(defmacro hh (lst) `(nth 2 ,lst))
-(defmacro mi (lst) `(nth 1 ,lst))
-(defmacro ss (lst) `(nth 0 ,lst))
+  (and (eql (set-difference set1 set2) nil) 
+       (eql (set-difference set2 set1) nil)))
 
 (defun cdt-now-str ()
-  (let ((nowlst (multiple-value-list (get-decoded-time))))
-    (format nil "~4,'0d-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d" 
-	    (yyyy nowlst) (mm nowlst) (dd nowlst) (hh nowlst) (mi nowlst) (ss nowlst))))
+  "returns the current time in the YYYY-MM-DD-hh-mm-ss format"
+  (multiple-value-bind (ss mi hh dd mm yyyy) (get-decoded-time)
+    (format nil "~4,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d" 
+	    yyyy mm dd hh mi ss)))
+
+(defun hostname ()
+  (let* ((machinst (machine-instance))
+	 (dotpos (position #\. machinst)))
+    (if dotpos
+	(subseq machinst 0 dotpos)
+	machinst)))
+
+(defun change-file-suffix (filename newsuffix)
+  "change-file-suffix replaces the old suffix of filename with the newsuffix.
+Suffix is defined as the string following the LAST . in filename"
+  (let* ((dotpos (position #\. filename :from-end t))
+	 (prefix (subseq filename 0 dotpos))
+	 (cpy (concatenate 'string 
+			   prefix
+			   "."
+			   (make-string (length newsuffix) 
+					:initial-element #\space))))
+    (replace cpy newsuffix :start1 (1+ dotpos))))
