@@ -1,0 +1,102 @@
+== Introduction
+
+This is the Horava-Lifshitz branch of the code, written by christian in the summer of 2011. The code implements CDT using an updated action. The code makes it easy to plug new terms into the action (I should write a separate guide on editing the code!).
+
+== Running the code
+
+The code should typically be run by creating a Common Lisp script and running it using the command
+
+sbcl --dynamic-space-size 1024 --script [your script's name here]
+
+=== Dependencies
+
+Your script must first import the files:
+
+"../utilities.lisp"
+"globals.lisp"
+"simplex.lisp"
+"moves.lisp"
+"initialization.lisp"
+"montecarlo.lisp"
+
+=== Getting a spacetime
+
+Now you're going to want to do one of two things, create a new spacetime or load an existing spacetime.
+
+==== Creating a new spacetime
+
+You should first declare the topology of your spacetime using the following command
+
+(set-t-slices-with-v-volume :num-time-slices 64
+			    :target-volume(* 8 1024)
+			    :spatial-topology "S2"
+			    :boundary-conditions "PERIODIC")
+
+The options are hopefully self-explanatory.
+
+Now you should set the coupling constants using the following command
+
+(set-k0-k3-alpha-lambda-mu 1.0 0.0 -1.0 1.0 3.0)
+
+k0 is related to G
+k3 is a function of G and the cosmological constant
+alpha is the length of time-like edges. It should be less than -1/2
+lambda is the coupling constant on the K^2 term in the HL action
+mu is the coupling constant on the R^2 term in the HL action
+
+This coupling constant setting function can take an optional final argument:
+
+(set-k0-k3-alpha-lambda-mu 1.0 0.0 -1.0 1.0 3.0 t)
+
+This argument is nil by default. If it evaluates to true (so the Boolean value t is a good choice for it) then the input value of k3 will be ignored and a value of k3 will be chosen such that MC simulation has constant volume. You probably want to set this option!
+
+The tuning operates by attempting sweeps and changing the cosmological constant so that the volume is observed to remain relatively constant. Thus the tuning process depends on the value of *eps* (the dampening parameter). You should probably set *eps*, before sweeping, to the minimum value that you ever plan to use.
+
+Now you should initialize a spacetime using
+
+(initialize)
+
+You must perform these three steps in order or they are not guaranteed to work correctly.
+
+Once the three steps are done, you are ready to run simulations.
+
+==== Loading an existing spacetime
+
+To load a spacetime from a file, run:
+
+(with-open-file (infile "[your filename here]")
+                (load-spacetime-from-file infile))
+
+The infile should have the extension 3sx2p1. This command takes care of all three of the commands from the above section.
+
+=== Running a simulation
+
+You might want to tune a couple options by running commands like:
+
+(setf *eps* .05)
+(setf SAVE-EVERY-N-SWEEPS 100)
+(setf NUM-SWEEPS 50000)
+
+These all work the same as in previous versions of the CDT code. You then want to run some data-generation function. They are documented in the code as follows:
+
+;; We have a family of generate-* functions.
+;; These are the top-level functions that perform (sweep)
+;; Each collects particular data for a particular use-case
+
+;; data-console: Periodically prints simplex counts and accept ratios to console.
+;;               Good for tuning k0 and k3 parameters.
+;; data : Periodically re-writes a single file using save-spacetime-to-file and 
+;;        a second file with the current progress
+;; data-v2 : Like data, but writes a new file each time so no progress file needed.
+;; data-v3 : Like data-v2, but at each checkpoint it also writes out a file using
+;;         : save-s2simplex-data-to-file
+;; movie-data : Periodically appends to a file a new list of count-simplices-in-sandwich
+;;            : writes out a second file with progress data
+;; movie-data-console : SUPERSEDED Like movie-data but puts everything on the console
+;; movie-data-console-v2 : Like movie-data-console but counts spatial triangles per slice (FAST!)
+;;                         and saves a spacetime at the end.
+;; spacetime-and-movie-data : a combination of data and movie-data
+
+== Known issues
+
+* The detailed balance, as discussed in group meetings, is not quite right. The more I think about this, the more I think it should really be fixed. Throughout the CDT codebase. Maybe I will do this. Christian

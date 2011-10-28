@@ -1,0 +1,24 @@
+(defpackage "CDT-HL"
+  (:use "COMMON-LISP"))
+
+(in-package "CDT-HL")
+
+(load "../utilities.lisp")
+(load "globals.lisp")
+
+(set-k0-k3-alpha-lambda-mu 1.0 0.78 -1.0 1.0 0.0)
+
+(load "simplex.lisp")
+(load "moves.lisp")
+(load "initialization.lisp")
+(load "montecarlo.lisp")
+
+(initialize-t-slices-with-v-volume :num-time-slices 64
+				   :target-volume(* 8 1024)
+				   :spatial-topology"S2"
+				   :boundary-conditions"PERIODIC")
+
+(setf SAVE-EVERY-N-SWEEPS 100)
+(setf NUM-SWEEPS 50000)
+
+(generate-data-console)
