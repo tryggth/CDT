@@ -655,6 +655,11 @@
 	     (format t "~A/~A " ns end-sweep)
 	     (format t "Spatial volumes: ~A ~% " *SVOLS*)
 	     (format t "~% ~A ~A |~A| ~%~%" (f-vector) (accept-ratios) THRASHING))
+	   (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
+	     (with-open-file (datafile datafilestr 
+				       :direction :output
+				       :if-exists :supersede)
+	       (save-spacetime-to-file datafile))))
        (with-open-file (datafile datafilestr 
 				 :direction :output
 				 :if-exists :supersede)
