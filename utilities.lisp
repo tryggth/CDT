@@ -10,6 +10,10 @@
   "sums the elements of lst"
   `(apply #'+ ,lst))
 
+(defmacro filter (func lst)
+  `(mapcan (lambda (y) (when (,func y) (list y))) ,lst)
+)
+
 (defmacro random-element (lst)
   "returns a random element from lst"
   `(nth (random (length ,lst)) ,lst))
@@ -162,6 +166,21 @@
 					       ,rest))
 				     len))))))))))
 
+;; These next two methods retrieve useful sublists of lists. 
+;; They return _brand-new_ lists.
+(defun pairs (input)
+  "Get all pairs of distinct elements from list."
+  (loop for i on input append (loop for j in (cdr i) for k = (car i) collect (list k j))))
+
+(defun triples-decompose (triple)
+  "Carry (p0 p1 p2) to ((p0 (p1 p2)) (p1 (p0 p2)) (p2 (p0 p1))). Order matters."
+  (let ((p0 (elt triple 0))
+	(p1 (elt triple 1))
+	(p2 (elt triple 2)))
+    (list (list p0 (list p1 p2))
+	  (list p1 (list p0 p2))
+	  (list p2 (list p0 p1)))))
+
 ;; (unions '(1 2 3) '(2 3 4) '(3 4 1)) => (1 2 3 4)
 (defun unions (&rest args)
   (reduce #'union args))
@@ -220,3 +239,76 @@ Suffix is defined as the string following the LAST . in filename"
       (format t "we have a problem~%"))
   (nthhash 0 h))
   ;;(nthhash (random (hash-table-count h)) h))
+
+;; Access table using key and try to push val to the list
+;; found there. Make a list (val) if necessary
+(defun gethash-push (key table val)
+  (if (gethash key table) 
+      (push val (gethash key table))
+      (setf (gethash key table) (list val))))
+
+;; Access table using key and remove val from the list
+;; found there. Delete the list if it is left empty.
+(defun gethash-delete (key table val)
+  (unless (setf (gethash key table) (delete val (gethash key table)))
+    (remhash key table)))
+
+(defun gethash-update (key table vals &optional (index nil))
+  "Index lets us update a field of the target, rather than the whole target."
+  (let ((cur (gethash key table))
+	(out 0))
+    (when index
+      (setf cur (elt cur index)))
+    (if cur
+	(setq out (mapcar (lambda (x y) (+ x y)) cur vals))
+	(setq out vals)
+	)
+    (if (> (length (filter (lambda (x) (/= x 0)) out)) 0)
+	(if index
+	    (setf (elt (gethash key table) index) out)
+	    (setf (gethash key table) out))
+	(unless index
+	  (remhash key table)))))
+
+(defmacro zero-or (coupling term)
+  `(if (/= ,coupling 0) ,term 0))
+
+;; Numerical root finding
+
+(defun false-position-root (func pos neg precision &optional fpos fneg)
+  (unless fpos
+    (setf fpos (funcall func pos)))
+  (unless fneg
+    (setf fneg (funcall func neg)))
+  (format t "Pos: ~A, Neg: ~A ~%" fpos fneg)
+  (if (< (- fneg) precision)
+      neg
+      (if (< fpos precision)
+	  pos
+	  (let* ((new (/ (- (* fpos neg) (* fneg pos))
+			 (- fpos fneg)))
+		 (fnew (funcall func new)))
+	    (if (= 0 fnew)
+		new
+		(if (> fnew 0)
+		    (false-position-root func new neg precision fnew fneg)
+		    (false-position-root func pos new precision fpos fnew)))))))
+
+(defun false-position-root-near (func guess precision)
+  (let* ((fguess (funcall func guess))
+	 (desired (if (> fguess 0) #'< #'>))
+	 (other-del 0)
+	 (fworking 0))
+    (when (< (abs fguess) precision)
+      (return-from false-position-root-near guess))
+    (setf other-del (if (funcall desired (funcall func (+ guess 1)) fguess) 1 -1))
+    (until (funcall desired (setf fworking (funcall func (+ guess other-del))) 0)
+	   (setf other-del (* other-del 2)))
+    (if (> fguess 0)
+	(progn
+	  (assert (< fworking 0))
+	  (false-position-root func guess (+ guess other-del) precision fguess fworking))
+	(progn
+	  (assert (> fworking 0))
+	  (false-position-root func (+ guess other-del) guess precision fworking fguess)))))
+	 

@@ -6,4 +6,4 @@
 
 module load gcc sbcl
 hostname
-time sbcl --script S3-PERIODIC-T064-V131072-3.6-0.2-0.6-0.02.lisp
+time sbcl --script generate-data-v2-1.0-0.0-100000.lisp
