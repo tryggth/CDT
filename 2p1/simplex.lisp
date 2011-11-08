@@ -1,178 +1,129 @@
-;; 2simplex
-;; (type tmlo tmhi (p0 p1 p2))
-;; type = 0,1,2,3 tm[lo|hi] = [lo|hi] spatial time slice pj = points, nj = neighbor that does not have pj
+(declaim (optimize (speed 3)
+		   (compilation-speed 0)
+		   (debug 0)
+		   (safety 0)))
+;; sl 1-simplex is (tslice (p0 p1))
+;; tl 1-simplex is (type tmlo (p0 p1)) where type = 1
+;; sl 2-simplex is (tslice (p0 p1 p2))
+;; tl 2-simplex is (type tmlo (p0 p1 p2)) where type = 1,2
+;; tl 3-simplex is (type tmlo tmhi (p0 p1 p2 p3) (n0 n1 n2 n3))
+;; where type = 1,2,3,4 
+;; nj = id of the 4sx that does not have pj
 
-;; spatial-2simplex
-;; (time (p0 p1 p2) (n0 n1 n2))
+(defun make-2simplices (sxtype tmlo tmhi p0 p1 p2 p3)
+  "makes all 2-simplices with the specified data iff they don't already exist"
+  (cond ((= 1 sxtype) ; (p0 | p1 p2 p3)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p1 ,p2)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p1 ,p3)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmhi (,p1 ,p2 ,p3)) *SL2SIMPLEX->ID*) 0))
+	((= 2 sxtype) ; (p0 p1 | p2 p3)
+	 (setf (gethash `(2 ,tmlo (,p0 ,p1 ,p2)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(2 ,tmlo (,p0 ,p1 ,p3)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p1 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0))
+	((= 3 sxtype) ; (p0 p1 p2 | p3)
+	 (setf (gethash `(,tmlo (,p0 ,p1 ,p2)) *SL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(2 ,tmlo (,p0 ,p1 ,p3)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(2 ,tmlo (,p0 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0)
+	 (setf (gethash `(2 ,tmlo (,p1 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0))))
 
-;; 3simplex
-;; (type tmlo tmhi (t0 t1 t2 t3) (n0 n1 n2 n3))
-;; type = 1,2,3 tm[lo|hi] - [lo|hi] spatial time slice
-;; tj = id of the 2sx that does not have pj
-;; nj = id of the 3sx that does not have pj
+(defun make-1simplices (sxtype tmlo tmhi p0 p1 p2 p3)
+  "makes all 1-simplices with the specified data iff they don't already exist"
+  (cond ((= 1 sxtype) ;; p0 | p1 p2 p3
+	 (setf (gethash `(1 ,tmlo (,p0 ,p1)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p2)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p3)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmhi (,p1 ,p2)) *SL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmhi (,p1 ,p3)) *SL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmhi (,p2 ,p3)) *SL1SIMPLEX->ID*) 0))
+	((= 2 sxtype) ;; p0 p1 | p2 p3
+	 (setf (gethash `(,tmlo (,p0 ,p1)) *SL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p2)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p3)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p1 ,p2)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p1 ,p3)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmhi (,p2 ,p3)) *SL1SIMPLEX->ID*) 0))
+	((= 3 sxtype) ;; p0 p1 p2 | p3
+	 (setf (gethash `(,tmlo (,p0 ,p1)) *SL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmlo (,p0 ,p2)) *SL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p0 ,p3)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(,tmlo (,p1 ,p2)) *SL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p1 ,p3)) *TL1SIMPLEX->ID*) 0)
+	 (setf (gethash `(1 ,tmlo (,p2 ,p3)) *TL1SIMPLEX->ID*) 0))))
 
-(defun make-2simplex (type tmlo tmhi p0 p1 p2)
-  "makes and returns the id of the 2-simplex with the specified data. If a 2-simplex with points 
-p0 p1 p2 already exists, the id of that simplex is returned"
-  (let* ((2sx (list type tmlo tmhi (list p0 p1 p2)))
-	 (2sxid (gethash 2sx *2SIMPLEX->ID*)))
-    (unless 2sxid
-      (setf 2sxid (next-2simplex-id))
-      (setf (gethash 2sx *2SIMPLEX->ID*) 2sxid)
-      (setf (gethash 2sxid *ID->2SIMPLEX*) 2sx))
-    2sxid))
+(defun remove-tl2simplex (tl2sx)
+  (remhash tl2sx *TL2SIMPLEX->ID*))
+(defun remove-sl2simplex (sl2sx)
+  (remhash sl2sx *SL2SIMPLEX->ID*))
+(defun remove-tl2simplices (tl2sxs)
+  (dolist (tl2sx tl2sxs)
+    (remove-tl2simplex tl2sx)))
+(defun remove-sl2simplices (sl2sxs)
+  (dolist (sl2sx sl2sxs)
+    (remove-sl2simplex sl2sx)))
 
-(defmacro get-2simplex (sxid) `(gethash ,sxid *ID->2SIMPLEX*))
+(defun remove-tl1simplex (tl1sx)
+  (remhash tl1sx *TL1SIMPLEX->ID*))
+(defun remove-sl1simplex (sl1sx)
+  (remhash sl1sx *SL1SIMPLEX->ID*))
+(defun remove-tl1simplices (tl1sxs)
+  (dolist (tl1sx tl1sxs)
+    (remove-tl1simplex tl1sx)))
+(defun remove-sl1simplices (sl1sxs)
+  (dolist (sl1sx sl1sxs)
+    (remove-sl1simplex sl1sx)))
 
-(defmacro 2sx-type (2sx) `(first ,2sx))
-(defmacro 2sx-tmlo (2sx) `(second ,2sx))
-(defmacro 2sx-tmhi (2sx) `(third ,2sx)) 
-(defmacro 2sx-points (2sx) `(fourth ,2sx))
-
-(defmacro remove-2simplex (2sxid)
-  `(let ((2sx (gethash ,2sxid *ID->2SIMPLEX*)))
-     (remhash ,2sxid *ID->2SIMPLEX*)
-     (remhash 2sx *2SIMPLEX->ID*)))
-
-(defun remove-2simplices (2sxids)
-  (dolist (2sxid 2sxids)
-    (let ((2sx (gethash 2sxid *ID->2SIMPLEX*)))
-      (remhash 2sxid *ID->2SIMPLEX*)
-      (remhash 2sx *2SIMPLEX->ID*))))
-
-(defun show-2simplex->id-store ()
-  (maphash #'(lambda (2sx 2sxid) (format t "~A [~A]~%" 2sx 2sxid)) *2SIMPLEX->ID*))
-
-(defun show-id->2simplex-store ()
-  (maphash #'(lambda (2sxid 2sx) (format t "[~A] ~A~%" 2sxid 2sx)) *ID->2SIMPLEX*))
-
-(defun make-3simplex (type tmlo tmhi p0 p1 p2 p3)
-  (let ((t0type nil) (t1type nil) (t2type nil) (t3type nil) (sx3id (next-3simplex-id)))
-    (ecase type
-      (1 (setf t0type 0) (setf t1type 1) (setf t2type 1)(setf t3type 1))
-      (2 (setf t0type 1) (setf t1type 1) (setf t2type 2)(setf t3type 2))
-      (3 (setf t0type 2) (setf t1type 2) (setf t2type 2)(setf t3type 3)))
+(defun make-3simplex (sxtype tmlo tmhi p0 p1 p2 p3)
+  (let ((sx3id (next-3simplex-id)))
     (setf (gethash sx3id *ID->3SIMPLEX*)
-	  (list type tmlo tmhi
-		(list p0 p1 p2 p3)
-		(list 0 0 0 0)
-		(list (make-2simplex t0type tmlo tmhi p1 p2 p3)
-		      (make-2simplex t1type tmlo tmhi p0 p2 p3)
-		      (make-2simplex t2type tmlo tmhi p0 p1 p3)
-		      (make-2simplex t3type tmlo tmhi p0 p1 p2))))
+	  (list sxtype tmlo tmhi (list p0 p1 p2 p3) (list 0 0 0 0)))
+    (make-2simplices sxtype tmlo tmhi p0 p1 p2 p3)
+    (make-1simplices sxtype tmlo tmhi p0 p1 p2 p3)
     sx3id))
 
-;; same as above except the points are "packed" into a list; useful during the 
-;; moves, when the points of the simplex are computed via append / unions / 
-;; intersections in the form of a list
-(defun make-3simplex-v2 (type tmlo tmhi pts)
-  (let ((t0type nil) 
-	(t1type nil) 
-	(t2type nil) 
-	(t3type nil) 
-	(sx3id (next-3simplex-id)))
-    (ecase type
-      (1 (setf t0type 0 t1type 1 t2type 1 t3type 1))
-      (2 (setf t0type 1 t1type 1 t2type 2 t3type 2))
-      (3 (setf t0type 2 t1type 2 t2type 2 t3type 3)))
-    (setf (gethash sx3id *ID->3SIMPLEX*)
-	  (list type tmlo tmhi
-		(copy-list pts)
-		(list 0 0 0 0)
-		(list (make-2simplex t0type tmlo tmhi 
-				     (nth 1 pts) (nth 2 pts) (nth 3 pts))
-		      (make-2simplex t1type tmlo tmhi 
-				     (nth 0 pts) (nth 2 pts) (nth 3 pts))
-		      (make-2simplex t2type tmlo tmhi 
-				     (nth 0 pts) (nth 1 pts) (nth 3 pts))
-		      (make-2simplex t3type tmlo tmhi 
-				     (nth 0 pts) (nth 1 pts) (nth 2 pts)))))
-    sx3id))
+;; same as above except the points are "packed" into a list
+(defun make-3simplex-v2 (sxtype tmlo tmhi pts)
+    (let ((p0 (nth 0 pts))
+	(p1 (nth 1 pts))
+	(p2 (nth 2 pts))
+	(p3 (nth 3 pts)))
+    (make-3simplex sxtype tmlo tmhi p0 p1 p2 p3)))
 
 ;; this version is used only during initialization. If periodic b.c. are 
 ;; specified, it adjusts the points on the final time slice, since the t=T 
 ;; slice is identified with t=0 slice.
-(defun make-3simplex-v3 (type tmlo tmhitmp p0tmp p1tmp p2tmp p3tmp)
-  (let ((t0type nil) 
-	(t1type nil) 
-	(t2type nil) 
-	(t3type nil) 
-	(sx3id (next-3simplex-id))
-	(p0 p0tmp) 
-	(p1 p1tmp) 
-	(p2 p2tmp) 
-	(p3 p3tmp) 
-	(tmhi tmhitmp))
+(defun make-3simplex-v3 (sxtype tmlo tmhitmp p0tmp p1tmp p2tmp p3tmp)
+  (let ((p0 p0tmp) (p1 p1tmp) (p2 p2tmp) (p3 p3tmp) (tmhi tmhitmp))
     (when (and (string= BCTYPE "PERIODIC") (= NUM-T tmhitmp))
       (setf tmhi 0)
-      (cond ((= 1 type)
+      (cond ((= 1 sxtype)
 	     (decf p1 (* N0-PER-SLICE NUM-T)) 
 	     (decf p2 (* N0-PER-SLICE NUM-T)) 
 	     (decf p3 (* N0-PER-SLICE NUM-T)))
-	    ((= 2 type)
+	    ((= 2 sxtype)
 	     (decf p2 (* N0-PER-SLICE NUM-T)) 
 	     (decf p3 (* N0-PER-SLICE NUM-T)))
-	    ((= 3 type)
+	    ((= 3 sxtype)
 	     (decf p3 (* N0-PER-SLICE NUM-T)))))
-    (ecase type
-      (1 (setf t0type 0) (setf t1type 1) (setf t2type 1)(setf t3type 1))
-      (2 (setf t0type 1) (setf t1type 1) (setf t2type 2)(setf t3type 2))
-      (3 (setf t0type 2) (setf t1type 2) (setf t2type 2)(setf t3type 3)))
-    (setf (gethash sx3id *ID->3SIMPLEX*)
-	  (list type tmlo tmhi
-		(list p0 p1 p2 p3)
-		(list 0 0 0 0)
-		(list (make-2simplex t0type tmlo tmhi p1 p2 p3)
-		      (make-2simplex t1type tmlo tmhi p0 p2 p3)
-		      (make-2simplex t2type tmlo tmhi p0 p1 p3)
-		      (make-2simplex t3type tmlo tmhi p0 p1 p2))))))
+    (make-3simplex sxtype tmlo tmhi p0 p1 p2 p3)))
 
 ;; this version is used for loading the simplex data from file
-(defun make-3simplex-v4 (type tmlo tmhi p0 p1 p2 p3 n0 n1 n2 n3 sx3id)
-  (let ((t0type nil) (t1type nil) (t2type nil) (t3type nil))
-    (ecase type
-      (1 (setf t0type 0) (setf t1type 1) (setf t2type 1)(setf t3type 1))
-      (2 (setf t0type 1) (setf t1type 1) (setf t2type 2)(setf t3type 2))
-      (3 (setf t0type 2) (setf t1type 2) (setf t2type 2)(setf t3type 3)))
-    (setf (gethash sx3id *ID->3SIMPLEX*)
-	  (list type tmlo tmhi
-		(list p0 p1 p2 p3)
-		(list n0 n1 n2 n3)
-		(list (make-2simplex t0type tmlo tmhi p1 p2 p3)
-		      (make-2simplex t1type tmlo tmhi p0 p2 p3)
-		      (make-2simplex t2type tmlo tmhi p0 p1 p3)
-		      (make-2simplex t3type tmlo tmhi p0 p1 p2))))))
+(defun make-3simplex-v4 (sxtype tmlo tmhi p0 p1 p2 p3 n0 n1 n2 n3 sx3id)
+  (setf (gethash sx3id *ID->3SIMPLEX*)
+	(list sxtype tmlo tmhi (list p0 p1 p2 p3) (list n0 n1 n2 n3)))
+  (make-2simplices sxtype tmlo tmhi p0 p1 p2 p3)
+  (make-1simplices sxtype tmlo tmhi p0 p1 p2 p3))
 
-;; a replacement for v2
+;; all the simplex data, not just the points, is packed into a list
 (defun make-3simplex-v5 (simplex-data)
-  (let ((type (first simplex-data))
+  (let ((sxtype (first simplex-data))
 	(tmlo (second simplex-data))
 	(tmhi (third simplex-data))
-	(pts (fourth simplex-data))
-	(t0type nil) 
-	(t1type nil) 
-	(t2type nil) 
-	(t3type nil) 
-	(sx3id (next-3simplex-id)))
-    (ecase type
-      (1 (setf t0type 0) (setf t1type 1) (setf t2type 1)(setf t3type 1))
-      (2 (setf t0type 1) (setf t1type 1) (setf t2type 2)(setf t3type 2))
-      (3 (setf t0type 2) (setf t1type 2) (setf t2type 2)(setf t3type 3)))
-    (setf (gethash sx3id *ID->3SIMPLEX*)
-	  (list type tmlo tmhi
-		(copy-list pts)
-		(list 0 0 0 0)
-		(list (make-2simplex t0type tmlo tmhi 
-				     (nth 1 pts) (nth 2 pts) (nth 3 pts))
-		      (make-2simplex t1type tmlo tmhi 
-				     (nth 0 pts) (nth 2 pts) (nth 3 pts))
-		      (make-2simplex t2type tmlo tmhi 
-				     (nth 0 pts) (nth 1 pts) (nth 3 pts))
-		      (make-2simplex t3type tmlo tmhi 
-				     (nth 0 pts) (nth 1 pts) (nth 2 pts)))))
-    sx3id))
+	(pts (fourth simplex-data)))
+    (make-3simplex-v2 sxtype tmlo tmhi pts)))
 
-;; simplex-data-list = ((typ tmlo tmhi (p0 p1 p2 p3)) (typ tmlo tmhi (p0 p1 p2 p3))...)
+;; simplex-data-list = ((typ tmlo tmhi (p0 p1 p2 p3))...)
 ;; the ids of the simplices are returned
 (defun make-3simplices-in-bulk (simplex-data-list)
   (let ((3sxids nil))
@@ -180,14 +131,15 @@ p0 p1 p2 already exists, the id of that simplex is returned"
       (push (make-3simplex-v5 simplex-data) 3sxids))
     3sxids))
 
-(defmacro 3sx-type (sx) `(nth 0 ,sx))
-(defmacro 3sx-tmlo (sx) `(nth 1 ,sx))
-(defmacro 3sx-tmhi (sx) `(nth 2 ,sx))
-(defmacro 3sx-points (sx) `(nth 3 ,sx))
-(defmacro 3sx-sx3ids (sx) `(nth 4 ,sx))
-(defmacro 3sx-sx2ids (sx) `(nth 5 ,sx))
+(defmacro 3sx-type (sx) `(first ,sx))
+(defmacro 3sx-tmlo (sx) `(second ,sx))
+(defmacro 3sx-tmhi (sx) `(third ,sx))
+(defmacro 3sx-points (sx) `(fourth ,sx))
+(defmacro 3sx-sx3ids (sx) `(fifth ,sx))
 (defmacro 3sx-lopts (sx) `(subseq (3sx-points ,sx) 0 (3sx-type ,sx)))
 (defmacro 3sx-hipts (sx) `(subseq (3sx-points ,sx) (3sx-type ,sx)))
+(defmacro nth-point (sx n) `(nth ,n (3sx-points ,sx)))
+(defmacro nth-neighbor (sx n) `(nth ,n (3sx-sx3ids ,sx)))
 
 (defmacro get-3simplex (sxid)
   `(gethash ,sxid *ID->3SIMPLEX*))
@@ -199,20 +151,69 @@ p0 p1 p2 already exists, the id of that simplex is returned"
   `(dolist (3sxid ,3sxids)
      (remhash 3sxid *ID->3SIMPLEX*)
      (recycle-3simplex-id 3sxid)))
+
+
 (defun show-id->3simplex-store ()
-  (maphash #'(lambda (3sxid 3sx) (format t "[~A] ~A~%" 3sxid 3sx)) 
+  (maphash #'(lambda (3sxid 3sx) 
+	       (cond ((= 1 (3sx-type 3sx))
+		      (format t "[~A] (~A ~A ~A (~A|~A ~A ~A) (~A ~A ~A ~A))~%"
+			      3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
+			      (nth-point 3sx 0) (nth-point 3sx 1) 
+			      (nth-point 3sx 2) (nth-point 3sx 3)
+			      (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
+			      (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
+		     ((= 2 (3sx-type 3sx))
+		      (format t "[~A] (~A ~A ~A (~A ~A|~A ~A) (~A ~A ~A ~A))~%"
+			      3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
+			      (nth-point 3sx 0) (nth-point 3sx 1) 
+			      (nth-point 3sx 2) (nth-point 3sx 3)
+			      (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
+			      (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
+		     ((= 3 (3sx-type 3sx))
+		      (format t "[~A] (~A ~A ~A (~A ~A ~A|~A) (~A ~A ~A ~A))~%"
+			      3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
+			      (nth-point 3sx 0) (nth-point 3sx 1) 
+			      (nth-point 3sx 2) (nth-point 3sx 3)
+			      (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
+			      (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))))
 	   *ID->3SIMPLEX*))
 
-(defmacro nth-point (sx n)
-  `(nth ,n (3sx-points ,sx)))
+(defun show-tl2simplex-store ()
+  (let ((count 1))
+    (maphash #'(lambda (tl2sx id)
+		 (format t "[~A] ~A ~A~%" count tl2sx id)
+		 (incf count))
+	     *TL2SIMPLEX->ID*)))
+(defun show-sl2simplex-store ()
+  (let ((count 1))
+    (maphash #'(lambda (sl2sx id)
+		 (format t "[~A] ~A ~A~%" count sl2sx id)
+		 (incf count))
+	     *SL2SIMPLEX->ID*)))
+
+(defun show-tl1simplex-store ()
+  (let ((count 1))
+    (maphash #'(lambda (tl1sx id)
+		 (format t "[~A] ~A ~A~%" count tl1sx id)
+		 (incf count))
+	     *TL1SIMPLEX->ID*)))
+(defun show-sl1simplex-store ()
+  (let ((count 1))
+    (maphash #'(lambda (sl1sx id)
+		 (format t "[~A] ~A ~A~%" count sl1sx id)
+		 (incf count))
+	     *SL1SIMPLEX->ID*)))
 
 (defun connect-3simplices (sx1id sx2id)
   (let ((sx1 nil) (sx2 nil))
-    (when (and (setf sx1 (get-3simplex sx1id)) (setf sx2 (get-3simplex sx2id)))
-      (let ((2sxlinkid (intersection (3sx-sx2ids sx1) (3sx-sx2ids sx2))))
-	(when (= 1 (length 2sxlinkid))
-	  (let ((pos1 (position (first 2sxlinkid) (3sx-sx2ids sx1)))
-		(pos2 (position (first 2sxlinkid) (3sx-sx2ids sx2))))
+    (when (and (setf sx1 (get-3simplex sx1id))
+	       (setf sx2 (get-3simplex sx2id)))
+      (let ((tri (intersection (3sx-points sx1) (3sx-points sx2))))
+	(when (= 3 (length tri))
+	  (let* ((pts1 (3sx-points sx1))
+		 (pts2 (3sx-points sx2))
+		 (pos1 (position (first (set-difference pts1 tri)) pts1))
+		 (pos2 (position (first (set-difference pts2 tri)) pts2)))
 	    (setf (nth pos1 (3sx-sx3ids sx1)) sx2id 
 		  (nth pos2 (3sx-sx3ids sx2)) sx1id)))))))
 
@@ -228,8 +229,10 @@ p0 p1 p2 already exists, the id of that simplex is returned"
 
 (defmacro 3simplices-connected? (sxid1 sxid2)
   `(let ((sx1 nil) (sx2 nil))
-     (and (setf sx1 (get-3simplex ,sxid1)) (setf sx2 (get-3simplex ,sxid2))
-	  (find ,sxid1 (3sx-sx3ids sx2)) (find ,sxid2 (3sx-sx3ids sx1)))))
+     (and (setf sx1 (get-3simplex ,sxid1)) 
+	  (setf sx2 (get-3simplex ,sxid2))
+	  (find ,sxid1 (3sx-sx3ids sx2)) 
+	  (find ,sxid2 (3sx-sx3ids sx1)))))
 
 (defun get-simplices-in-sandwich (tlo thi)
   (let ((sxids '()))
@@ -248,16 +251,6 @@ p0 p1 p2 already exists, the id of that simplex is returned"
 			    (= (3sx-type sx) typ))
 		   (push id sxids)))
 	     *ID->3SIMPLEX*)
-    sxids))
-
-(defun get-2simplices-in-sandwich-of-type (tlo thi typ)
-  (let ((sxids '()))
-    (maphash #'(lambda (id sx)
-		 (when (and (= (2sx-tmlo sx) (mod tlo NUM-T)) 
-			    (= (2sx-tmhi sx) (mod thi NUM-T))
-			    (= (2sx-type sx) typ))
-		   (push id sxids)))
-	     *ID->2SIMPLEX*)
     sxids))
 
 ;; returns (1ids 2ids 3ids) where 1ids is a list of (1,3) ids in the sandwich
@@ -330,55 +323,13 @@ p0 p1 p2 already exists, the id of that simplex is returned"
    (get-simplices-in-sandwich-of-type tl tm 1)
    (get-simplices-in-sandwich-of-type tm th 3)))
 
-(defun check-13-and-31 (tlo thi)
-  (let ((13ids (get-simplices-in-sandwich-of-type tlo thi 1))
-	(31ids (get-simplices-in-sandwich-of-type tlo thi 3))
-	(problem-ids '()))
-    (dolist (s13 13ids)
-      (dolist (d13 13ids)
-	(when (and (/= s13 d13) (set-equal? 
-				 (subseq (3sx-points (get-3simplex s13)) 1)
-				 (subseq (3sx-points (get-3simplex d13)) 1)))
-	  (push (list s13 d13) problem-ids))))
-    (dolist (s31 31ids)
-      (dolist (d31 31ids)
-	(when (and (/= s31 d31) (set-equal? 
-				 (subseq (3sx-points (get-3simplex s31)) 0 3)
-				 (subseq (3sx-points (get-3simplex d31)) 0 3)))
-	  (push (list s31 d31) problem-ids))))
-    problem-ids))
-
-(defun check-all-slices-for-problem-simplices ()
-  (for (ts 0 (- NUM-T 1))
-       (format t "slice ~A has ~A problem simplices~%" ts 
-	       (check-13-and-31 ts (1+ ts)))
-       (finish-output)))
-
-(defun check-all-slices-for-simplices-with-missing-neighbors ()
-  (let ((problem-ids '()))
-    (maphash #'(lambda (id sx)
-		 (for (n 0 3)
-		   (if (= 0 (nth n (3sx-sx3ids sx)))
-		       (push id problem-ids))))
-	     *ID->3SIMPLEX*)
-    problem-ids))
-
-;; if the 3-simplices are connected, returns the id of the linking 2-simplex 
-;; else returns 0
-(defmacro link-id (sxid1 sxid2)
-  `(let ((sx1 nil) (sx2 nil) (link nil))
-     (if (and (setf sx1 (get-3simplex ,sxid1)) 
-	      (setf sx2 (get-3simplex ,sxid2))
-	      (setf link (intersection (3sx-sx2ids sx2) (3sx-sx2ids sx1))))
-	 (first link)
-	 0)))
-
-(defun neighbors-of-type (sx type)
+(defun neighbors-of-type (sx sxtype)
   (let ((nbors nil)
 	(nsx nil)
 	(nids (3sx-sx3ids sx)))
     (for (n 0 3)
-      (when (and (setf nsx (get-3simplex (nth n nids))) (= type (3sx-type nsx)))
+      (when (and (setf nsx (get-3simplex (nth n nids))) 
+		 (= sxtype (3sx-type nsx)))
 	(pushnew (nth n nids) nbors)))
     nbors))
 
@@ -391,8 +342,8 @@ p0 p1 p2 already exists, the id of that simplex is returned"
 		       (3sx-type v) (3sx-tmlo v) (3sx-tmhi v)
 		       (nth-point v 0) (nth-point v 1) 
 		       (nth-point v 2) (nth-point v 3)
-		       (nth 0 (3sx-sx3ids v)) (nth 1 (3sx-sx3ids v)) 
-		       (nth 2 (3sx-sx3ids v)) (nth 3 (3sx-sx3ids v)) k))
+		       (nth-neighbor v 0) (nth-neighbor v 1)
+		       (nth-neighbor v 2) (nth-neighbor v 3) k))
 	   *ID->3SIMPLEX*))
 
 (defun parse-parameters-line (line)
@@ -534,4 +485,5 @@ file are identical"
 	   (save-s2simplex-data-to-file outdatafile))
 	 (format t "finished 3sx2p1->s2sx2p1 for ~A at ~A~%"
 		 outfilename (cdt-now-str)))))
+
 	     

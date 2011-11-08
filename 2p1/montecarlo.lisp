@@ -1,4 +1,5 @@
 ; cdt-2plus1-montecarlo.lisp
+
 (defun try-move (sxid mtype)
   (ecase mtype
     (0 (try-2->6 sxid))
@@ -28,8 +29,10 @@
 	(delta-damping 0.0))
     (cond ((= 0 mtype) ;; 2->6 move
 	   (setf delta-damping (- (damping (+ (N3) 4)) (damping (N3))))
-	   (setf delta-action (- (action (+ N1-SL 3) (+ N1-TL 2) (+ N3-TL-31 4) (+ N3-TL-22 0)) 
-				 (action N1-SL N1-TL N3-TL-31 N3-TL-22)))) 
+	   (setf delta-action 
+		 (- (action (+ N1-SL 3) (+ N1-TL 2) 
+			    (+ N3-TL-31 4) (+ N3-TL-22 0)) 
+		    (action N1-SL N1-TL N3-TL-31 N3-TL-22)))) 
 	  ((= 1 mtype) ;; 2->3 move
 	   (setf delta-damping (- (damping (+ (N3) 1)) (damping (N3))))
 	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL 1) (+ N3-TL-31 0) (+ N3-TL-22 1)) 
@@ -115,15 +118,19 @@
 				     :if-exists :supersede)
 	     (save-spacetime-to-file datafile))))))
 
-;; generate-data-v3 is similar to generate-data-v2 except it also creates an additional data file every 
-;; SAVE-EVERY-N-SWEEPS that contains the spatial 2-simplex information for each spatial slice.
+;; generate-data-v3 is similar to generate-data-v2 except it also creates an 
+;; additional data file every 
+;; SAVE-EVERY-N-SWEEPS that contains the spatial 2-simplex information for 
+;; each spatial slice.
 (defun generate-data-v3 (&optional (start-sweep 1))
   (setf SIM-START-TIME (cdt-now-str))
   (let ((end-sweep (+ start-sweep NUM-SWEEPS -1)))
     (when (= 1 start-sweep) ;; save the initial spacetime contents if this is a brand new run
-      (with-open-file (datafile (concatenate 'string (generate-filename-v2 start-sweep 0) 3SXEXT)
-				:direction :output
-				:if-exists :supersede)
+      (with-open-file 
+	  (datafile 
+	   (concatenate 'string (generate-filename-v2 start-sweep 0) 3SXEXT)
+	   :direction :output
+	   :if-exists :supersede)
 	(save-spacetime-to-file datafile)))
     (for (ns start-sweep end-sweep)
 	 (sweep)
@@ -142,8 +149,10 @@
 ;; generate-movie-data saves number of simplices every SAVE-EVERY-N-SWEEPS
 (defun generate-movie-data (&optional (start-sweep 1))
   (setf SAVE-EVERY-N-SWEEPS 10)
-  (let ((moviefilestr (concatenate 'string (generate-filename start-sweep) MOVEXT))
-	(trackfilestr (concatenate 'string (generate-filename start-sweep) PRGEXT))
+  (let ((moviefilestr 
+	 (concatenate 'string (generate-filename start-sweep) MOVEXT))
+	(trackfilestr 
+	 (concatenate 'string (generate-filename start-sweep) PRGEXT))
 	(end-sweep (+ start-sweep NUM-SWEEPS -1)))
 
     ;; open and close the file for :append to work

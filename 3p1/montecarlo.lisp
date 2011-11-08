@@ -1,3 +1,7 @@
+(declaim (optimize (speed 3)
+		   (compilation-speed 0)
+		   (debug 0)
+		   (safety 0)))
 ;; cdt-3plus1-montecarlo.lisp
 (defun try-move (sxid mtype)
   (cond ((= 0 mtype) (try-2->8 sxid))
@@ -9,7 +13,8 @@
 	((= 6 mtype) (try-4->2-v2 sxid))
 	((= 7 mtype) (try-4->2-v1 sxid))
 	((= 8 mtype) (try-6->4 sxid))
-	((= 9 mtype) (try-8->2 sxid))))
+	((= 9 mtype) (try-8->2 sxid))
+	))
 
 (defun move->string (mtype)
   (cond ((= 0 mtype) "2->6")
@@ -215,7 +220,7 @@
 	     (format t "~A/~A " ns end-sweep)
 	     (for (ts 0 (1- NUM-T))
 		  (format t "~A " (count-simplices-in-sandwich ts (1+ ts))))
-	     (format t "~A ~A~%" (count-simplices-of-all-types) (accept-ratios))))))
+	     (format t "~A~%" (count-simplices-of-all-types))))))
 
 (defun generate-spacetime-and-movie-data (&optional (start-sweep 1))
   (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))

@@ -1,20 +1,12 @@
+(declaim (optimize (speed 3)
+		   (compilation-speed 0)
+		   (debug 0)
+		   (safety 0)))
 ;; globals.lisp --- all the parameters that might need to be accessed from 
 ;; multiple files
 
-;; we use the same random state during testing to verify that the bugs are 
-;; being fixed.
-;;(with-open-file (rndstt "../cdt-random-state-004.rndsbcl" :direction :input)
-;;  (setf *random-state* (read rndstt)))
-
-;; uncomment the following code for "production" runs to ensure a differen
-;; sequence of random numbers each time
 (setf *random-state* (make-random-state t))
 
-;;(defun reload-random-state ()
-;;(with-open-file (rndstt "../cdt-random-state-004.rndsbcl" :direction :input)
-;;	     (setf *random-state* (read rndstt)))
-
-(defparameter *LAST-USED-3SXID* 0)
 (defparameter *LAST-USED-4SXID* 0)
 (defparameter *RECYCLED-4SX-IDS* '())
 (defparameter *LAST-USED-POINT* 0)
@@ -26,23 +18,34 @@
   `(setf *LAST-USED-POINT* ,pt))
 (defmacro next-s3simplex-id ()
   `(incf *LAST-USED-S3SXID*))
-(defmacro next-3simplex-id ()
-  `(incf *LAST-USED-3SXID*))
 (defmacro next-4simplex-id ()
   `(if (null *RECYCLED-4SX-IDS*)
        (incf *LAST-USED-4SXID*)
        (pop *RECYCLED-4SX-IDS*)))
 (defmacro recycle-4simplex-id (sxid)
   `(push ,sxid *RECYCLED-4SX-IDS*))
-  
-(defun 3simplex->id-equality (3sx1 3sx2)
-  (set-equal? (fourth 3sx1) (fourth 3sx2)))
-(defun 3simplex->id-hashfn (3sx)
-  (sxhash (sort (copy-list (fourth 3sx)) #'<)))
 
-(sb-ext:define-hash-table-test 3simplex->id-equality 3simplex->id-hashfn)
-(defparameter *3SIMPLEX->ID* (make-hash-table :test '3simplex->id-equality)) 
-(defparameter *ID->3SIMPLEX* (make-hash-table))
+;;------------------------------------------------------------------------------
+;; timelike subsimplices have the form (type tmlo (p0 p1 ...))
+(defun tlsubsx->id-hashfn (tlsx)
+  (sxhash (sort (copy-list (third tlsx)) #'<)))
+(defun tlsubsx->id-equality (tlsx1 tlsx2)
+  (set-equal? (third tlsx1) (third tlsx2)))
+(sb-ext:define-hash-table-test tlsubsx->id-equality tlsubsx->id-hashfn)
+(defparameter *TL3SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+(defparameter *TL2SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+(defparameter *TL1SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+
+;; spacelike subsimplices have the form (tslice (p0 p1 ...))
+(defun slsubsx->id-hashfn (slsx)
+  (sxhash (sort (copy-list (second slsx)) #'<)))
+(defun slsubsx->id-equality (slsx1 slsx2)
+  (set-equal? (second slsx1) (second slsx2)))
+(sb-ext:define-hash-table-test slsubsx->id-equality slsubsx->id-hashfn)
+(defparameter *SL3SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+(defparameter *SL2SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+(defparameter *SL1SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+;;-----------------------------------------------------------------------------
 (defparameter *ID->SPATIAL-3SIMPLEX* (make-hash-table))
 (defparameter *ID->4SIMPLEX* (make-hash-table :test 'equal))
 
@@ -162,10 +165,7 @@
 (defvar 64MARKER 0.0)
 (defvar 82MARKER 0.0)
 
-(defun action (num0 num41 num32)
-  (+ (* -1.0 (+ KAPPA-0 (* 6.0 DELTA)) num0)
-     (* KAPPA-4 (+ num41 num32))
-     (* DELTA (+ (* 2.0 num41) num32))))
+(defvar action nil)
 
 (defun damping (num41 num32)
   (* EPS (abs (- (+ num41 num32) N-INIT))))
@@ -230,7 +230,13 @@
 
 (defun set-kappa0-delta-kappa4 (k0 D k4)
   (setf KAPPA-0 k0 DELTA D KAPPA-4 k4)
-  (initialize-move-markers))
+  (initialize-move-markers)
+  (let ((c0 (* -1.0 (+ KAPPA-0 (* 6.0 DELTA))))
+	(c41 (+ KAPPA-4 (* 2.0 DELTA)))
+	(c32 (+ KAPPA-4 DELTA)))
+    (setf (symbol-function 'action)
+	  #'(lambda (n0 n41 n32)
+	      (+ (* c0 n0) (* c41 n41) (* c32 n32))))))
 
 (defparameter RNDEXT ".rndsbcl" 
   "used for storing the random state under SBCL compiler")
@@ -297,25 +303,3 @@
   "number of (2,3) timelike pentachora per spatial slice")
 (defparameter N4-TL-23-PER-SLICE 10 
   "number of (3,2) timelike pentachora per spatial slice")
-
-;; the following is used only during debugging
-(defun simplex->id-equality (sxpts1 sxpts2)
-  (set-equal? sxpts1 sxpts2))
-(defun simplex->id-hashfn (sxpts)
-  (sxhash (sort (copy-list sxpts) #'<)))
-(sb-ext:define-hash-table-test simplex->id-equality simplex->id-hashfn)
-(defparameter *N0STORE* (make-hash-table))
-(defparameter *N1SLSTORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N1TLSTORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N2SLSTORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N2TLSTORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N3SLSTORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N3TL31STORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N3TL13STORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N3TL22STORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N4TL14STORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N4TL23STORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N4TL32STORE* (make-hash-table :test 'simplex->id-equality))
-(defparameter *N4TL41STORE* (make-hash-table :test 'simplex->id-equality))
-
-  

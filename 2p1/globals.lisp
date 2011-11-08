@@ -1,23 +1,8 @@
-;+---------------------------------------------------------------------------------------------------------+
-;| cdt-2+1-globals.lisp --- all the parameters that might need to be accessed from multiple files          |
-;+---------------------------------------------------------------------------------------------------------+
-; we use the same random state during testing to verify that the bugs are being fixed.
-;;#+ :sbcl (with-open-file (rndstt "../cdt-random-state-004.rndsbcl" :direction :input)
-;;	   (setf *random-state* (read rndstt)))
-;;#+ :ccl (with-open-file (rndstt "../cdt-random-state-001.rndccl" :direction :input)
-;;	  (setf *random-state* (read rndstt)))
+;; cdt-2+1-globals.lisp --- all the parameters that might need to be accessed 
+;; from multiple files
 
-;; comment the following line to use a fixed seed from above
 (setf *random-state* (make-random-state t))
 
-;;(defun reload-random-state ()
-;;  #+ :sbcl (with-open-file (rndstt "../cdt-random-state-004.rndsbcl" :direction :input)
-;;	     (setf *random-state* (read rndstt)))
-;;  #+ :ccl (with-open-file (rndstt "../cdt-random-state-001.rndccl" :direction :input)
-;;	    (setf *random-state* (read rndstt)))
-;;  )
-
-(defparameter *LAST-USED-2SXID* 0)
 (defparameter *LAST-USED-3SXID* 0)
 (defparameter *RECYCLED-3SX-IDS* '())
 (defparameter *LAST-USED-POINT* 0)
@@ -29,8 +14,6 @@
   `(setf *LAST-USED-POINT* ,pt))
 (defmacro next-s2simplex-id ()
   `(incf *LAST-USED-S2SXID*))
-(defmacro next-2simplex-id ()
-  `(incf *LAST-USED-2SXID*))
 (defmacro next-3simplex-id ()
   `(if (null *RECYCLED-3SX-IDS*)
        (incf *LAST-USED-3SXID*)
@@ -43,11 +26,29 @@
 (defun 2simplex->id-hashfn (2sx)
   (sxhash (sort (copy-list (fourth 2sx)) #'<)))
 
-(sb-ext:define-hash-table-test 2simplex->id-equality 2simplex->id-hashfn)
-(defparameter *2SIMPLEX->ID* (make-hash-table :test '2simplex->id-equality)) 
-(defparameter *ID->2SIMPLEX* (make-hash-table))
+;;------------------------------------------------------------------------------
+;; timelike subsimplices have the form (type tmlo (p0 p1 ...))
+(defun tlsubsx->id-hashfn (tlsx)
+  (sxhash (sort (copy-list (third tlsx)) #'<)))
+(defun tlsubsx->id-equality (tlsx1 tlsx2)
+  (and (= (first tlsx1) (first tlsx2))
+       (= (second tlsx1) (second tlsx2))
+       (set-equal? (third tlsx1) (third tlsx2))))
+(sb-ext:define-hash-table-test tlsubsx->id-equality tlsubsx->id-hashfn)
+(defparameter *TL2SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+(defparameter *TL1SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+;; spacelike subsimplices have the form (tslice (p0 p1 ...))
+(defun slsubsx->id-hashfn (slsx)
+  (sxhash (sort (copy-list (second slsx)) #'<)))
+(defun slsubsx->id-equality (slsx1 slsx2)
+  (and (= (first slsx1) (first slsx2)) 
+       (set-equal? (second slsx1) (second slsx2))))
+(sb-ext:define-hash-table-test slsubsx->id-equality slsubsx->id-hashfn)
+(defparameter *SL2SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+(defparameter *SL1SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+;;-----------------------------------------------------------------------------
 (defparameter *ID->SPATIAL-2SIMPLEX* (make-hash-table))
-(defparameter *ID->3SIMPLEX* (make-hash-table :test 'equal)) ;; why :test 'equal?
+(defparameter *ID->3SIMPLEX* (make-hash-table :test 'equal))
 
 (defconstant 26MTYPE 0 "move type (2,6)")
 (defconstant 23MTYPE 1 "move type (2,3)")
@@ -55,13 +56,10 @@
 (defconstant 32MTYPE 3 "move type (3,2)")
 (defconstant 62MTYPE 4 "move type (6,2)")
 
-;(defconstant ROOT2 (sqrt 2.0))
-;(defconstant KAPPA (/ (acos (/ 1 3)) pi))
-;(defconstant 6ROOT2 (* 6.0 ROOT2))
-;(defconstant 3KAPPAMINUS1 (- (* 3 KAPPA) 1))
-
-(defparameter ATTEMPTED-MOVES (list 1 1 1 1 1) "number of attempted moves for each move type")
-(defparameter SUCCESSFUL-MOVES (list 1 1 1 1 1) "number of successful moves for each move type")
+(defparameter ATTEMPTED-MOVES (list 1 1 1 1 1) 
+  "number of attempted moves for each move type")
+(defparameter SUCCESSFUL-MOVES (list 1 1 1 1 1) 
+  "number of successful moves for each move type")
 
 (defun reset-move-counts ()
   (for (n 0 4)
@@ -111,46 +109,46 @@
 (defparameter STOPOLOGY "unknown" "spatial slice topology --- S2 or T2")
 (defparameter BCTYPE "unknown" "boundary conditions --- PERIODIC or OPEN")
 (defparameter SAVE-EVERY-N-SWEEPS 10 "save every 10 sweeps by default")
-(defparameter NUM-T 666666 "number of time slices --- set to a non-zero value so (mod ts NUM-T) works")
-(defparameter N-INIT 0 "initial volume of spacetime; we try to keep the volume close to this number")
-(defparameter NUM-SWEEPS 0 "number of sweeps for which the simulation is to run")
-(defparameter SIM-START-TIME (cdt-now-str) "set again inside the generate methods for more accurate value")
-(defparameter RNDEXT ".rndsbcl" "used for storing the random state under SBCL compiler")
-(defparameter 3SXEXT ".3sx2p1" "used for storing the parameters and 3simplex information")
-(defparameter PRGEXT ".prg2p1" "used for keeping track of the progress of a simulation run")
-(defparameter MOVEXT ".mov2p1" "used for storing the movie data information")
-(defparameter S2SXEXT ".s2sx2p1" "used for storing the spatial 2-simplex information")
+(defparameter NUM-T 666666 
+  "number of time slices --- set to a non-zero value so (mod ts NUM-T) works")
+(defparameter N-INIT 0 
+  "initial volume of spacetime; we try to keep the volume close to this number")
+(defparameter NUM-SWEEPS 0 
+  "number of sweeps for which the simulation is to run")
+(defparameter SIM-START-TIME (cdt-now-str) 
+  "set again inside the generate methods for more accurate value")
+(defparameter 3SXEXT ".3sx2p1" 
+  "used for storing the parameters and 3simplex information")
+(defparameter PRGEXT ".prg2p1" 
+  "used for keeping track of the progress of a simulation run")
+(defparameter MOVEXT ".mov2p1" 
+  "used for storing the movie data information")
+(defparameter S2SXEXT ".s2sx2p1" 
+  "used for storing the spatial 2-simplex information")
 
+;; pi is a builtin constant
 (defparameter *k0* 0.0)
 (defparameter *k3* 0.0)
 (defparameter *eps* 0.02)
-(defparameter *alpha* -1.0)
-(defparameter *k* 1.0)
-(defparameter *litL* 1.0)
 (defparameter *a* 1.0)
+(defparameter *alpha* -1.0)
 (defparameter *i* #C(0.0 1.0)) ;; complex number i
 (defparameter *-i* #C(0.0 -1.0)) ;; complex number -i
 (defparameter *2/i* (/ 2 *i*))
 (defparameter *2pi/i* (* *2/i* pi))
 (defparameter *3/i* (/ 3 *i*))
-(defparameter *2alpha+1* (+ (* 2 *alpha*) 1))
-(defparameter *4alpha+1* (+ (* 4 *alpha*) 1))
-(defparameter *4alpha+2* (+ (* 4 *alpha*) 2))
-(defparameter *3alpha+1* (+ (* 3 *alpha*) 1))
-;;; wrsqrt is the "wick rotated" sqrt function. Basically wrsqrt(x) = -i*sqrt(-x) when x < 0 and not 
-;;; i*sqrt(-x). So wrsqrt(-1) = -i
-(defmacro wrsqrt (val)
-  `(if (< ,val 0)
-       (* -1 *i* (sqrt (* -1 ,val)))
-       (sqrt ,val)))
-(defparameter *arcsin-1* (asin (/ (* *-i* (wrsqrt (* 8 *2alpha+1*))) *4alpha+1*)))
-(defparameter *arccos-1* (acos (/ *-i* (wrsqrt (* 3 *4alpha+1*)))))
-(defparameter *arccos-2* (acos (/ -1 *4alpha+1*)))
-(defparameter *arccos-3* (acos (/ *2alpha+1* *4alpha+1*)))
 (defparameter ROOT2 (sqrt 2.0))
 (defparameter KAPPA (/ (acos (/ 1 3)) pi))
 (defparameter 6ROOT2 (* 6.0 ROOT2))
 (defparameter 3KAPPAMINUS1 (- (* 3 KAPPA) 1))
+;;; wrsqrt is the "wick rotated" sqrt function. Basically wrsqrt(x) = -i*sqrt(-x) when x < 0 and not 
+;;; i*sqrt(-x). So wrsqrt(-1) = -i
+(defmacro wrsqrt (val)
+  `(if (< ,val 0)
+       (* -1 ,*i* (sqrt (* -1 ,val)))
+       (sqrt ,val)))
+
+(defvar action nil)
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
 (defun generate-filename (&optional (start-sweep 1) (end-sweep (+ start-sweep NUM-SWEEPS -1)))
@@ -168,27 +166,6 @@
 (defvar 44MARKER 0.0)
 (defvar 32MARKER 0.0)
 (defvar 62MARKER 0.0)
-
-;; refer to eqn (35) of dynamically triangulating lorentzian quantum gravity
-;;(defun action-n1TL-n3TL31-n3TL22 (n1tl n3tl31 n3tl22)
-;;  (+
-;;   (* 2 pi invG (sqrt alpha) n1tl)
-;;   (* n3tl31 (+ (* -3 invG (asinh (/ 1 (sqrt (+ (* 12 alpha) 3)))))
-;;		(* -3 invG (sqrt alpha) (acos (/ (+ (* 2 alpha) 1) (+ (* 4 alpha) 1))))
-;;		(* -1 (small-lambda) (sqrt (+ (* 3 alpha) 1)) 1/12)))
-;;   (* n3tl22 (+ (* 2 invG (asinh (/ (sqrt (+ (* 16 alpha) 8)) (+ (* 4 alpha) 1))))
-;;		(* -4 invG (sqrt alpha) (acos (/ -1 (+ (* 4 alpha) 1))))
-;;		(* -1 (small-lambda) (sqrt (+ (* 4 alpha) 2)) 1/12)))
-;;   (* -1 *eps* (abs (- (+ n3tl31 n3tl22) N-INIT)))))
-
-(defun action (num1-sl num1-tl num3-31 num3-22)
-  (- (* *k* (+ (- (* *2pi/i* num1-sl) (* *2/i* num3-22 *arcsin-1*) 
-		  (* *3/i* num3-31 *arccos-1*))
-	       (* (wrsqrt *alpha*) (- (* 2 pi num1-tl) 
-				      (* 4 num3-22 *arccos-2*) 
-				      (* 3 num3-31 *arccos-3*)))))
-     (* (/ *litL* 12) (+ (* num3-22 (wrsqrt *4alpha+2*)) 
-			 (* num3-31 (wrsqrt *3alpha+1*))))))
 
 (defun damping (num3)
   (* *eps* (abs (- num3 N-INIT))))
@@ -229,11 +206,32 @@
 
 (defun set-k0-k3-alpha (kay0 kay3 alpha)
   (setf *k0* kay0 *k3* kay3 *alpha* alpha)
-  (setf *k* (/ *k0* (* 2 *a* pi)))
-  (setf *litL* (* (- *k3* (* 2 *a* pi *k* 3KAPPAMINUS1)) 
+  (initialize-move-markers)
+  (let* ((k (/ *k0* (* 2 *a* pi)))
+	 (litL (* (- *k3* (* 2 *a* pi k 3KAPPAMINUS1)) 
 		  (/ 6ROOT2 (* *a* *a* *a*))))
-  (initialize-move-markers))
-
+	 (2alpha+1 (+ (* 2 *alpha*) 1))
+	 (4alpha+1 (+ (* 4 *alpha*) 1))
+	 (4alpha+2 (+ (* 4 *alpha*) 2))
+	 (3alpha+1 (+ (* 3 *alpha*) 1))
+	 (arcsin-1 (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1)))
+	 (arccos-1 (acos (/ *-i* (wrsqrt (* 3 4alpha+1)))))
+	 (arccos-2 (acos (/ -1 4alpha+1)))
+	 (arccos-3 (acos (/ 2alpha+1 4alpha+1)))
+	 (k1SL (* *2pi/i* k))
+	 (k1TL (* 2 pi k (wrsqrt *alpha*)))
+	 (k3TL31 (+ (* k *3/i* arccos-1) 
+		    (* 3 k (wrsqrt *alpha*) arccos-3)
+		    (* (/ litL 12) (wrsqrt 3alpha+1))))
+	 (k3TL22 (+ (* k *2/i* arcsin-1)
+		    (* 4 k (wrsqrt *alpha*) arccos-2)
+		    (* (/ litL 12) (wrsqrt 4alpha+2)))))
+    (setf (symbol-function 'action)
+	  #'(lambda (n1SL n1TL n3TL31 n3TL22)
+	      (- (+ (* k1SL n1SL) (* k1TL n1TL)) 
+		 (+ (* k3TL31 n3TL31) (* k3TL22 n3TL22)))))))
+  
+  
 ;; initialization data
 
 ;; 5, 6, 7, 8

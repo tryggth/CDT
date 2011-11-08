@@ -95,12 +95,24 @@
 	 (if (> (N3) target-volume)
 	     (return-from tv)))
 
+       ;; (4,4) moves to mix things up
+       (dolist (id44 (get-simplices-of-type 1))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->4 id44))
+	     (2plus1move movedata))))
+
        (dolist (id26 (get-simplices-of-type 3))
 	 (let ((movedata nil))
 	   (when (setf movedata (try-2->6 id26))
 	     (2plus1move movedata)))
 	 (if (> (N3) target-volume)
 	     (return-from tv)))
+
+       ;; (4,4) moves to mix things up
+       (dolist (id44 (get-simplices-of-type 3))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->4 id44))
+	     (2plus1move movedata))))
 
        (dolist (id23 (get-simplices-of-type 2))
 	 (let ((movedata nil))

@@ -1,3 +1,7 @@
+(declaim (optimize (speed 3)
+		   (compilation-speed 0)
+		   (debug 0)
+		   (safety 0)))
 ;; cdt-3plus1-initialization-pbc.lisp --- R x S3 initialization with periodic 
 ;; boundary conditions
 
