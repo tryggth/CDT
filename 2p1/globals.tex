@@ -1,0 +1,41 @@
+\documentclass[12pt,a4paper,landscape]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{color}
+\usepackage[T1]{fontenc}
+\usepackage{courier}
+
+\definecolor{color1}{rgb}{.80, .35, .15}
+\usepackage{listings} 
+
+\lstset {%
+  language=Lisp,
+  basicstyle=\ttfamily,
+  commentstyle=\textit,
+  %identifierstyle=\color{color1},
+  keywordstyle=\color{color1}\bfseries,
+  tabsize=2,
+  showspaces=false,
+  numbers=left,
+  numberstyle=\tiny
+}
+
+\title{Documentation for 2+1 dimension \texttt{globals.lisp}}
+
+\begin{document} 
+\maketitle
+
+The following sets the random state for seeding the random number generator. This guarantees that we
+get a different sequence of random numbers each time we load the file. If you want the same sequence
+each time, which you would during testing to verify if a bug has been fixed, save the 
+\texttt{*random-state*} to a file and load the state from that file.
+
+\lstinputlisting[firstline=4,lastline=4]{globals.lisp}
+
+The next four lines are counters for 3-simplicies, points and space-like 2-simplices. We recycle the 
+ids for 3-simplices
+\lstinputlisting[firstnumber=last,firstline=6,lastline=9]{globals.lisp}
+and the following functions access these counters. \texttt{next-3simplex-id} returns a recycled id,
+\lstinputlisting[firstnumber=last,firstline=11,lastline=22]{globals.lisp}
+if possible, else increments the 3-simplex counter.
+
+\end{document}
