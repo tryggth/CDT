@@ -11,5 +11,5 @@ Tools and code for Causal Dynamical Triangulations
 2p1 and 3p1 code by Rajesh Kommu
 HL (Horava-Lifshitz) code by Christian Anderson
 
-TODO: Fix Christian's code to run on Sun Grid Engine
 TODO: Port to Clojure (and learn from Rajesh' code)
+DONE: Fixed Christian's code to run on Sun Grid Engine
