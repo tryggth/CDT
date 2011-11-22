@@ -32,3 +32,6 @@ _ReSharper*/
 #ignore build nuget packages, include the EXE
 *.nupkg
 !NuGet.exe
+*.prg3p1
+*.4sx3p1
+*.s3sx3p1
