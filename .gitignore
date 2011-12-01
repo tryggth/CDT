@@ -35,3 +35,13 @@ _ReSharper*/
 *.prg3p1
 *.4sx3p1
 *.s3sx3p1
+/pom.xml
+*jar
+/lib
+/classes
+/native
+/.lein-failures
+/checkouts
+/.lein-deps-sum
+*.iml
+/.idea
