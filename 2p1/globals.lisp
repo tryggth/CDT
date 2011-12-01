@@ -21,11 +21,6 @@
 (defmacro recycle-3simplex-id (sxid)
   `(push ,sxid *RECYCLED-3SX-IDS*))
 
-(defun 2simplex->id-equality (2sx1 2sx2)
-  (set-equal? (fourth 2sx1) (fourth 2sx2)))
-(defun 2simplex->id-hashfn (2sx)
-  (sxhash (sort (copy-list (fourth 2sx)) #'<)))
-
 ;;------------------------------------------------------------------------------
 ;; timelike subsimplices have the form (type tmlo (p0 p1 ...))
 (defun tlsubsx->id-hashfn (tlsx)
