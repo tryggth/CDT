@@ -1,6 +1,0 @@
-Module GCC 4.5.0 Loaded.
-Module SBCL v1.0.47 loaded.
-c0-2
-initial count = (1280 2560 2560 1280 7680)
-final count = (39934 22534 28670 39934 131072)
-starting run S3-PERIODIC-T256-V131072-2.0-0.2-0.407-0.02-000000001-000100000-on-c0-2-at-2011-11-07-18-25-23
