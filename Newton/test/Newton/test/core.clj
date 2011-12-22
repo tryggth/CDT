@@ -1,6 +1,7 @@
 (ns Newton.test.core
   (:use [Newton.core])
   (:use [clojure.test])
+  (:use [midje.sweet])
   (:use [Newton.utilities]))
 
 (deftest ^{:utilities true} sum-test
