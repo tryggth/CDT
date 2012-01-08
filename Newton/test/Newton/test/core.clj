@@ -1,12 +1,15 @@
 (ns Newton.test.core
   (:use [Newton.core])
-  (:use [clojure.test])
   (:use [midje.sweet])
   (:use [Newton.utilities]))
 
-(deftest ^{:utilities true} sum-test
-  (is (= (sum '(1 2 3 4 5)) 15))
-  (is (= (sum [1 2 3 4 5 6]) 21)))
+(facts
+  (sum '(1 2 3 4 5)) => 15
+  (sum '(1 2 3 4 5 6)) => 21)
+
+;(deftest ^{:utilities true} sum-test
+;  (is (= (sum '(1 2 3 4 5)) 15))
+;  (is (= (sum [1 2 3 4 5 6]) 21)))
 
 ;;(deftest make-3simplices-test
 ;;  (make-3simplices []))
