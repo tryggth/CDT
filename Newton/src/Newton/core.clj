@@ -1,1 +1,0 @@
-(ns Newton.core)

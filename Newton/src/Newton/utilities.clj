@@ -1,6 +1,4 @@
-(ns Newton.utilities
-;;  (:use [clojure.test])
-  (:use midje.sweet))
+(ns Newton.utilities)
 
 ;; To keep same name conventions as utilities.lisp
 ;; In idiomatic clojure, this could be replaced by the anonymous function
@@ -9,8 +7,3 @@
   "Sums the elements of a list or vector"
   [list]
     (apply + list))
-
-;; Usage/test of sum[...]
-(fact (sum '(1 2 3)) => 6)
-(fact (sum [1 2 3 4 5]) => 15)
-
