@@ -44,4 +44,4 @@ _ReSharper*/
 /checkouts
 /.lein-deps-sum
 *.iml
-/.idea
+/.metadata
