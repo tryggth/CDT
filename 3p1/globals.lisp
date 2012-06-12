@@ -303,3 +303,10 @@
   "number of (2,3) timelike pentachora per spatial slice")
 (defparameter N4-TL-23-PER-SLICE 10 
   "number of (3,2) timelike pentachora per spatial slice")
+
+;;------------------------------------------------------------------------------
+;; a vertex is (point tmslice)
+;(defun vertex-hashfn (vtx) (sxhash vtx))
+;(defun vertex-equality (vtx1 vtx2) (equal vtx1 vtx2))
+;(sb-ext:define-hash-table-test vertex-equality vertex-hashfn)
+;(defparameter *VERTEX-GRAPH* (make-hash-table :test 'vertex-equality))

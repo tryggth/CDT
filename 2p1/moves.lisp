@@ -1,6 +1,6 @@
-;; try-a->b methods returns the following list, IFF the move can be 
-;; successfully made (new3sxids nbors old3sxids oldTL2sxs oldSL2sxs oldTL1sxs oldSL1sx fvector)
-;;
+;; try-a->b methods returns the following list, IFF the move can be successfully 
+;; made 
+;; (new3sxids nbors old3sxids oldTL2sxs oldSL2sxs oldTL1sxs oldSL1sx fvector)
 
 (defun 2plus1move (sxdata)
   (let ((new3sxids (make-3simplices-in-bulk (first sxdata))))
