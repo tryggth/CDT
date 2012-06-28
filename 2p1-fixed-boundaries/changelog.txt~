@@ -1,0 +1,25 @@
+---------------------------------------------------------------------------
+UPDATING 2p1 CODE TO WORK WITH FIXED BOUNDARY CONDITIONS
+---------------------------------------------------------------------------
+
+ORIGINAL 2p1 CDT CODE BY:
+Rajesh Kommu
+
+PREVIOUS 2p1-fixed-boundary CODE BY:
+David Kamensky
+
+UPDATED CODE BY:
+Jonah Miller
+
+
+---------------------------------------------------------------------------
+THE APPROACH
+---------------------------------------------------------------------------
+David Kamensky's code included a bug from outdated code written by
+Rajesh that Rajesh has since fixed with the addition of several data
+structures that work on lower-level simplex information. I decided
+that the best way to make modern 2+1 dimensional code that works with
+fixed boundary conditions would be to port David's methods to Rajesh's
+new code. Fortunately, since Rajesh's changes mostly effect the
+lower-level information, top-level function calls behave exactly the
+same. This means I can port quite a lot of David's code word for word.

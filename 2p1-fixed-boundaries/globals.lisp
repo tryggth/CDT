@@ -1,23 +1,8 @@
-;+---------------------------------------------------------------------------------------------------------+
-;| cdt-2+1-globals.lisp --- all the parameters that might need to be accessed from multiple files          |
-;+---------------------------------------------------------------------------------------------------------+
-; we use the same random state during testing to verify that the bugs are being fixed.
-#+ :sbcl (with-open-file (rndstt "../cdt-random-state-004.rndsbcl" :direction :input)
-	   (setf *random-state* (read rndstt)))
-#+ :ccl (with-open-file (rndstt "../cdt-random-state-001.rndccl" :direction :input)
-	  (setf *random-state* (read rndstt)))
+;; cdt-2+1-globals.lisp --- all the parameters that might need to be accessed 
+;; from multiple files
 
-;; comment the following line to use a fixed seed from above
 (setf *random-state* (make-random-state t))
 
-(defun reload-random-state ()
-  #+ :sbcl (with-open-file (rndstt "../cdt-random-state-004.rndsbcl" :direction :input)
-	     (setf *random-state* (read rndstt)))
-  #+ :ccl (with-open-file (rndstt "../cdt-random-state-001.rndccl" :direction :input)
-	    (setf *random-state* (read rndstt)))
-  )
-
-(defparameter *LAST-USED-2SXID* 0)
 (defparameter *LAST-USED-3SXID* 0)
 (defparameter *RECYCLED-3SX-IDS* '())
 (defparameter *LAST-USED-POINT* 0)
@@ -27,10 +12,8 @@
   `(incf *LAST-USED-POINT*))
 (defmacro set-last-used-pt (pt)
   `(setf *LAST-USED-POINT* ,pt))
-(defmacro next-spatial-2simplex-id ()
+(defmacro next-s2simplex-id ()
   `(incf *LAST-USED-S2SXID*))
-(defmacro next-2simplex-id ()
-  `(incf *LAST-USED-2SXID*))
 (defmacro next-3simplex-id ()
   `(if (null *RECYCLED-3SX-IDS*)
        (incf *LAST-USED-3SXID*)
@@ -38,31 +21,39 @@
 (defmacro recycle-3simplex-id (sxid)
   `(push ,sxid *RECYCLED-3SX-IDS*))
 
-(defun 2simplex->id-equality (2sx1 2sx2)
-  (set-equal? (fourth 2sx1) (fourth 2sx2)))
-(defun 2simplex->id-hashfn (2sx)
-  (sxhash (sort (copy-list (fourth 2sx)) #'<)))
 
 ;;macro to determine the euler characteristic of the spatial slices
 ;;assumes that the only two available are s2 and t2
 (defmacro euler-char ()
-  `(if (string= STOPOLOGY "S2") 2 1)) 
-;; rkommu 2011-05-03 the second number above (chi for torus) should be 0
+  `(if (string= STOPOLOGY "S2") 2 0)) 
+;; JM : In general, it might be better to actually calculate chi. It's
+;; not too hard. On the other hand, this might add up to be
+;; computationally expensive.
 
-#+sbcl
-(sb-ext:define-hash-table-test 2simplex->id-equality 2simplex->id-hashfn)
 
+
+;;------------------------------------------------------------------------------
+;; timelike subsimplices have the form (type tmlo (p0 p1 ...))
+(defun tlsubsx->id-hashfn (tlsx)
+  (sxhash (sort (copy-list (third tlsx)) #'<)))
+(defun tlsubsx->id-equality (tlsx1 tlsx2)
+  (and (= (first tlsx1) (first tlsx2))
+       (= (second tlsx1) (second tlsx2))
+       (set-equal? (third tlsx1) (third tlsx2))))
+(sb-ext:define-hash-table-test tlsubsx->id-equality tlsubsx->id-hashfn)
+(defparameter *TL2SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+(defparameter *TL1SIMPLEX->ID* (make-hash-table :test 'tlsubsx->id-equality))
+;; spacelike subsimplices have the form (tslice (p0 p1 ...))
+(defun slsubsx->id-hashfn (slsx)
+  (sxhash (sort (copy-list (second slsx)) #'<)))
+(defun slsubsx->id-equality (slsx1 slsx2)
+  (and (= (first slsx1) (first slsx2)) 
+       (set-equal? (second slsx1) (second slsx2))))
+(sb-ext:define-hash-table-test slsubsx->id-equality slsubsx->id-hashfn)
+(defparameter *SL2SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+(defparameter *SL1SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
+;;-----------------------------------------------------------------------------
 (defparameter *ID->SPATIAL-2SIMPLEX* (make-hash-table))
-
-#+sbcl
-(defparameter *2SIMPLEX->ID* (make-hash-table :test '2simplex->id-equality)) 
-
-#+ccl
-(defparameter *2SIMPLEX->ID* (make-hash-table :test '2simplex->id-equality 
-					      :hash-function '2simplex->id-hashfn))
-
-(defparameter *ID->2SIMPLEX* (make-hash-table))
-
 (defparameter *ID->3SIMPLEX* (make-hash-table :test 'equal))
 
 (defconstant 26MTYPE 0 "move type (2,6)")
@@ -71,13 +62,10 @@
 (defconstant 32MTYPE 3 "move type (3,2)")
 (defconstant 62MTYPE 4 "move type (6,2)")
 
-(defconstant ROOT2 (sqrt 2.0))
-(defconstant KAPPA (/ (acos (/ 1 3)) pi))
-(defconstant 6ROOT2 (* 6.0 ROOT2))
-(defconstant 3KAPPAMINUS1 (- (* 3 KAPPA) 1))
-
-(defparameter ATTEMPTED-MOVES (list 1 1 1 1 1) "number of attempted moves for each move type")
-(defparameter SUCCESSFUL-MOVES (list 1 1 1 1 1) "number of successful moves for each move type")
+(defparameter ATTEMPTED-MOVES (list 1 1 1 1 1) 
+  "number of attempted moves for each move type")
+(defparameter SUCCESSFUL-MOVES (list 1 1 1 1 1) 
+  "number of successful moves for each move type")
 
 (defun reset-move-counts ()
   (for (n 0 4)
@@ -105,21 +93,14 @@
   "total number of timelike 3simplices (tetrahedra)"
   `(+ N3-TL-31 N3-TL-22))
 
-(defun set-f-vector (v1 v2 v3 v4 v5 v6 v7)
-  (setf N0 v1 N1-SL v2 N1-TL v3 N2-SL v4 N2-TL v5 N3-TL-31 v6 N3-TL-22 v7))
-(defun update-f-vector (dv)
-  (incf N0 (nth 0 dv))
-  (incf N1-SL (nth 1 dv))
-  (incf N1-TL (nth 2 dv))
-  (incf N2-SL (nth 3 dv))
-  (incf N2-TL (nth 4 dv))
-  (incf N3-TL-31 (nth 5 dv))
-  (incf N3-TL-22 (nth 6 dv)))
 
-;;make the deltas of the f-vector macros, so that
-;;they can vary depending on whether the simplex on which
-;;the move is performed is at a boundary
+;;; Book-keeping for the action terms. We input the f-vector and
+;;; b-vector into the action to determine whehter or not to accept a
+;;; move. It is worth noting that we ALSO only accept a move depending
+;;; on whether or not it changes the boundary. Changes to the boundary
+;;; are not allowed.
 
+;; Some macros to determine whether or not a simplex is on a boundary
 ;;first, define macros to determine helpful things about
 ;;the position of a particular simplex
 (defmacro in-upper-sandwich (sxid) 
@@ -139,54 +120,84 @@
 	      (and (= ty 3)
 		   (or (= tl 0) (= tl NUM-T)))))))
 
-;;use the above macros to help determine when special
-;;DF's need to be applied
-(defmacro DF26 (sxid)
-  `(if (has-face-on-boundary ,sxid) ;for fixed boundaries, this is unnecessary
-       (list 1 3 1 2 3 2 0)
-       (list 1 3 2 2 6 4 0)))
-(defmacro DF62 (sxid)
-  `(if (has-face-on-boundary ,sxid) ;for fixed boundaries, this is unnecessary
-       (list -1 -3 -1 -2 -3 -2 0)
-       (list -1 -3 -2 -2 -6 -4 0)))
-(defparameter DF44 (list 0 0 0 0 0 0 0))
-(defparameter DF23 (list 0 0  1 0  2 0  1))
-(defparameter DF32 (list 0 0 -1 0 -2 0 -1))
+;; The f-vector manipulation functions
+(defun set-f-vector (v1 v2 v3 v4 v5 v6 v7)
+  (setf N0 v1 N1-SL v2 N1-TL v3 N2-SL v4 N2-TL v5 N3-TL-31 v6 N3-TL-22 v7))
+(defun update-f-vector (dv)
+  (incf N0 (nth 0 dv))
+  (incf N1-SL (nth 1 dv))
+  (incf N1-TL (nth 2 dv))
+  (incf N2-SL (nth 3 dv))
+  (incf N2-TL (nth 4 dv))
+  (incf N3-TL-31 (nth 5 dv))
+  (incf N3-TL-22 (nth 6 dv)))
 
+;; Changes in the f-vector depending on moves.
+(defparameter DF26 '(1 3 2 2 6 4 0))
+(defparameter DF62 '(-1 -3 -2 -2 -6 -4 0))
+(defparameter DF44 '(0 0 0 0 0 0 0))
+(defparameter DF23 '(0 0 1 0 2 0 1))
+(defparameter DF32 '(0 0 -1 0 -2 0 -1))
 
-;;define some quantities of geometrical objects on the boundaries
-(defparameter N1-SL-boundary 0)
-(defparameter N3-22-boundary 0)
-(defparameter N3-31-boundary 0)
+;;; In addition to the f-vector, which keeps track of total information
+;;; (not bulk information), we also have the b-vector, which keeps
+;;; track of boundary information only. This is useful for
+;;; fixed-boundary systems. Below is all the information the system
+;;; needs to keep track of the boundary (not including hash tables).
 
-;;the above three quantities compose the "b-vector"
+;; Define some quantities of geometrical objects on the boundaries
+(defparameter N1-SL-boundary 0) ; Number of spacelike links on the
+				; boundary. These are the bones used
+				; to calculate the extrinsic curvature
+				; on the boundary.
+(defparameter N3-22-boundary 0) ; Number of (2,2)-simplexes that have
+				; 2 vertexes on the boundary. Useful
+				; for extrinsic curvature calculations
+(defparameter N3-31-boundary 0) ; Number of (3,1)- or (1,3)-simplexes
+				; that have at least one vertex on the
+				; boundary. We don't need them for
+				; extrinsic curvature calculations,
+				; but we need to compare them to N3-31
+				; (total) to figure out the number of
+				; (3,1)-simplices in the bulk.
+
+;; The above three quantities compose the "b-vector," which keeps
+;; track of boundary information. The following two functions
+;; manipulate the b-vector.
 (defun set-b-vector (n1 n2 n3)
+  "Input: N1-SL-boundary, N3-22-boundary N3-31-boundary"
   (setf N1-SL-boundary n1
 	N3-22-boundary n2
 	N3-31-boundary n3))
 (defun update-b-vector (dv)
+  "Input list: (DELTA-N1-SL-b DELTA-N3-22-b DELTA-N3-31-b)"
   (incf N1-SL-boundary (first  dv))
   (incf N3-22-boundary (second dv))
   (incf N3-31-boundary (third  dv)))
 
-;;the deltas of the b-vector are dependent on where a move occurs
-(defmacro DB26 (sxid)
-  `(if (has-face-on-boundary ,sxid) ;for fixed boundaries, this is unnecessary
-       (list 3 0 2) 
-       (list 0 0 0)))
-(defmacro DB62 (sxid)
-  `(if (has-face-on-boundary ,sxid) ;for fixed boundaries, this is unnecessary
-       (list -3 0 -2) 
-       (list  0 0  0)))
-(defparameter DB44 (list 0 0 0))
-(defmacro DB23 (sxid)
+;; As with the f-vector, the change in the b-vector depends on the
+;; move that acts on the spacetime. Unlike the f-vector, the change in
+;; the b-vector ALSO depends on where the move occurs. If the move
+;; acts on a 2-simplex that is NOT on the the boundary, the b-vector
+;; does not change. The only move allowed to act on the boundary is
+;; the 23-move and its inverse, the 32-move. Thus these are the only
+;; moves which have a chance of changing the b-vector.
+(defmacro DB23 (sxid) ; Change in b-vector due to 23-move.
   `(if (in-either-boundary-sandwich ,sxid)
        (list 0 1 0)
        (list 0 0 0)))
-(defmacro DB32 (sxid)
+(defmacro DB32 (sxid) ; change in b-vector due to 32-move. Inverse of
+		      ; DB23
   `(if (in-either-boundary-sandwich ,sxid)
        (list 0 -1 0)
        (list 0  0 0)))
+;; The following moves can't affect the boundary
+(defparameter DB44 '(0 0 0)) ; Change in b-vector due to a 44-move. 44
+			     ; is its own inverse.
+(defparameter DB26 '(0 0 0)) ; Change in b-vector due to a 26-move.
+(defparameter DB62 '(0 0 0)) ; Change in b-vector due to a
+			     ; 62-move. Would be the inverse of DB26
+			     ; if there were any change.
 
 
 (defparameter CURRENT-MOVE-IDENTIFIER "UNKNOWN")
@@ -194,52 +205,71 @@
 (defparameter STOPOLOGY "unknown" "spatial slice topology --- S2 or T2")
 (defparameter BCTYPE "unknown" "boundary conditions --- PERIODIC or OPEN")
 (defparameter SAVE-EVERY-N-SWEEPS 10 "save every 10 sweeps by default")
-(defparameter NUM-T 666666 "number of time slices --- set to a non-zero value so (mod ts NUM-T) works")
-(defparameter N-INIT 0 "initial volume of spacetime; we try to keep the volume close to this number")
-(defparameter NUM-SWEEPS 0 "number of sweeps for which the simulation is to run")
-(defparameter k0 0.0)
-(defparameter k3 0.0)
-(defparameter eps 0.02)
-(defparameter SIM-START-TIME (cdt-now-str) "set again inside the generate methods for more accurate value")
+(defparameter NUM-T 666666 
+  "number of time slices --- set to a non-zero value so (mod ts NUM-T) works")
+(defparameter N-INIT 0 
+  "initial volume of spacetime; we try to keep the volume close to this number")
+(defparameter NUM-SWEEPS 0 
+  "number of sweeps for which the simulation is to run")
+(defparameter SIM-START-TIME (cdt-now-str) 
+  "set again inside the generate methods for more accurate value")
+(defparameter 3SXEXT ".3sx2p1" 
+  "used for storing the parameters and 3simplex information")
+(defparameter PRGEXT ".prg2p1" 
+  "used for keeping track of the progress of a simulation run")
+(defparameter MOVEXT ".mov2p1" 
+  "used for storing the movie data information")
+(defparameter S2SXEXT ".s2sx2p1" 
+  "used for storing the spatial 2-simplex information")
 
+;; pi is a builtin constant
+(defparameter *k0* 0.0)   ; Coupling constant. Related to k and lambda
+(defparameter *k3* 0.0)   ; Coupling constant. Related to k and lambda
+(defparameter *eps* 0.02) ; Damping parameter. For Metropolis algorithm
+(defparameter *a* 1.0)    ; Space-like edge-length
+;; length-squared of a time-like edge is (* *alpha* *a*). Since
+;; *alpha* is negative, the action has been Wick Rotated.
+(defparameter *alpha* -1.0)
+(defparameter *k* 1.0) ; Coupling constant. Changed at runtime.
+;; Small lambda in Ambjorn and Loll. It's (/ *k* G), where G is
+;; Newton's constant.
+(defparameter *litL* 1.0)       
+(defparameter *i* #C(0.0 1.0))   ; complex number i
+(defparameter *-i* #C(0.0 -1.0)) ; complex number -i
+(defparameter *2/i* (/ 2 *i*))
+(defparameter *2pi/i* (* *2/i* pi))
+(defparameter *3/i* (/ 3 *i*))
+;; JM : It's bad lisp style to use constants without *constant*. 
+;; TODO: fix these constant names.
+(defparameter ROOT2 (sqrt 2.0))
+;; Real part of dihedral angle for a 3-simplex around a time-like bone
+;; for both types of simplices, magically. Assumes (= *alpha* -1).
+;; JM : This is somewhat deprecated. Kept only to prevent breakage.
+;; For clarity, I use the formulas in Ambjorn and Loll.
+(defparameter KAPPA (/ (acos (/ 1 3)) pi)) 
+(defparameter 6ROOT2 (* 6.0 ROOT2))
+;; Other useful dihedral angle.
+(defparameter 3KAPPAMINUS1 (- (* 3 KAPPA) 1)) 
 
-#+ :sbcl 
-(defparameter RNDEXT ".rndsbcl" "used for storing the random state under SBCL compiler")
-#+ :ccl 
-(defparameter RNDEXT ".rndccl" "used for storing the random state under CCL compiler")
-
-(defparameter 3SXEXT ".3sx2p1" "used for storing the parameters and 3simplex information")
-(defparameter PRGEXT ".prg2p1" "used for keeping track of the progress of a simulation run")
-(defparameter MOVEXT ".mov2p1" "used for storing the movie data information")
-
-(defvar action nil)
-
-;;(defun action-S1xS2 (num-0 num-3)
-;;  (+ (- (* k3 num-3) (* k0 num-0)) (* eps (abs (- num-3 N-INIT)))))
-
-;;; wrsqrt is the "wick rotated" sqrt function. Basically wrsqrt(x) = -i*sqrt(-x) when x < 0 and not 
-;;; i*sqrt(-x). So wrsqrt(-1) = -i
+;;; wrsqrt is the "wick rotated" sqrt function. Basically 
+;;; wrsqrt(x) = -i*sqrt(-x) when x < 0 and not i*sqrt(-x). 
+;;; So wrsqrt(-1) = -i
 (defmacro wrsqrt (val)
   `(if (< ,val 0)
-       (* -1 *cmplx-i* (sqrt (* -1 ,val)))
+       (* -1 ,*i* (sqrt (* -1 ,val)))
        (sqrt ,val)))
 
-(defparameter *a* 1.0)
-(defparameter *alpha* -1.0)
-(defparameter *cmplx-i* #C(0.0 1.0)) ;; complex number i
-(defparameter *minus-cmplx-i* #C(0.0 -1.0)) ;; complex number -i
-(defparameter *k* 1.0)
-(defparameter *litL* 1.0)
+(defvar action nil)
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
 (defun generate-filename (&optional (start-sweep 1) (end-sweep (+ start-sweep NUM-SWEEPS -1)))
   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-on-~A-started~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT k0 k3 eps *alpha* start-sweep end-sweep (hostname) (cdt-now-str)))
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* start-sweep end-sweep (hostname) (cdt-now-str)))
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-hostname-starttime-currenttime
 (defun generate-filename-v2 (&optional (ssweep 1) (csweep 0) (esweep (+ ssweep NUM-SWEEPS -1)))
   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-on-~A-start~A-curr~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT k0 k3 eps *alpha* ssweep csweep esweep 
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* ssweep csweep esweep 
 	  (hostname) SIM-START-TIME (cdt-now-str)))
 
 (defvar 26MARKER 0.0)
@@ -248,37 +278,8 @@
 (defvar 32MARKER 0.0)
 (defvar 62MARKER 0.0)
 
-;;the dihedral angle of an equilateral tetrahedron
-(defparameter *theta* (acos 1/3))
-(defparameter *sxvol* (/ 1 (* 6 (sqrt 2))))
-
-;;define action as the _euclidean_ action, to be used directly as the weight in the
-;;partition function
-
-;;also, assumes alpha = -1, a = 1
-
-(defun action (num1-sl num1-tl num3-22  num3-31
-	       ;;some additional arguments to be passed for
-	       ;;open boundary conditions
-	       num1-sl-boundary
-	       num3-22-boundary
-	       num3-31-boundary)
-
-  ;;define some variables to ease the expression-writing
-  (let* ((num3  (+ num3-22 num3-31))
-	 (num1  (+ num1-sl num1-tl)))
-
-    ;;expression for the euclidean action
-    (+ (* *litL* *sxvol* num3) 
-       (* (- *k*) (- (* 2 pi (- num1 num1-sl-boundary)) 
-		     (* (- (* 6 num3) (* 3 num3-31-boundary) num3-22-boundary) *theta*)))
-       
-       ;;boundary term:
-       (* (- *k*) (- (* pi num1-sl-boundary) (* *theta* (+ (* 3 num3-31-boundary) num3-22-boundary)))))))
-
-
 (defun damping (num3)
-  (* eps (abs (- num3 N-INIT))))
+  (* *eps* (abs (- num3 N-INIT))))
 
 (defun initialize-move-markers ()
   (setf 26MARKER 5.0)
@@ -289,11 +290,16 @@
 
 (defun update-move-markers ()
   (let ((num-successful-moves (apply #'+ SUCCESSFUL-MOVES)))
-    (setf 26MARKER (float (/ num-successful-moves (nth 26MTYPE SUCCESSFUL-MOVES))))
-    (setf 23MARKER (+ 26MARKER(float (/ num-successful-moves (nth 23MTYPE SUCCESSFUL-MOVES)))))
-    (setf 44MARKER (+ 23MARKER(float (/ num-successful-moves (nth 44MTYPE SUCCESSFUL-MOVES)))))
-    (setf 32MARKER (+ 44MARKER(float (/ num-successful-moves (nth 32MTYPE SUCCESSFUL-MOVES)))))
-    (setf 62MARKER (+ 32MARKER(float (/ num-successful-moves (nth 62MTYPE SUCCESSFUL-MOVES)))))))
+    (setf 26MARKER (float (/ num-successful-moves 
+			     (nth 26MTYPE SUCCESSFUL-MOVES))))
+    (setf 23MARKER (+ 26MARKER(float (/ num-successful-moves 
+					(nth 23MTYPE SUCCESSFUL-MOVES)))))
+    (setf 44MARKER (+ 23MARKER(float (/ num-successful-moves 
+					(nth 44MTYPE SUCCESSFUL-MOVES)))))
+    (setf 32MARKER (+ 44MARKER(float (/ num-successful-moves 
+					(nth 32MTYPE SUCCESSFUL-MOVES)))))
+    (setf 62MARKER (+ 32MARKER(float (/ num-successful-moves 
+					(nth 62MTYPE SUCCESSFUL-MOVES)))))))
 
 (defun select-move ()
   (let ((rndval (random 62MARKER))
@@ -309,30 +315,151 @@
 		    (setf mtype 4)))))
     mtype))
 
-(defun set-k0-k3-alpha (kay0 kay3 alpha)
-  (setf k0 kay0 k3 kay3 *alpha* alpha)
-  (setf *k* (/ k0 (* 2 *a* pi)))
-  (setf *litL* (* (- k3 (* 2 *a* pi *k* 3KAPPAMINUS1)) (/ 6ROOT2 (* *a* *a* *a*))))
+;;; The following functions will be used to construct the
+;;; action. action-exposed is the form of the action, and this is
+;;; where changes to the form of the action should be made. It is not,
+;;; however, the action function used in the metropolis
+;;; algorithm. Instead, make-action is called by set-k0-k3-alpha (or
+;;; alternatively set-k-litL-alpha), which then sets the variable
+;;; name, 'action, which was set with defvar above to the proper
+;;; function. This save somputational time because alpha, k, and litL
+;;; don't have to passed to the function every time, but are still
+;;; change-able at run-time. This is a trick that would only work in a
+;;; language like lisp, where functions are compiled but an
+;;; interpreted environment still exists at runtime.
+
+;; Functional form of the corrected action that uses arbitrary alpha
+;; and arbitrary k and lambda. Set ret-coup to true for
+;; debugging. Note that the action is purely complex. This is expected
+;; after Wick rotation and the correct partition function is e^{i
+;; action}. Note that if the b-vector is zero (i.e., there is no
+;; boundary, i.e., we have periodic boundary conditions), the action
+;; reduces to the bulk action.
+(defun action-exposed (num1-sl num1-tl num3-31 num3-22 
+	       ; Some additional arguments that need to be passed for
+	       ; open boundary conditions. In theory, the number of
+	       ; (3,1)-simplices connected to the boundary should be
+	       ; looked at too. At the fixed bounary, they don't
+	       ; change and have no effect on the dynamics. However at
+	       ; the other boundary, which we do not keep fixed, they
+	       ; have a substantial effect.
+	       num1-sl-boundary ; spacelike links on boundary
+	       num3-22-boundary ; (2,2)-simplices connected at boundary
+	       num3-31-boundary ; (3,1)- and (1,3)-simplices connected at boundary
+	       alpha k litL ; Tuning parameters
+	       &optional (ret-coup nil))
+  "The action before setting coupling constants."
+  (let* ((2alpha+1 (+ (* 2 alpha) 1))
+	 (4alpha+1 (+ (* 4 alpha) 1))
+	 (4alpha+2 (+ (* 4 alpha) 2))
+	 (3alpha+1 (+ (* 3 alpha) 1))
+	 ; (2,2)-simpleses in the bulk
+	 (num3-22-bulk (- num3-22 num3-22-boundary))
+	 ; (3,1)-simplexes in the bulk
+	 (num3-31-bulk (- num3-31 num3-31-boundary))
+	 ; Space-like edges/links in the bulk
+	 (num1-sl-bulk (- num1-sl num1-sl-boundary))
+	 ; dihedral angle around spacelike bone for (2,2) simplices
+	 (arcsin-1 (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1))) 
+	 ; dihedral angle around spacelike bones for (3,1) simplices
+	 (arccos-1 (acos (/ *-i* (wrsqrt (* 3 4alpha+1)))))
+	 ;dihedral angle around timelike bones for (2,2) simplices
+	 (arccos-2 (acos (/ -1 4alpha+1)))
+	 ; dihedral angle around time-like bones for (3,1) simplices
+	 (arccos-3 (acos (/ 2alpha+1 4alpha+1)))
+	 ;; Bulk action assuming closed manifold.
+	 (A (* *2pi/i* k))
+	 (B (* (wrsqrt alpha) 2 pi k))
+	 (C (- (+ (* *3/i* arccos-1 k) (* (wrsqrt alpha) 3 arccos-3 k) (* (/ litL 12) (wrsqrt 3alpha+1)))))
+	 (D (- (+ (* *2/i* arcsin-1 k) (* (wrsqrt alpha) 4 arccos-2 k) (* (/ litL 12) (wrsqrt 4alpha+2)))))
+	 (E (- (* k (/ pi *i*))))
+	 (F (* *2/i* k arccos-1))
+	 (G (* (/ k *i*) arcsin-1)))
+    (if ret-coup
+	(list arcsin-1 arccos-1 arccos-2 arccos-3 A B C D E F G)
+	; Bulk term
+	(+ (* A num1-sl-bulk k) (* B num1-tl) (* C num3-31-bulk) (* D num3-22-bulk)
+	   ; Boundary term
+	   (* E num1-sl-boundary) (* F num1-sl-boundary) (* G num3-22-boundary)))))
+
+(defun make-action (alpha k litL)
+  "Construct an action with fixed coupling constants for use in the simulation."
+  (setf (symbol-function 'action)
+	#'(lambda (num1-sl num1-tl num3-31 num3-22
+		   num1-sl-boundary num3-22-boundary num3-31-boundary)
+	    (action-exposed num1-sl num1-tl num3-31 num3-22
+			    num1-sl-boundary num3-22-boundary num3-31-boundary
+			    alpha k litL))))
+
+;;; Functions to set coupling constants and build action. Both
+;;; functions are equivalent. They just take different inputs.
+
+;; Takes k0-k3-alpha as input, sets k, lambda, alpha, k0, k3, and then
+;; constructs an action and initializes moves.
+(defun set-k0-k3-alpha (k0 k3 alpha)
+  (setf *k0* k0 *k3* k3 *alpha* alpha)
+  (setf *k* (/ *k0* (* 2 *a* pi)))
+  (setf *litL* (* (- *k3* (* 2 *a* pi *k* 3KAPPAMINUS1)) (/ 6ROOT2 (* *a* *a* *a*))))
+  (make-action *alpha* *k* *litL*)
   (initialize-move-markers))
 
-;;function analogous to set-k0-k3-alpha, but for k, litL, and alpha
-;;(does not bother to set k0 and k3)
-(defun set-k-litL-alpha (new-k new-litL new-alpha)
-  (setf *k*     new-k
-        *litL*  new-litL
-        *alpha* new-alpha)
-	
-  ;;also set k0, k3 for compatibility with rest of code (saving/loading, filename generation, etc)
-  (setf k0 (* *k* (* 2 *a* pi))
-	k3 (+ (/ (* *litL* *a* *a* *a*) 6ROOT2) (* 2 *a* pi *k* 3KAPPAMINUS1)))
+;; Function analogous to set-k0-k3-alpha, but takes k, litL, and alpha
+;; as inputs.
+(defun set-k-litL-alpha (k litL alpha)
+  (prog nil
+     (setf *k* k
+	   *litL*  litL
+	   *alpha* alpha)
+     (setf *k0* (* *k* (* 2 *a* pi))
+	   *k3* (+ (/ (* *litL* *a* *a* *a*) 6ROOT2) (* 2 *a* pi *k* 3KAPPAMINUS1)))
+     (make-action *alpha* *k* *litL*)
+     (initialize-move-markers)))
 
-  (initialize-move-markers))
+;; JM: Deprecated. I've replaced this with the functions
+;; above. However, for completeness and for debugging, I've left the
+;; original function in here. A warning: IT DOES NOT CONSTRUCT AN
+;; ACTION WITH THE BOUNDARY CONDITION TERM INCLUDED.
+(defun set-k0-k3-alpha-deprecated (kay0 kay3 alpha)
+  (setf *k0* kay0 *k3* kay3 *alpha* alpha)
+  (initialize-move-markers)
+  (let* ((k (/ *k0* (* 2 *a* pi)))
+	 (litL (* (- *k3* (* 2 *a* pi k 3KAPPAMINUS1)) 
+		  (/ 6ROOT2 (* *a* *a* *a*))))
+	 (2alpha+1 (+ (* 2 *alpha*) 1))
+	 (4alpha+1 (+ (* 4 *alpha*) 1))
+	 (4alpha+2 (+ (* 4 *alpha*) 2))
+	 (3alpha+1 (+ (* 3 *alpha*) 1))
+	 (arcsin-1 (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1)))
+	 (arccos-1 (acos (/ *-i* (wrsqrt (* 3 4alpha+1)))))
+	 (arccos-2 (acos (/ -1 4alpha+1)))
+	 (arccos-3 (acos (/ 2alpha+1 4alpha+1)))
+	 (k1SL (* *2pi/i* k))
+	 (k1TL (* 2 pi k (wrsqrt *alpha*)))
+	 (k3TL31 (+ (* k *3/i* arccos-1) 
+		    (* 3 k (wrsqrt *alpha*) arccos-3)
+		    (* (/ litL 12) (wrsqrt 3alpha+1))))
+	 (k3TL22 (+ (* k *2/i* arcsin-1)
+		    (* 4 k (wrsqrt *alpha*) arccos-2)
+		    (* (/ litL 12) (wrsqrt 4alpha+2)))))
+    (setf (symbol-function 'action)
+	  #'(lambda (n1SL n1TL n3TL31 n3TL22)
+	      (- (+ (* k1SL n1SL) (* k1TL n1TL)) 
+		 (+ (* k3TL31 n3TL31) (* k3TL22 n3TL22)))))))
+  
+
+;;;----------------------------------------------------------------------------------------------------------  
+;;; initialization data 
+;;;----------------------------------------------------------------------------------------------------------  
 
 
+;;; JM: I am unconvinced the initialization data should be in the
+;;; globals section... it seems like it should live in
+;;; "initialization.lisp." I guess I'll leave it here for now.
 
-;;----------------------------------------------------------------------------------------------------------
-;; initialization data
-;;----------------------------------------------------------------------------------------------------------
+;;; CHANGELOG: Using David Kemansky's initialization data rather than
+;;; Rajesh Kommu's original initialization data.
+
+
 
 ;; 5, 6, 7, 8
 ;;------------ t=1
@@ -388,12 +515,27 @@
 ;;			  (12 44 20 24) (12 44 24 28) (12 44 28 32) (12 44 32 16)))
 
 
-(defun reset-spacetime ()
+
+;;;-----------------------------------------------------------------------------
+;;; RESET THE SIMULATION
+;;;-----------------------------------------------------------------------------
+
+;;; JM: Resetting the simulation at runtime is tricky business. The
+;;; following two functions reset the system in different ways. It's
+;;; not terribly important that these functions work properly. They're
+;;; mostly usefull for debuging at runtime.
+
+;; reset-spacetime-fast is a faster way to reset the spacetime, but it
+;; is dangerous because I am not certain all hash tables and important
+;; variables are reset. Use at your own risk. Further note that
+;; boundary variables are not reset.
+(defun reset-spacetime-fast ()
   "the state of the simulation after (reset-spacetime) is identical 
-to the state after (load \"cdt2p1.lisp\")"
+to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
   ;; clear the hash tables
-  (clrhash *2SIMPLEX->ID*)
-  (clrhash *ID->2SIMPLEX*)
+  (clrhash *TL2SIMPLEX->ID*)
+  (clrhash *SL2SIMPLEX->ID*)
+  (clrhash *ID->SPATIAL-2SIMPLEX*)
   (clrhash *ID->3SIMPLEX*)
   ;; reset the counters
   (setf *LAST-USED-2SXID* 0)
@@ -409,9 +551,9 @@ to the state after (load \"cdt2p1.lisp\")"
   (setf N3-TL-31 0)
   (setf N3-TL-22 0)
   ;; reset the parameters
-  (setf k0 0.0)
-  (setf k3 0.0)
-  (setf eps 0.02)
+  (setf *k0* 0.0)
+  (setf *k3* 0.0)
+  (setf *eps* 0.02)
   (setf *a* 1.0)
   (setf *alpha* -1.0)
   (setf *k* 1.0)
@@ -430,3 +572,9 @@ to the state after (load \"cdt2p1.lisp\")"
   (setf 44MARKER 0.0)
   (setf 32MARKER 0.0)
   (setf 62MARKER 0.0))
+
+;; reset-spacetime-slow simply reloads all modules and essentially
+;; restarts the simulation. Only useful for runtime debugging.
+(defun reset-spacetime-slow nil
+  "Reloads all modules and restarts simulation. Use at your own risk."
+  (load "cdt2p1.lisp"))

@@ -1,0 +1,59 @@
+---------------------------------------------------------------------------
+UPDATING 2p1 CODE TO WORK WITH FIXED BOUNDARY CONDITIONS
+---------------------------------------------------------------------------
+
+ORIGINAL 2p1 CDT CODE BY:
+Rajesh Kommu
+
+PREVIOUS 2p1-fixed-boundary CODE BY:
+David Kamensky
+
+UPDATED CODE BY:
+Jonah Miller
+
+
+---------------------------------------------------------------------------
+THE APPROACH
+---------------------------------------------------------------------------
+David Kamensky's code included a bug from outdated code written by
+Rajesh that Rajesh has since fixed with the addition of several data
+structures that work on lower-level simplex information. I decided
+that the best way to make modern 2+1 dimensional code that works with
+fixed boundary conditions would be to port David's methods to Rajesh's
+new code. Fortunately, since Rajesh's changes mostly affect the
+lower-level function calls, top-level function calls behave exactly the
+same. This means I can port quite a lot of David's code word for word. 
+
+I also need to fix some slightly incorrect physics in David's
+code. David had the boundary term of the action incorrectly calculated
+(some very minor errors). These have been fixed.
+
+---------------------------------------------------------------------------
+CHANGES
+---------------------------------------------------------------------------
+June 24th, 2012 -- Bug-fixed David's code so that it runs. Fixed action.
+     	   	   Did not add necessary data structures for full update. 
+		   This was just a test.
+
+June 25th, 2012 -- Renamed David's program 2p1-fixed-boundaries-old
+     	   	-- Created a copy of Rajesh's 2p1 code as 
+		   2p1-fixed-boundaries and replaced Rajesh's 
+		   initialization.lisp with David's.
+		
+
+June 26th, 2012 -- Ported correct action with boundary-condition terms to 
+		   2p1-fixed-boundaries code.
+		-- Ported b-vector from David's old code to new
+		   2p1-fixed-boundaries.
+
+TODO ------------  Moves are not yet rejected if they attempt to change
+     		   boundary. I need to figure out how this works. New action
+		   is not yet read out in metropolis algorithm.
+
+June 27th, 2012 -- Updated David's simplex counting functions to take
+     	   	   advantage of Rajesh's new simplex data structures.
+		   These are required for David's initialization.lisp
+		   file to work.
+
+TODO ------------- Make sure David's initialization.lisp makes calls
+     		   to functions that all exist. This is nontrivial.
