@@ -98,22 +98,21 @@
 	 
 	 ;; We need the action to be real and <1 to get a real
 	 ;; probability distribution out:
-	 (action-okay (and 
-		       (zerop (imagpart delta-action))
-		       (> 0 (realpart delta-action)))))
+	 (action-okay (zerop (imagpart delta-action))))
 
-	 ;; Raise an error message if the action is not okay.
-	 (if (not action-okay)
-	     (prog nil
-		(print "Data:")
-		(print (list d-n1-sl d-n1-tl d-n3-tl-31 d-n3-tl-22
-			     d-n1-sl-b d-n3-22-b d-n3-31-b 
-			     *alpha* *k* *litL*))
-		(print "i*action:")
-		(print delta-action)
-		(error "i*action must be less than zero and action must be completely imaginary."))
-	     (< (random 1.0) (* (exp delta-action)
-				(exp (- delta-damping)))))))
+    ;; Raise an error message if the action is not okay.
+    ;;    (print delta-action) ; For debugging the action. 
+    (if (not action-okay)
+	(prog nil
+	   (print "Data:")
+	   (print (list d-n1-sl d-n1-tl d-n3-tl-31 d-n3-tl-22
+			d-n1-sl-b d-n3-22-b d-n3-31-b 
+			*alpha* *k* *litL*))
+	   (print "i*action:")
+	   (print delta-action)
+	   (error "Action must be completely imaginary."))
+	(< (random 1.0) (* (exp (realpart delta-action))
+			   (exp (- delta-damping)))))))
 
 ;; JM: The old accept-move? function. Left for completeness. Doesn't
 ;; take into account the additional terms to the action. DEPRECATED
