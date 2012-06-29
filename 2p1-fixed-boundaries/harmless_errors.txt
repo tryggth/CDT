@@ -1,0 +1,148 @@
+Author: Jonah Miller (jonah.miller@colorado.edu)
+Date: June 28, 2012
+
+The Following Errors Are Harmless
+
+(load "/home/jonah/CDT/2p1-fixed-boundaries/cdt2p1.lisp")
+
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/globals.lisp
+; in: DEFUN RESET-SPACETIME-FAST
+;     (SETF *LAST-USED-2SXID* 0)
+; ==>
+;   (SETQ *LAST-USED-2SXID* 0)
+; 
+; caught WARNING:
+;   undefined variable: *LAST-USED-2SXID*
+; 
+; compilation unit finished
+;   Undefined variable:
+;     *LAST-USED-2SXID*
+;   caught 1 WARNING condition
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
+; in: DEFUN LIST-KEYS-WITH-TRAIT
+;     (FLET ((DISCRIMINATOR (HKEY HVAL)
+;              (WHEN (FUNCALL TRAIT #) (PUSH HKEY KEYLIST))))
+;       (MAPHASH #'DISCRIMINATOR HASHTABLE)
+;       KEYLIST)
+; 
+; caught STYLE-WARNING:
+;   The variable HVAL is defined but never used.
+; 
+; compilation unit finished
+;   caught 1 STYLE-WARNING condition
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
+; in: DEFUN COUNT-KEYS-WITH-TRAIT
+;     (FLET ((DISCRIMINATOR (HKEY HVAL)
+;              (WHEN (FUNCALL TRAIT #) (INCF COUNT 1))))
+;       (MAPHASH #'DISCRIMINATOR HASHTABLE)
+;       COUNT)
+; 
+; caught STYLE-WARNING:
+;   The variable HVAL is defined but never used.
+; 
+; compilation unit finished
+;   caught 1 STYLE-WARNING condition
+
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/moves.lisp
+; in: DEFUN 2->3-MOVE-INTERNAL-12
+;     (LIST NEWSXDATA NBORS (LIST 13ID 22ID) OLDTL2SXS NIL NIL NIL DF23 DB23)
+; 
+; caught WARNING:
+;   undefined variable: DB23
+; 
+; compilation unit finished
+;   Undefined variable:
+;     DB23
+;   caught 1 WARNING condition
+
+; in: DEFUN 2->3-MOVE-INTERNAL-32
+;     (LIST NEWSXDATA NBORS (LIST 31ID 22ID) OLDTL2SXS NIL NIL NIL DF23 DB23)
+; 
+; caught WARNING:
+;   undefined variable: DB23
+; 
+; compilation unit finished
+;   Undefined variable:
+;     DB23
+;   caught 1 WARNING condition
+
+; in: DEFUN 3->2-MOVE-INTERNAL-122
+;     (LIST NEWSXDATA NBORS (LIST 13ID 22ID1 22ID2) OLDTL2SXS NIL OLDTL1SXS NIL
+;           DF32 DB32)
+; 
+; caught WARNING:
+;   undefined variable: DB32
+; 
+; compilation unit finished
+;   Undefined variable:
+;     DB32
+;   caught 1 WARNING condition
+
+; in: DEFUN 3->2-MOVE-INTERNAL-322
+;     (LIST NEWSXDATA NBORS (LIST 31ID 22ID1 22ID2) OLDTL2SXS NIL OLDTL1SXS NIL
+;           DF32 DB32)
+; 
+; caught WARNING:
+;   undefined variable: DB32
+; 
+; compilation unit finished
+;   Undefined variable:
+;     DB32
+;   caught 1 WARNING condition
+
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/initialization.lisp
+; in: DEFUN TRIANGULATE-31-COMPLEX
+;     (TRIANGULATE-13-COMPLEX POINT FACE TMHI TMLO)
+; 
+; caught STYLE-WARNING:
+;   undefined function: TRIANGULATE-13-COMPLEX
+; 
+; compilation unit finished
+;   Undefined function:
+;     TRIANGULATE-13-COMPLEX
+;   caught 1 STYLE-WARNING condition
+
+; in: DEFUN INITIALIZE-T-SLICES-WITH-V-VOLUME
+;     (TRY-MOVE (RANDOM *LAST-USED-3SXID*)
+;      (IF (< TYPE-CHOOSER 1)
+;          0
+;          1))
+; 
+; caught STYLE-WARNING:
+;   undefined function: TRY-MOVE
+; 
+; compilation unit finished
+;   Undefined function:
+;     TRY-MOVE
+;   caught 1 STYLE-WARNING condition
+
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/montecarlo.lisp
+; in: DEFUN ACCEPT-MOVE?
+;     (ACTION (+ N1-SL D-N1-SL) (+ N1-TL D-N1-TL) (+ N3-TL-31 D-N3-TL-31)
+;      (+ N3-TL-22 D-N3-TL-22) (+ N1-SL-BOUNDARY D-N1-SL-B)
+;      (+ N3-22-BOUNDARY D-N3-22-B) (+ N3-31-BOUNDARY D-N3-31-B))
+; 
+; caught STYLE-WARNING:
+;   undefined function: ACTION
+; 
+; compilation unit finished
+;   Undefined function:
+;     ACTION
+;   caught 1 STYLE-WARNING condition
+
+; in: DEFUN ACCEPT-MOVE?-DEPRECATED
+;     (ACTION (+ N1-SL 3) (+ N1-TL 2) (+ N3-TL-31 4) (+ N3-TL-22 0))
+; 
+; caught STYLE-WARNING:
+;   undefined function: ACTION
+; 
+; compilation unit finished
+;   Undefined function:
+;     ACTIONN
+;   caught 1 STYLE-WARNING condition

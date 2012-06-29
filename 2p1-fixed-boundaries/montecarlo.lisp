@@ -1,5 +1,6 @@
 ; cdt-2plus1-montecarlo.lisp
 
+;; translate a move type into an actual move
 (defun try-move (sxid mtype)
   (ecase mtype
     (0 (try-2->6 sxid))
@@ -24,7 +25,100 @@
 		 (count-simplices-of-all-types))
 	 (finish-output)))))
 
-(defun accept-move? (mtype)
+
+;; JM: The new accept-move? function which calculates whether or not
+;; to accept a move based on how the move affects the action. This is
+;; seperate from the rejection of a move if try-move returns nil. This
+;; function relies on the fact that the action action is linear in
+;; N_simplexes such that a change in the number of simplexes we keep
+;; track of translates directly into a change in the
+;; action. accept-move? is now a function of the sxid because DB and
+;; DF behave differently depending on simplex location.
+(defun accept-move? (mtype sxid)
+  (let* (;; Determine what vectors to use, based on the type of move
+
+	 ;; This is the change in the f-vector due to the move (see
+	 ;; the DF* parameters in "globals.lisp")
+	 (DF 
+	  (ecase mtype
+	    (0 DF26)   ; 2->6 move
+	    (1 DF23)   ; 2->3 move
+	    (2 DF44)   ; 2->4 move
+	    (3 DF32)   ; 3->2 move
+	    (4 DF62))) ; 6->2 move
+	 
+	 ;; This is the change in some relevant quantities at the
+	 ;; boundary (see DB* parameters in "globals.lisp")
+	 (DB
+	  (ecase mtype
+	    (0 DB26)        ; 2->6 move
+	    (1 (DB23 sxid)) ; 2->3 move
+	    (2 DB44)        ; 4->4 move
+	    (3 (DB32 sxid)) ; 3->2 move
+	    (4 DB62)))      ; 6->2 move 
+	 
+	 ;; Determine the changes in different numbers of geometrical
+	 ;; objects If your action doesn't require all of these
+	 ;; quantities, comment some out. For clarity, please do not
+	 ;; erase them.
+;	 (d-n0       (nth 0 DF)) ; Not currently used
+	 (d-n1-sl    (nth 1 DF)) ; Change in  N1-SL
+	 (d-n1-tl    (nth 2 DF)) ; Chnange in N1-TL. etc.
+;	 (d-n2-sl    (nth 3 DF)) ; Not currently used
+;	 (d-n2-tl    (nth 4 DF)) ; Not currently used
+	 (d-n3-tl-31 (nth 5 DF))
+	 (d-n3-tl-22 (nth 6 DF))
+	 (d-n3       (+ d-n3-tl-31 d-n3-tl-22))
+	 (d-n1-sl-b  (nth 0 DB))
+	 (d-n3-22-b  (nth 1 DB))
+	 (d-n3-31-b  (nth 2 DB))
+
+	 ;; N3 is not defined as a global constant. So, for
+	 ;; convenience, it is defined here.
+	 (N3 (+ N3-TL-31 N3-TL-22))
+
+	 ;; Determine the change in the damping
+	 (delta-damping (- (damping (+ N3 d-n3)) (damping N3)))
+	 
+	 ;; Determine the change in the action
+	 (old-action (action N1-SL N1-TL N3-TL-31 N3-TL-22 
+			     N1-SL-boundary 
+			     N3-22-boundary
+			     N3-31-boundary))
+	 (new-action (action (+ N1-SL d-n1-sl)
+			     (+ N1-TL d-n1-tl)
+			     (+ N3-TL-31 d-n3-tl-31)
+			     (+ N3-TL-22 d-n3-tl-22)
+			     (+ N1-SL-boundary d-n1-sl-b)
+			     (+ N3-22-boundary d-n3-22-b)
+			     (+ N3-31-boundary d-n3-31-b)))
+	 ;; Complete the Wick rotation by multiplying by i to form the
+	 ;; Euclidean action.
+	 (delta-action (* *i* (- new-action old-action)))
+	 
+	 ;; We need the action to be real and <1 to get a real
+	 ;; probability distribution out:
+	 (action-okay (and 
+		       (zerop (imagpart delta-action))
+		       (> 0 (realpart delta-action)))))
+
+	 ;; Raise an error message if the action is not okay.
+	 (if (not action-okay)
+	     (prog nil
+		(print "Data:")
+		(print (list d-n1-sl d-n1-tl d-n3-tl-31 d-n3-tl-22
+			     d-n1-sl-b d-n3-22-b d-n3-31-b 
+			     *alpha* *k* *litL*))
+		(print "i*action:")
+		(print delta-action)
+		(error "i*action must be less than zero and action must be completely imaginary."))
+	     (< (random 1.0) (* (exp delta-action)
+				(exp (- delta-damping)))))))
+
+;; JM: The old accept-move? function. Left for completeness. Doesn't
+;; take into account the additional terms to the action. DEPRECATED
+;; USE AT YOUR OWN RISK.
+(defun accept-move?-deprecated (mtype)
   (let ((delta-action 0.0)
 	(delta-damping 0.0))
     (cond ((= 0 mtype) ;; 2->6 move
@@ -52,7 +146,11 @@
     (< (random 1.0) (* (exp (realpart (* *i* delta-action)))
 		       (exp (* -1.0 delta-damping))))))
 
-;; a sweep is defined as N-INIT number of attempted moves
+
+;; a sweep is defined as N-INIT number of attempted moves 
+
+;; JM: Because accept-move? now requires sxid as an input, sweep is a
+;; slightly different function than it was before.
 (defun sweep ()
   (let ((num-attempted 0))
     (while (< num-attempted N-INIT)
@@ -65,7 +163,7 @@
 		movedata (try-move sxid mtype)))
 	(incf num-attempted) ;; number-of-attempted-moves-counter for this sweep
 	(incf (nth mtype ATTEMPTED-MOVES)) ;; number of moves of mtype that have been attempted
-	(when (accept-move? mtype)
+	(when (accept-move? mtype sxid)
 	  (incf (nth mtype SUCCESSFUL-MOVES)) ;; number of moves of mtype that have succeeded
 	  (2plus1move movedata))))))
 

@@ -198,6 +198,26 @@
       (maphash #'discriminator hashtable)
       count)))
 
+;; Similar to list-keys-with-trait but works for values instead
+(defun list-vals-with-trait (trait hashtable key-subindex)
+  (let ((keylist nil))
+    (flet ((discriminator (hkey hval)
+	     (when (funcall trait (nth key-subindex hval))
+	       (push hval keylist))))
+      (maphash #'discriminator hashtable)
+      keylist)))
+
+;; Similar to count-keys-with-trait but works for values instead 
+(defun count-vals-with-trait (trait hashtable key-subindex)
+  (let ((count 0))
+    (flet ((discriminator (hkey hval)
+	     (when (funcall trait (nth key-subindex hval))
+	       (incf count 1))))
+      (maphash #'discriminator hashtable)
+      count)))
+
+
+
 ;; Some useful macros
 (defmacro 3sx-type (sx) `(first ,sx))
 (defmacro 3sx-tmlo (sx) `(second ,sx))
@@ -305,8 +325,8 @@
 (defun get-simplices-in-sandwich (tlo thi)
   (let ((sxids '()))
     (maphash #'(lambda (id sx)
-		 (when (and (= (3sx-tmlo sx) (mod tlo NUM-T)) 
-			    (= (3sx-tmhi sx) (mod thi NUM-T)))
+		 (when (and (= (3sx-tmlo sx) (bc-mod tlo)) 
+			    (= (3sx-tmhi sx) (bc-mod thi)))
 		   (push id sxids)))
 	     *ID->3SIMPLEX*)
     sxids))
@@ -314,8 +334,8 @@
 (defun get-simplices-in-sandwich-of-type (tlo thi typ)
   (let ((sxids '()))
     (maphash #'(lambda (id sx)
-		 (when (and (= (3sx-tmlo sx) (mod tlo NUM-T)) 
-			    (= (3sx-tmhi sx) (mod thi NUM-T))
+		 (when (and (= (3sx-tmlo sx) (bc-mod tlo)) 
+			    (= (3sx-tmhi sx) (bc-mod thi))
 			    (= (3sx-type sx) typ))
 		   (push id sxids)))
 	     *ID->3SIMPLEX*)
@@ -326,8 +346,8 @@
 (defun get-simplices-in-sandwich-ordered-by-type (tlo thi)
   (let ((1ids nil) (2ids nil) (3ids nil))
     (maphash #'(lambda (id sx)
-		 (when (and (= (3sx-tmlo sx) (mod tlo NUM-T)) 
-			    (= (3sx-tmhi sx) (mod thi NUM-T)))
+		 (when (and (= (3sx-tmlo sx) (bc-mod tlo)) 
+			    (= (3sx-tmhi sx) (bc-mod thi)))
 		   (ecase (3sx-type sx)
 		     (1 (push id 1ids))
 		     (2 (push id 2ids))
@@ -356,8 +376,8 @@
   (let ((count 0))
     (maphash #'(lambda (id sx)
 		 (declare (ignore id))
-		 (when (and (= (3sx-tmlo sx) (mod tlo NUM-T)) 
-			    (= (3sx-tmhi sx) (mod thi NUM-T)))
+		 (when (and (= (3sx-tmlo sx) (bc-mod tlo)) 
+			    (= (3sx-tmhi sx) (bc-mod thi)))
 		     (incf count)))
 	     *ID->3SIMPLEX*)
     count))
@@ -380,6 +400,11 @@
 ;;; updated code with more data structures should make these functions
 ;;; much easier. Assuming the hash table format is the same, they
 ;;; should work fine, but use at your own risk.
+
+
+;;; TODO: It seems that many of these count functions only work in the
+;;; fixed boundary case. Fix this using David Kamensky's bc-mod macro.
+
 
 ;; JM : I think this one will still work, because it only cares about
 ;; 3-simplexes.
@@ -469,9 +494,13 @@ compared to those only in the bulk."
 ;; matters. Since order matters for get-simplices-in-sandwich, this is
 ;; fine. Note: This function calls a parameter it never uses for
 ;; compatibility reasons. All we care about is t-low.
+
+;; TODO: Understand whether condition for failure should be 
+;; (> t0 NUM-T) or
+;; (>= t0 NUM-T)
 (defun count-timelike-links-in-sandwich (t-low t-high)
   ;; To prevent runtime errors, ensure your time exists.
-  (when (or (>= t-high NUM-T) (< t-low 0) (not (= 1 (- t-high t-low))))
+  (when (or (> t-high NUM-T) (< t-low 0) (not (= 1 (- t-high t-low))))
     (error "You are referencing a time that does not exist. Remember, order matters."))
   (count-keys-with-trait #'(lambda (x) (= x t-low)) *TL1SIMPLEX->ID* 1))
 
@@ -504,9 +533,13 @@ compared to those only in the bulk."
 ;;; as such, and I leave it only for completeness sake. Use at your
 ;;; own risk.
 
+;; TODO: Understand whether condition for failure should be 
+;; (> t0 NUM-T) or
+;; (>= t0 NUM-T)
+
 ;;count the number of spacelike triangles at a certain time
 (defun count-spacelike-triangles-at-time (t0)
-  (when (or (>= t0 NUM-T) (< t0 0))
+  (when (or (> t0 NUM-T) (< t0 0))
     (error "Your input time does not exist."))
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL2SIMPLEX->ID* 0))
 
@@ -528,8 +561,12 @@ compared to those only in the bulk."
 ;;; function is deprecated. It has been marked
 ;;; as such, and I leave it only for completeness sake. Use at your
 ;;; own risk.
+
+;; TODO: Understand whether condition for failure should be 
+;; (> t0 NUM-T) or
+;; (>= t0 NUM-T)
 (defun count-spacelike-links-at-time (t0)
-  (when (or (>= t0 NUM-T) (< t0 0))
+  (when (or (> t0 NUM-T) (< t0 0))
     (error "You must choose a time-slice that exists."))
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL1SIMPLEX->ID* 0))
     
@@ -551,9 +588,15 @@ compared to those only in the bulk."
 ;;; function is mine. The second one is deprecated, left in for
 ;;; completeness only. Use at your own risk.
 
+;;; TODO: It seems that these count functions only work in the fixed
+;;; boundary case. Fix this using David Kamensky's bc-mod macro.
+
 ;; Count the number of timelike triangles in a particular sandwich
+;; TODO: Understand whether condition for failure should be 
+;; (> t0 NUM-T) or
+;; (>= t0 NUM-T)
 (defun count-timelike-triangles-in-sandwich (t0 t1)
-  (when (or (< t0 0) (>= t1 NUM-T) (not (= 1 (- t1 t0))))
+  (when (or (< t0 0) (> t1 NUM-T) (not (= 1 (- t1 t0))))
     (error "You must choose a time sandwich that exists. Order matters!"))
   (count-keys-with-trait #'(lambda (x) (= t0 x)) *TL2SIMPLEX->ID* 1))
 
@@ -704,7 +747,7 @@ compared to those only in the bulk."
   (let ((count 0))
     (maphash #'(lambda (id sx)
 		 (declare (ignore id))
-		 (when (= (s2sx-time sx) (mod ts NUM-T)) 
+		 (when (= (s2sx-time sx) (bc-mod ts)) 
 		   (incf count)))
 	     *ID->SPATIAL-2SIMPLEX*)
     count))

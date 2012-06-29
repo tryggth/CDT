@@ -532,43 +532,71 @@
 							   final-spatial-geometry))
     (t                        (error "unrecognized spatial topology")))
   
+  ;; For debugging
+  (let ((duplicates (list-vals-with-trait #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
+    (format t "Duplicate simplices: ~%~S" duplicates))
+
   (format t "initial count = ~A~%" (count-simplices-of-all-types))
 
   ;;try volume-increasing moves on random simplices until the desired volume is reached
-  (while (< (N3) target-volume)
-    (let* ((type-chooser (random 6)) ;the range of type-chooser affects 23 / 13 / 31 balance
-	   (movedata (try-move (random *LAST-USED-3SXID*) (if (< type-chooser 1) 0 1))))
-      (when movedata (2plus1move movedata))))
+  
+  ;; JM: It's not obvious to me why, but this method that has
+  ;; type-chooser algorithm is generating 3-simplices that connect to
+  ;; the same point twice. Obviously this is a problem. It's possible
+  ;; that this method is not the culprit, but to make sure I am
+  ;; switching to Rajesh's method of increasing spacetime volume until
+  ;; I figure this out.
+;;  (while (< (N3) target-volume)
+;;    (let* ((type-chooser (random 6)) ;the range of type-chooser affects 23 / 13 / 31 balance
+;;	   (movedata (try-move (random *LAST-USED-3SXID*) (if (< type-chooser 1) 0 1))))
+;;      (format t "type-chooser: ~$~%" type-chooser) ; for debugging. Comment out for general use.
+;;      (format t "move data: ~S~%" movedata)        ; for debugging. Comment out for general use.
+;;      (when movedata (2plus1move movedata))))
 
-  ;; ;;use moves to increase the number of simplices until the target
-  ;; ;;volume is reached  
-  ;; (loop named tv
-  ;;    do
+  ;; use moves to increase the number of simplices until the target
+  ;; volume is reached  
+  (loop named tv
+     do
+       
+       (let ((duplicates (list-vals-with-trait #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
+	 (format t "Duplicate simplices: ~%~S" duplicates))
 
-  ;;      (dolist (id23 (get-simplices-of-type 2))
-  ;; 	 (let ((movedata nil))
-  ;; 	   (when (setf movedata (try-2->3 id23))
-  ;; 	     (2plus1move movedata)))
-  ;; 	 (if (> (N3) target-volume)
-  ;; 	     (return-from tv)))
-
-  ;;      (dolist (id26 (get-simplices-of-type 1))
-  ;; 	 (let ((movedata nil))
-  ;; 	   (when (setf movedata (try-2->6 id26))
-  ;; 	     (2plus1move movedata)))
-  ;; 	 (if (> (N3) target-volume)
-  ;; 	     (return-from tv)))
-
-  ;;      (dolist (id23 (get-simplices-of-type 2))
-  ;; 	 (let ((movedata nil))
-  ;; 	   (when (setf movedata (try-2->3 id23))
-  ;; 	     (2plus1move movedata)))
-  ;; 	 (if (> (N3) target-volume)
-  ;; 	     (return-from tv))))
-
-
+       (dolist (id23 (get-simplices-of-type 2))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->3 id23))
+	     (2plus1move movedata)))
+	 (if (> (N3) target-volume)
+	     (return-from tv)))
+       
+     ;; (4,4) moves to mix things up
+       (dolist (id44 (get-simplices-of-type 1))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->4 id44))
+	     (2plus1move movedata))))
+       
+       (dolist (id26 (get-simplices-of-type 3))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->6 id26))
+	     (2plus1move movedata)))
+	 (if (> (N3) target-volume)
+	     (return-from tv)))
+       
+     ;; (4,4) moves to mix things up
+       (dolist (id44 (get-simplices-of-type 3))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->4 id44))
+	     (2plus1move movedata))))
+       
+       (dolist (id23 (get-simplices-of-type 2))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->3 id23))
+	     (2plus1move movedata)))
+	 (if (> (N3) target-volume)
+	     (return-from tv))))
+  
+  
   (format t "final count = ~A~%" (count-simplices-of-all-types))
-
+  
   (format t "breakdown by location = ~a~%" (count-boundary-vs-bulk))
-
+  
   (setf N-INIT (N3)))

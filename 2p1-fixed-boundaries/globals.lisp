@@ -124,11 +124,11 @@
 (defun set-f-vector (v1 v2 v3 v4 v5 v6 v7)
   (setf N0 v1 N1-SL v2 N1-TL v3 N2-SL v4 N2-TL v5 N3-TL-31 v6 N3-TL-22 v7))
 (defun update-f-vector (dv)
-  (incf N0 (nth 0 dv))
-  (incf N1-SL (nth 1 dv))
-  (incf N1-TL (nth 2 dv))
-  (incf N2-SL (nth 3 dv))
-  (incf N2-TL (nth 4 dv))
+  (incf N0       (nth 0 dv))
+  (incf N1-SL    (nth 1 dv))
+  (incf N1-TL    (nth 2 dv))
+  (incf N2-SL    (nth 3 dv))
+  (incf N2-TL    (nth 4 dv))
   (incf N3-TL-31 (nth 5 dv))
   (incf N3-TL-22 (nth 6 dv)))
 
@@ -538,7 +538,7 @@ to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
   (clrhash *ID->SPATIAL-2SIMPLEX*)
   (clrhash *ID->3SIMPLEX*)
   ;; reset the counters
-  (setf *LAST-USED-2SXID* 0)
+  ;; (setf *LAST-USED-2SXID* 0)
   (setf *LAST-USED-3SXID* 0)
   (setf *RECYCLED-3SX-IDS* '())
   (setf *LAST-USED-POINT* 0)
@@ -578,3 +578,12 @@ to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
 (defun reset-spacetime-slow nil
   "Reloads all modules and restarts simulation. Use at your own risk."
   (load "cdt2p1.lisp"))
+
+(defun test-initialization nil
+  "A simple initialization command for use in debugging."
+  (initialize-t-slices-with-v-volume :num-time-slices 64
+				     :target-volume   80000
+				     :spatial-topology "s2"
+				     :boundary-conditions "open"
+				     :initial-spatial-geometry "tetra.txt"
+				     :final-spatial-geometry "tetra.txt"))

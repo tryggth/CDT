@@ -286,7 +286,7 @@
 	  (list newsxdata nbors subcx 
 		oldTL2sxs oldSL2sxs
 		nil oldSL1sxs
-		DF44))))))
+		DF44 DB44))))))
 ;;---------------------------------------------------------------------------[3]
 ;; 2 3 4
 ;;-------------- t+1
@@ -349,7 +349,7 @@ type of the simplex participating in the move"
 	    (list newsxdata nbors (list 13id 22id) 
 		  oldTL2sxs nil
 		  nil nil
-		  DF23)))))))
+		  DF23 (DB23 13id))))))))
 
 (defun 2->3-move-internal-32 (31id 22id)
 ;;  (setf CURRENT-MOVE-IDENTIFIER "2->3-move-internal-32")
@@ -378,7 +378,7 @@ type of the simplex participating in the move"
 	    (list newsxdata nbors (list 31id 22id) 
 		  oldTL2sxs nil
 		  nil nil
-		  DF23)))))))
+		  DF23 (DB23 31id))))))))
 
 (defun try-2->3 (sxid)
   (let ((subcmplx (2->3-subcomplex sxid))
@@ -473,7 +473,7 @@ about the type of the simplex participating in the move"
 	    (list newsxdata nbors (list 13id 22id1 22id2)
 		  oldTL2sxs nil
 		  oldTL1sxs nil
-		  DF32)))))))
+		  DF32 (DB32 13id))))))))
 
 (defun 3->2-move-internal-322 (31id 22id1 22id2)
   (let ((31sx nil) (22sx1 nil) (22sx2 nil))
@@ -506,7 +506,7 @@ about the type of the simplex participating in the move"
 	    (list newsxdata nbors (list 31id 22id1 22id2)
 		  oldTL2sxs nil
 		  oldTL1sxs nil
-		  DF32)))))))
+		  DF32 (DB32 31id))))))))
 
 (defun try-3->2 (sxid)
   (let ((subcmplx (3->2-subcomplex sxid))

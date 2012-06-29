@@ -57,3 +57,8 @@ June 27th, 2012 -- Updated David's simplex counting functions to take
 
 TODO ------------- Make sure David's initialization.lisp makes calls
      		   to functions that all exist. This is nontrivial.
+
+PROGRESS REPORT -- So far, I have gone through globals.lisp and 
+	 	   simplex.lisp and ensured compatibility. I need
+		   to also go through moves.lisp, initialization.lisp, 
+		   and montecarlo.lisp.
