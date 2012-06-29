@@ -28,6 +28,8 @@ I also need to fix some slightly incorrect physics in David's
 code. David had the boundary term of the action incorrectly calculated
 (some very minor errors). These have been fixed.
 
+UPDATE: David's code is fully updated and bug fixed.
+
 ---------------------------------------------------------------------------
 CHANGES
 ---------------------------------------------------------------------------
@@ -62,3 +64,25 @@ PROGRESS REPORT -- So far, I have gone through globals.lisp and
 	 	   simplex.lisp and ensured compatibility. I need
 		   to also go through moves.lisp, initialization.lisp, 
 		   and montecarlo.lisp.
+
+June 28th, 2012 -- Went through moves.lisp, and made sure try-n->m 
+     	   	   functions output the change in the boundary terms
+		   (the b-vector).
+		-- Went through initialization.lisp. Most of David's 
+		   code should work word for word.
+		-- Updated montecarlo.lisp to use the corrected action, 
+		   which has new terms in it for the boundary.
+		-- Ensured that all function calls called functions that
+		   exist.
+		-- Added the functions: 
+		   -- list-keys-with-trait
+		   -- count-keys-with-trait
+		   -- contains-an-identical-pair
+		   -- list-vals-with-trait
+		   -- count-vals-with-trait
+
+June 29th, 2012 -- Discovered an error in David's initialization.lisp. 
+     	   	   set-last-used-point for moves to behave correctly. 
+		   David's code is missing this command. This error 
+		   has been fixed.
+
