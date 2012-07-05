@@ -301,6 +301,10 @@
     (setf 62MARKER (+ 32MARKER(float (/ num-successful-moves 
 					(nth 62MTYPE SUCCESSFUL-MOVES)))))))
 
+
+;; JM: I've generated a select-move function for debugging. Name the
+;; one you want to use "select-move" and name the other one something
+;; else.
 (defun select-move ()
   (let ((rndval (random 62MARKER))
 	(mtype -1))
@@ -314,6 +318,43 @@
 		    (setf mtype 3)
 		    (setf mtype 4)))))
     mtype))
+
+;; The debugging version
+;; Annoying. Use at your own risk.
+(defun select-move-debug () 
+  (let ((rndval (random 62MARKER))
+	(mtype -1))
+    (if (< rndval 26MARKER)
+	(setf mtype 0)
+	(if (< rndval 23MARKER)
+	    (setf mtype 1)
+	    (if (< rndval 44MARKER)
+		(setf mtype 2)
+		(if (< rndval 32MARKER)
+		    (setf mtype 3)
+		    (setf mtype 4)))))
+    (let ((movename (case mtype 
+		       (0 "2->6")
+		       (1 "2->3")
+		       (2 "4->4")
+		       (3 "3->2")
+		       (4 "6->2")
+		       (otherwise "dunno."))))
+       (format t "~%Attempted move: ~a.~%" movename)
+       mtype)))
+
+;; For printing a move type in a readable format:
+(defun printmove (mtype)
+  (let ((movename (case mtype 
+		    (0 "2->6")
+		    (1 "2->3")
+		    (2 "4->4")
+		    (3 "3->2")
+		    (4 "6->2")
+		    (otherwise "dunno."))))
+    (format t "~%Accepted move: ~a.~%" movename)))
+    
+
 
 ;;; The following functions will be used to construct the
 ;;; action. action-exposed is the form of the action, and this is

@@ -539,8 +539,8 @@ compared to those only in the bulk."
 
 ;;count the number of spacelike triangles at a certain time
 (defun count-spacelike-triangles-at-time (t0)
-  (when (or (> t0 NUM-T) (< t0 0))
-    (error "Your input time does not exist."))
+;;  (when (or (and (string= BCTYPE 'OPEN') (>= t0 NUM-T)) (< t0 0))
+;;    (error "Your input time does not exist."))
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL2SIMPLEX->ID* 0))
 
 ;;count the number of spacelike triangles at a certain time
@@ -631,6 +631,23 @@ compared to those only in the bulk."
     (length list-of-triangles)))
 
 
+;; JM: The following two functions are useful for open boundary
+;; conditions. They're mostly convenient for debugging.
+
+;; Get the 13-simplices with faces on the final time slice.
+(defun topfaces nil
+  (let ((tf    NUM-T)
+	(tf-1 (- NUM-T 1))
+	(13-simplices 1))
+    (get-simplices-in-sandwich-of-type tf-1 tf 13-simplices)))
+
+;; Get the 31-simplices with faces on the initial time slice.
+(defun bottomfaces nil
+  (let ((31-simplices 3)
+	(ti   0)
+	(ti+1 1))
+    (get-simplices-in-sandwich-of-type ti ti+1 31-simplices)))
+
 
 ;; in a given sandwich
 ;; (1,3) can be connected to a (2,2) and cannot be connected to a (3,1)
@@ -661,9 +678,11 @@ compared to those only in the bulk."
     nbors))
 
 (defun save-spacetime-to-file (outfile)
-  (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
+  (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
 	  BCTYPE STOPOLOGY NUM-T N-INIT *LAST-USED-POINT* *LAST-USED-3SXID* 
-	  N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 *eps* *k0* *k3* *alpha*)
+	  N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 
+	  N1-SL-BOUNDARY N3-31-BOUNDARY N3-22-BOUNDARY
+	  *eps* *k0* *k3* *alpha*)
   (maphash #'(lambda (k v)
 	       (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
 		       (3sx-type v) (3sx-tmlo v) (3sx-tmhi v)

@@ -1005,9 +1005,11 @@ p0 p1 p2 already exists, the id of that simplex is returned"
     nbors))
 
 (defun save-spacetime-to-file (outfile)
-  (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
+  (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
 	  BCTYPE STOPOLOGY NUM-T N-INIT *LAST-USED-POINT* *LAST-USED-3SXID* 
-	  N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 eps k0 k3 *alpha*)
+	  N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 
+	  N1-SL-BOUNDARY N3-31-BOUNDARY N3-22-BOUNDARY
+	  eps k0 k3 *alpha*)
   (maphash #'(lambda (k v)
 	       (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
 		       (3sx-type v) (3sx-tmlo v) (3sx-tmhi v)

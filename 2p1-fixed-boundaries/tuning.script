@@ -1,0 +1,15 @@
+(load "cdt2p1.lisp")
+
+(setf NUM-SWEEPS 50000)
+(setf SAVE-EVERY-N-SWEEPS 100)
+
+(initialize-t-slices-with-v-volume :num-time-slices 64
+				   :target-volume 8192
+				   :spatial-topology "S2"
+				   :boundary-conditions "OPEN"
+                                   :initial-spatial-geometry "tetra.txt"
+                                   :final-spatial-geometry "tetra.txt")
+
+(set-k0-k3-alpha 0.5 0.601 -1)
+
+(generate-data-console)

@@ -568,61 +568,63 @@
 
   (format t "initial count = ~A~%" (count-simplices-of-all-types))
 
-  ;;try volume-increasing moves on random simplices until the desired volume is reached
 
   ;; JM: what follows are two methods to increase the volume up to the
   ;; desired size. The system has yet to thermalize, so algorithm
   ;; should be irrelevant. The first algorithm is written by David
   ;; Kamensky. The second is written by Rajesh Kommu. Pick your
   ;; poison.
-  
-;;  (while (< (N3) target-volume)
-;;    (let* ((type-chooser (random 6)) ;the range of type-chooser affects 23 / 13 / 31 balance
-;;	   (movedata (try-move (random *LAST-USED-3SXID*) (if (< type-chooser 1) 0 1))))
+
+
+  ;;try volume-increasing moves on random simplices until the desired volume is reached
+  (while (< (N3) target-volume)
+    (let* ((type-chooser (random 6)) ;the range of type-chooser affects 23 / 13 / 31 balance
+	   (movedata (try-move (random *LAST-USED-3SXID*) (if (< type-chooser 1) 0 1))))
 ;;      (format t "type-chooser: ~%~$~%" type-chooser) ; for debugging. Comment out for general use.
 ;;      (format t "move data: ~%~S~%" movedata)        ; for debugging. Comment out for general use.
-;;      (when movedata (2plus1move movedata))))
+      (when movedata (2plus1move movedata))))
 
   ;; use moves to increase the number of simplices until the target
   ;; volume is reached  
-  (loop named tv
-     do
+;;  (loop named tv
+;;     do
        
-       (let ((duplicates (list-vals-with-trait #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
-	 (format t "Duplicate simplices: ~%~S" duplicates))
+       ;; This is for debugging. Comment it out in general.
+;;       (let ((duplicates (list-vals-with-trait #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
+;;	 (format t "Duplicate simplices: ~%~S" duplicates))
 
-       (dolist (id23 (get-simplices-of-type 2))
-	 (let ((movedata nil))
-	   (when (setf movedata (try-2->3 id23))
-	     (2plus1move movedata)))
-	 (if (> (N3) target-volume)
-	     (return-from tv)))
+;;       (dolist (id23 (get-simplices-of-type 2))
+;;	 (let ((movedata nil))
+;;	   (when (setf movedata (try-2->3 id23))
+;;	     (2plus1move movedata)))
+;;	 (if (> (N3) target-volume)
+;;	     (return-from tv)))
        
      ;; (4,4) moves to mix things up
-       (dolist (id44 (get-simplices-of-type 1))
-	 (let ((movedata nil))
-	   (when (setf movedata (try-4->4 id44))
-	     (2plus1move movedata))))
+;;       (dolist (id44 (get-simplices-of-type 1))
+;;	 (let ((movedata nil))
+;;	   (when (setf movedata (try-4->4 id44))
+;;	     (2plus1move movedata))))
        
-       (dolist (id26 (get-simplices-of-type 3))
-	 (let ((movedata nil))
-	   (when (setf movedata (try-2->6 id26))
-	     (2plus1move movedata)))
-	 (if (> (N3) target-volume)
-	     (return-from tv)))
+;;       (dolist (id26 (get-simplices-of-type 3))
+;; 	 (let ((movedata nil))
+;;	   (when (setf movedata (try-2->6 id26))
+;;	     (2plus1move movedata)))
+;;	 (if (> (N3) target-volume)
+;;	     (return-from tv)))
        
      ;; (4,4) moves to mix things up
-       (dolist (id44 (get-simplices-of-type 3))
-	 (let ((movedata nil))
-	   (when (setf movedata (try-4->4 id44))
-	     (2plus1move movedata))))
+;;       (dolist (id44 (get-simplices-of-type 3))
+;;	 (let ((movedata nil))
+;;	   (when (setf movedata (try-4->4 id44))
+;;	     (2plus1move movedata))))
        
-       (dolist (id23 (get-simplices-of-type 2))
-	 (let ((movedata nil))
-	   (when (setf movedata (try-2->3 id23))
-	     (2plus1move movedata)))
-	 (if (> (N3) target-volume)
-	     (return-from tv))))
+;;       (dolist (id23 (get-simplices-of-type 2))
+;;	 (let ((movedata nil))
+;;	   (when (setf movedata (try-2->3 id23))
+;;	     (2plus1move movedata)))
+;;	 (if (> (N3) target-volume)
+;;	     (return-from tv))))
   
   
   (format t "final count = ~A~%" (count-simplices-of-all-types))

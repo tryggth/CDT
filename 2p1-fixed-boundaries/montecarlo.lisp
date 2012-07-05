@@ -163,6 +163,7 @@
 	(incf num-attempted) ;; number-of-attempted-moves-counter for this sweep
 	(incf (nth mtype ATTEMPTED-MOVES)) ;; number of moves of mtype that have been attempted
 	(when (accept-move? mtype sxid)
+;;	  (printmove mtype) ; for debugging purposes.
 	  (incf (nth mtype SUCCESSFUL-MOVES)) ;; number of moves of mtype that have succeeded
 	  (2plus1move movedata))))))
 
@@ -170,6 +171,7 @@
 (defun generate-data-console (&optional (start-sweep 1))
   (for (ns start-sweep (+ start-sweep NUM-SWEEPS -1))
        (sweep)
+;;       (format t "~%Top Boundary: ~a~%Bottom Boundary: ~a~%" (length (topfaces)) (length (bottomfaces))) ; For  debugging
        (when (= 0 (mod ns 10))
 	 (format t "start = ~A end = ~A current = ~A count = ~A ~A\%~%"
 		 start-sweep (+ start-sweep NUM-SWEEPS -1) ns 
@@ -250,7 +252,8 @@
 	 (concatenate 'string (generate-filename start-sweep) MOVEXT))
 	(trackfilestr 
 	 (concatenate 'string (generate-filename start-sweep) PRGEXT))
-	(end-sweep (+ start-sweep NUM-SWEEPS -1)))
+	(end-sweep (+ start-sweep NUM-SWEEPS -1))
+	(max-ts (if (string= BCTYPE "OPEN") (1- NUM-T) (- NUM-T 2))))
 
     ;; open and close the file for :append to work
     (with-open-file (moviefile moviefilestr 
@@ -259,7 +262,7 @@
       ;; record the initial data only if start-sweep = 1
       (when (= start-sweep 1)
 
-	(for (ts 0 (1- NUM-T))
+	(for (ts 0 max-ts)
 	     (format moviefile "~A " (count-simplices-in-sandwich ts (1+ ts))))
 	(format moviefile "~%")))
     
@@ -269,7 +272,7 @@
 	   (with-open-file (moviefile moviefilestr 
 				      :direction :output
 				      :if-exists :append)
-	     (for (ts 0 (1- NUM-T))
+	     (for (ts 0 max-ts)
 		  (format moviefile "~A " (count-simplices-in-sandwich ts (1+ ts))))
 	     (format moviefile "~%"))
 	   (with-open-file (trackfile trackfilestr
@@ -294,7 +297,8 @@
   (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))
 	 (datafilestr (concatenate 'string (generate-filename start-sweep) 3SXEXT))
 	 (trackfilestr (concatenate 'string (generate-filename start-sweep) PRGEXT))
-	 (moviefilestr (concatenate 'string (generate-filename start-sweep) MOVEXT)))
+	 (moviefilestr (concatenate 'string (generate-filename start-sweep) MOVEXT))
+	 (ts-max (if (string= BCTYPE "OPEN") (1- NUM-T) (- NUM-T 2))))
     
     ;; open and close the file, for :append to work properly
     (with-open-file (moviefile moviefilestr 
@@ -302,7 +306,7 @@
 			       :if-exists :supersede)
       ;; record the initial data only if start-sweep = 1
       (when (= 1 start-sweep)
-	(for (ts 0 (1- NUM-T))
+	(for (ts 0 ts-max)
 	     (format moviefile "~A " (count-simplices-in-sandwich ts (1+ ts))))
 	(format moviefile "~%")))
     
@@ -322,7 +326,7 @@
 	   (with-open-file (moviefile moviefilestr 
 				      :direction :output
 				      :if-exists :append)
-	     (for (ts 0 (1- NUM-T))
+	     (for (ts 0 ts-max)
 		  (format moviefile "~A " (count-simplices-in-sandwich ts (1+ ts))))
 	     (format moviefile "~%"))))))
 
