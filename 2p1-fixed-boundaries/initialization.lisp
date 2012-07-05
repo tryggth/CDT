@@ -378,12 +378,20 @@
       ;;N3-TL-22
       (count-simplices-of-type 2))
 
-     ;;set the initial values of the b-vector (numbers of things on a boundary)
-     (set-b-vector (+ (count-points-at-time 0) (count-points-at-time NUM-T))
-		   (+ (count-simplices-in-sandwich-of-type 0 1 2)
-		      (count-simplices-in-sandwich-of-type (1- NUM-T) NUM-T 2))
-		   (+ (count-simplices-in-sandwich-of-type 0 1 3)
-		      (count-simplices-in-sandwich-of-type (1- NUM-T) NUM-T 1))))
+     ;;set the initial values of the b-vector (numbers of things on a
+     ;;boundary)
+     (set-b-vector (count-spacelike-links-at-time NUM-T) ; N1-SL-TOP
+		   ; N3-22-TOP
+		   (count-simplices-in-sandwich-of-type (1- NUM-T) NUM-T 2)
+		   ; N3-31-TOP
+		   (count-simplices-in-sandwich-of-type (1- NUM-T) NUM-T 1)
+		   (count-spacelike-links-at-time 0) ; N1-SL-BOT
+		   ; N3-22-BOT
+		   (count-simplices-in-sandwich-of-type 0 1 2)
+		   ; N3-31-BOT
+		   (count-simplices-in-sandwich-of-type 0 1 3))
+		   
+)
 
     (t (error "unrecognized boundary condition type"))))
 

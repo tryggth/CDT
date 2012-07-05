@@ -11,6 +11,8 @@
   `(apply #'+ ,lst))
 
 (defmacro filter (func lst)
+  "Returns a sublist of lst where func(elemnt) returns true for each
+element in the new sublist."
   `(mapcan (lambda (y) (when (,func y) (list y))) ,lst)
 )
 
@@ -19,7 +21,9 @@
   `(nth (random (length ,lst)) ,lst))
 
 (defmacro circular-nth (n lst)
+  "Returns the nth value of the list, modulo the length of the list."
   `(nth (mod ,n (length ,lst)) ,lst))
+
 (defmacro circular-subseq (seq start num)
   "return num elements from seq starting at 0-based index start"
   `(unless (> ,num (length ,seq))
@@ -30,11 +34,15 @@
 	  (append part1 part2)))))
 
 (defmacro take (num lst)
+"Returns a list containing the first num elements of lst."
   `(subseq ,lst 0 ,num))
+
 (defmacro drop (num lst)
+"Returns a list containing all but the first num elements of lst."
   `(subseq ,lst ,num))
 
 (defmacro 2+ (num)
+"Increments num by 2."
   `(+ ,num 2))
 
 (defmacro nthl (n lst)
@@ -54,6 +62,8 @@
   `(nthl 5 ,lst))
 
 (defun flatten (x)
+"Puts another data structure inside a list. If the data structure is
+nil, returns nil"
   (labels ((rec (x acc)
 	     (cond ((null x) acc)
 		   ((atom x) (cons x acc))
@@ -61,27 +71,34 @@
     (rec x nil)))
 
 (defun mapa-b (fn a b &optional (step 1))
+"Applys fn to each number between a and b inclusive incremented by
+step. Default stepsize is 1."
   (do ((i a (+ i step))
        (result nil))
       ((> i b) (nreverse result))
     (push (funcall fn i) result)))
-
 (defun map0-n (fn n)
   (mapa-b fn 0 n))
-
 (defun map1-n (fn n)
   (mapa-b fn 1 n))
 
 (defun map-> (fn start test-fn succ-fn)
+"A very general mapping function. Apply fn to numbers starting at
+start and ending when test-fn returns true. Increment by succ-fn. May
+increment down or up."
   (do ((i start (funcall succ-fn i))
        (result nil))
       ((funcall test-fn i) (nreverse result))
     (push (funcall fn i) result)))
 
 (defun mappend (fn &rest lsts)
+"Apply fn to reach element of each list in lsts. Then combine the
+lists."
   (apply #'append (apply #'mapcar fn lsts)))
 
 (defun mapcars (fn &rest lsts)
+"Like mapcar, but works on any number of lists. Concatends the
+results."
   (let ((result nil))
     (dolist (lst lsts)
       (dolist (obj lst)
@@ -89,6 +106,7 @@
     (nreverse result)))
 
 (defun rmapcar (fn &rest args)
+"Like mapcar, but operates recursively on nested data structures."
   (if (some #'atom args)
       (apply fn args)
       (apply #'mapcar
@@ -97,39 +115,49 @@
 	     args)))
 
 (defmacro with-gensyms (syms &body body)
+"Replaces syms with generated symbols in body and evaluates."
   `(let ,(mapcar #'(lambda (s)
 		     `(,s (gensym)))
 		 syms)
      ,@body))
 
 (defmacro while (test &body body)
+"Exactly the same as the while loop in C++."
   `(do ()
        ((not ,test))
      ,@body))
 
 (defmacro till (test &body body)
+"(while (not test) (body))"
   `(do ()
        (, test)
      ,@body))
-
 (defmacro repeat-until (test &body body)
+"The same as till."
   `(do ()
        (, test)
      ,@body))
-
 (defmacro until (test &body body)
+"The same as till."
   `(do ()
        (, test)
      ,@body))
 
 (defmacro for ((var start stop &optional (by 1)) &body body)
+"Similar to a for loop in C++."
   (let ((gstop (gensym)))
     `(do ((,var ,start (incf ,var ,by))
 	  (,gstop ,stop))
 	 ((> ,var ,gstop))
        ,@body)))
 
+
+;; Operates with body on every element of source using sets of parms. I.e.,
+;; (do-tuples/o (x y) `(a b c d e f g) (princ (+ x y)))
+;; returns
+;; (A B)(B C)(C D)(D E)(E F)(F G)
 (defmacro do-tuples/o (parms source &body body)
+"Operates with body on every element of source using sets of parms."
   (if parms
       (let ((src (gensym)))
 	`(prog ((,src ,source))
@@ -139,6 +167,7 @@
 			    (1- (length parms))))))))
 
 (defun dt-args (len rest src)
+"Mostly for do-tuples/c"
   (map0-n #'(lambda (m)
 	      (map1-n #'(lambda (n)
 			  (let ((x (+ m n)))
@@ -149,6 +178,7 @@
 	  (- len 2)))
 
 (defmacro do-tuples/c (parms source &body body)
+"Does the same thing as do-tuples/c, but wraps around to the front of the list."
   (if parms
       (with-gensyms (src rest bodfn)
 	(let ((len (length parms)))
@@ -205,6 +235,7 @@
 	    yyyy mm dd hh mi ss)))
 
 (defun hostname ()
+"Self explanatory"
   (let* ((machinst (machine-instance))
 	 (dotpos (position #\. machinst)))
     (if dotpos
@@ -271,6 +302,7 @@ Suffix is defined as the string following the LAST . in filename"
 	  (remhash key table)))))
 
 (defmacro zero-or (coupling term)
+"If coupling=0, return 0. Otherwise, return term."
   `(if (/= ,coupling 0) ,term 0))
 
 ;; Numerical root finding
@@ -312,3 +344,9 @@ Suffix is defined as the string following the LAST . in filename"
 	  (assert (> fworking 0))
 	  (false-position-root func (+ guess other-del) guess precision fworking fguess)))))
 	 
+;; Tests to see if a list contains multiples of any one element
+(defun contains-an-identical-pair (input-list)
+  (dolist (i input-list)
+    (let ((templist (set-difference input-list (cons i nil))))
+      (when (< (length templist) (1- (length input-list)))
+	(return i)))))

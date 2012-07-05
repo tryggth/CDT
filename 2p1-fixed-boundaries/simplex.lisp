@@ -504,6 +504,7 @@ compared to those only in the bulk."
     (error "You are referencing a time that does not exist. Remember, order matters."))
   (count-keys-with-trait #'(lambda (x) (= x t-low)) *TL1SIMPLEX->ID* 1))
 
+
 ;; Function to count the number of timelike links in a sandwich
 ;; DEPRECATED: USE AT YOUR OWN RISK
 (defun count-timelike-links-in-sandwich-deprecated (t0 t1)
@@ -525,6 +526,11 @@ compared to those only in the bulk."
 				   :test #'(lambda (x y) (not (set-difference x y)))))))
     (length list-of-links)))
 
+;; Count number of spacelike links at time slice tslice. To prevent
+;; runtime errors, make sure your time slice exists.
+(defun count-spacelike-links-at-time (tslice)
+  "Count number of spacelike links on a given time slice."
+  (count-keys-with-trait #'(lambda (x) (= x tslice)) *SL1SIMPLEX->ID* 0))
 
 ;;; JM: I have changed count-spacelike-triangles-at-time to take
 ;;; advantage of Rajesh's bug-fixed code, including the new
@@ -536,15 +542,11 @@ compared to those only in the bulk."
 ;; TODO: Understand whether condition for failure should be 
 ;; (> t0 NUM-T) or
 ;; (>= t0 NUM-T)
-
-;;count the number of spacelike triangles at a certain time
 (defun count-spacelike-triangles-at-time (t0)
-;;  (when (or (and (string= BCTYPE 'OPEN') (>= t0 NUM-T)) (< t0 0))
-;;    (error "Your input time does not exist."))
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL2SIMPLEX->ID* 0))
 
 ;;count the number of spacelike triangles at a certain time
-;; DEPRECATED USE AT YOUR OWN RISK
+;; Although this is deprecated, it should work anyways.
 (defun count-spacelike-triangles-at-time-deprecated (t0)
 
   ;;must treat one end as a special case; choosing to treat
@@ -566,8 +568,9 @@ compared to those only in the bulk."
 ;; (> t0 NUM-T) or
 ;; (>= t0 NUM-T)
 (defun count-spacelike-links-at-time (t0)
-  (when (or (> t0 NUM-T) (< t0 0))
-    (error "You must choose a time-slice that exists."))
+;; To prevent runtime errors, make sure your time slice exists.
+;;  (when (or (> t0 NUM-T) (< t0 0))
+;;    (error "You must choose a time-slice that exists."))
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL1SIMPLEX->ID* 0))
     
 
@@ -678,10 +681,11 @@ compared to those only in the bulk."
     nbors))
 
 (defun save-spacetime-to-file (outfile)
-  (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
+  (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
 	  BCTYPE STOPOLOGY NUM-T N-INIT *LAST-USED-POINT* *LAST-USED-3SXID* 
 	  N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 
-	  N1-SL-BOUNDARY N3-31-BOUNDARY N3-22-BOUNDARY
+	  *N1-SL-TOP* *N3-22-TOP* *N3-31-TOP*
+	  *N1-SL-BOT* *N3-22-BOT* *N3-31-BOT*
 	  *eps* *k0* *k3* *alpha*)
   (maphash #'(lambda (k v)
 	       (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
@@ -698,12 +702,27 @@ compared to those only in the bulk."
 		   :for num := (read s nil nil)
 		   :while num
 		   :collect num)))
-      (setf BCTYPE (nth 0 data) STOPOLOGY (nth 1 data) NUM-T (nth 2 data) 
-	    N-INIT (nth 3 data) *LAST-USED-POINT* (nth 4 data) 
-	    *LAST-USED-3SXID* (nth 5 data) N0 (nth 6 data) N1-SL (nth 7 data) 
-	    N1-TL (nth 8 data) N2-SL (nth 9 data) N2-TL (nth 10 data)
-	    N3-TL-31 (nth 11 data) N3-TL-22 (nth 12 data) *eps* (nth 13 data))
-      (set-k0-k3-alpha (nth 14 data) (nth 15 data) (nth 16 data)))))
+      (setf BCTYPE            (nth 0  data) 
+	    STOPOLOGY         (nth 1  data) 
+	    NUM-T             (nth 2  data) 
+	    N-INIT            (nth 3  data) 
+	    *LAST-USED-POINT* (nth 4  data) 
+	    *LAST-USED-3SXID* (nth 5  data)
+	    N0                (nth 6  data)
+	    N1-SL             (nth 7  data) 
+	    N1-TL             (nth 8  data)
+	    N2-SL             (nth 9  data)
+	    N2-TL             (nth 10 data)
+	    N3-TL-31          (nth 11 data)
+	    N3-TL-22          (nth 12 data)
+	    *N1-SL-TOP*       (nth 13 data)
+	    *N3-22-TOP*       (nth 14 data)
+	    *N3-31-TOP*       (nth 15 data)
+	    *N1-SL-BOT*       (nth 16 data)
+	    *N3-22-BOT*       (nth 17 data)
+	    *N3-31-BOT*       (nth 18 data)
+	    *eps* (nth 19 data))
+      (set-k0-k3-alpha (nth 20 data) (nth 21 data) (nth 22 data)))))
 
 (defun parse-simplex-data-line (line)
   (with-input-from-string (s line)

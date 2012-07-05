@@ -104,13 +104,14 @@
 ;;first, define macros to determine helpful things about
 ;;the position of a particular simplex
 (defmacro in-upper-sandwich (sxid) 
-  `(and (string= BCTYPE "OPEN") (= (3sx-tmhi (get-3simplex ,sxid))) NUM-T))
+  `(and (string= BCTYPE "OPEN") (= (3sx-tmhi (get-3simplex ,sxid)) NUM-T)))
 (defmacro in-lower-sandwich (sxid)
-  `(and (string= BCTYPE "OPEN") (= (3sx-tmlo (get-3simplex ,sxid))) 0))
+  `(and (string= BCTYPE "OPEN") (= (3sx-tmlo (get-3simplex ,sxid)) 0)))
 (defmacro in-either-boundary-sandwich (sxid)
   `(or (in-upper-sandwich ,sxid) (in-lower-sandwich ,sxid)))
 (defmacro has-face-on-boundary (sxid)
-  `(let* ((sx (get-3simplex ,sxid))  ;for fixed boundaries, this is unnecessary
+  `(let* ((sx (get-3simplex ,sxid))  ;for fixed boundaries, this is
+				     ;unnecessary
 	  (ty (3sx-type sx))
 	  (th (3sx-tmhi sx))
 	  (tl (3sx-tmlo sx)))
@@ -145,35 +146,59 @@
 ;;; fixed-boundary systems. Below is all the information the system
 ;;; needs to keep track of the boundary (not including hash tables).
 
+;;; The b-vector keeps track of the top boundary (at t=t_final) and
+;;; the bottom boundary (at t=t_initial) seperately. This is because
+;;; these terms are accounted for in the action with opposite sign.
+
+;;; Note: the following definitions are not in the order they appear
+;;; in the b-vector!
+
 ;; Define some quantities of geometrical objects on the boundaries
-(defparameter N1-SL-boundary 0) ; Number of spacelike links on the
-				; boundary. These are the bones used
-				; to calculate the extrinsic curvature
-				; on the boundary.
-(defparameter N3-22-boundary 0) ; Number of (2,2)-simplexes that have
-				; 2 vertexes on the boundary. Useful
-				; for extrinsic curvature calculations
-(defparameter N3-31-boundary 0) ; Number of (3,1)- or (1,3)-simplexes
-				; that have at least one vertex on the
-				; boundary. We don't need them for
-				; extrinsic curvature calculations,
-				; but we need to compare them to N3-31
-				; (total) to figure out the number of
-				; (3,1)-simplices in the bulk.
+(defparameter *N1-SL-TOP* 0) ; Number of spacelike links on the
+			     ; boundary. These are the bones used to
+			     ; calculate the extrinsic curvature on
+			     ; the boundary. For the top boundary.
+(defparameter *N1-SL-BOT* 0) ; For the bottom boundary
+
+(defparameter *N3-22-TOP* 0) ; Number of (2,2)-simplexes that have 2
+			     ; vertexes on the boundary. Useful for
+			     ; extrinsic curvature calculations. For
+			     ; the top boundary.
+(defparameter *N3-22-BOT* 0) ; For the bottom boundary.
+
+(defparameter *N3-31-TOP* 0) ; Number of (3,1)- or (1,3)-simplexes
+			     ; that have at least one vertex on the
+			     ; boundary. We don't need them for
+			     ; extrinsic curvature calculations, but
+			     ; we need to compare them to N3-31
+			     ; (total) to figure out the number of
+			     ; (3,1)-simplices in the bulk. For the
+			     ; top boundary.
+(defparameter *N3-31-BOT* 0) ; For the bottom boundary.
 
 ;; The above three quantities compose the "b-vector," which keeps
 ;; track of boundary information. The following two functions
 ;; manipulate the b-vector.
-(defun set-b-vector (n1 n2 n3)
-  "Input: N1-SL-boundary, N3-22-boundary N3-31-boundary"
-  (setf N1-SL-boundary n1
-	N3-22-boundary n2
-	N3-31-boundary n3))
+
+;; Extract the order in the b-vector from these definitions.
+(defun set-b-vector (n1 n2 n3 n4 n5 n6)
+  "Input: *N1-SL-TOP*, *N1-SL-BOT*, *N3-22-TOP*, *N3-22-BOT*, 
+*N3-31-TOP*, *N3-31-BOT*."
+  (setf *N1-SL-TOP* n1
+	*N3-22-TOP* n2
+	*N3-31-TOP* n3
+	*N1-SL-BOT* n4
+	*N3-22-BOT* n5
+	*N3-31-BOT* n6))
 (defun update-b-vector (dv)
-  "Input list: (DELTA-N1-SL-b DELTA-N3-22-b DELTA-N3-31-b)"
-  (incf N1-SL-boundary (first  dv))
-  (incf N3-22-boundary (second dv))
-  (incf N3-31-boundary (third  dv)))
+  "Input list: (DELTA-N1-SL-TOP DELTA-N1-SL-BOT
+ DELTA-N3-22-TOP DELTA-N3-22-BOT DELTA-N3-31-TOP DELTA-N3-31-BOT)"
+  (incf *N1-SL-TOP* (first  dv))
+  (incf *N3-22-TOP* (second dv))
+  (incf *N3-31-TOP* (third  dv))
+  (incf *N1-SL-BOT* (fourth dv))
+  (incf *N3-22-BOT* (fifth  dv))
+  (incf *N3-31-BOT* (sixth  dv)))
 
 ;; As with the f-vector, the change in the b-vector depends on the
 ;; move that acts on the spacetime. Unlike the f-vector, the change in
@@ -183,21 +208,24 @@
 ;; the 23-move and its inverse, the 32-move. Thus these are the only
 ;; moves which have a chance of changing the b-vector.
 (defmacro DB23 (sxid) ; Change in b-vector due to 23-move.
-  `(if (in-either-boundary-sandwich ,sxid)
-       (list 0 1 0)
-       (list 0 0 0)))
-(defmacro DB32 (sxid) ; change in b-vector due to 32-move. Inverse of
-		      ; DB23
-  `(if (in-either-boundary-sandwich ,sxid)
-       (list 0 -1 0)
-       (list 0  0 0)))
+  `(cond ((in-upper-sandwich ,sxid) (list 0 1 0 0 0 0))
+	 ((in-lower-sandwich ,sxid) (list 0 0 0 0 1 0))
+	 (t                         (list 0 0 0 0 0 0))))
+
+;; change in b-vector due to 32-move. Inverse of DB23
+(defmacro DB32 (sxid) 
+  `(cond ((in-upper-sandwich ,sxid) (list 0 -1 0 0 0  0))
+	 ((in-lower-sandwich ,sxid) (list 0  0 0 0 -1 0))
+	 (t                         (list 0  0 0 0  0 0))))
+
 ;; The following moves can't affect the boundary
-(defparameter DB44 '(0 0 0)) ; Change in b-vector due to a 44-move. 44
-			     ; is its own inverse.
-(defparameter DB26 '(0 0 0)) ; Change in b-vector due to a 26-move.
-(defparameter DB62 '(0 0 0)) ; Change in b-vector due to a
-			     ; 62-move. Would be the inverse of DB26
-			     ; if there were any change.
+(defparameter DB44 '(0 0 0 0 0 0)) ; Change in b-vector due to a
+				   ; 44-move. 44 is its own inverse.
+(defparameter DB26 '(0 0 0 0 0 0)) ; Change in b-vector due to a
+				   ; 26-move.
+(defparameter DB62 '(0 0 0 0 0 0)) ; Change in b-vector due to a
+				   ; 62-move. Would be the inverse of
+				   ; DB26 if there were any change.
 
 
 (defparameter CURRENT-MOVE-IDENTIFIER "UNKNOWN")
@@ -384,17 +412,26 @@
 	       ; change and have no effect on the dynamics. However at
 	       ; the other boundary, which we do not keep fixed, they
 	       ; have a substantial effect.
-	       num1-sl-boundary ; spacelike links on boundary
-	       num3-22-boundary ; (2,2)-simplices connected at boundary
-	       num3-31-boundary ; (3,1)- and (1,3)-simplices connected at boundary
-	       alpha k litL ; Tuning parameters
-	       &optional (ret-coup nil))
+	      num1-sl-top ; spacelike links on top boundary
+	      num3-22-top ; (2,2)-simplices connected to top boundary
+	      num3-31-top ; (3,1)&(1,3)-simplices connected to top boundary
+	      num1-sl-bot ; spacelike links on bottom boundary
+	      num3-22-bot ; (2,2)-simplices connected to bottom boundary
+	      num3-31-bot ; (3,1)&(1,3)-simplices connected to bottom boundary
+	      alpha k litL ; Tuning parameters
+	      &optional (ret-coup nil))
   "The action before setting coupling constants."
   (let* ((2alpha+1 (+ (* 2 alpha) 1))
 	 (4alpha+1 (+ (* 4 alpha) 1))
 	 (4alpha+2 (+ (* 4 alpha) 2))
 	 (3alpha+1 (+ (* 3 alpha) 1))
-	 ; (2,2)-simpleses in the bulk
+	 ; Space-like links on the whole boundary
+	 (num1-sl-boundary (+ num1-sl-top num1-sl-bot))
+	 ; (2,2)-simplices on the whole boundary
+	 (num3-22-boundary (+ num3-22-top num3-22-bot))
+	 ; (3,1)- and (1,3)-simplices on the whole boundary
+	 (num3-31-boundary (+ num3-31-top num3-31-bot))
+         ; (2,2)-simpleses in the bulk
 	 (num3-22-bulk (- num3-22 num3-22-boundary))
 	 ; (3,1)-simplexes in the bulk
 	 (num3-31-bulk (- num3-31 num3-31-boundary))
@@ -411,25 +448,36 @@
 	 ;; Bulk action assuming closed manifold.
 	 (A (* *2pi/i* k))
 	 (B (* (wrsqrt alpha) 2 pi k))
-	 (C (- (+ (* *3/i* arccos-1 k) (* (wrsqrt alpha) 3 arccos-3 k) (* (/ litL 12) (wrsqrt 3alpha+1)))))
-	 (D (- (+ (* *2/i* arcsin-1 k) (* (wrsqrt alpha) 4 arccos-2 k) (* (/ litL 12) (wrsqrt 4alpha+2)))))
+	 (C (- (+ (* *3/i* arccos-1 k) (* (wrsqrt alpha) 3 arccos-3 k) 
+		  (* (/ litL 12) (wrsqrt 3alpha+1)))))
+	 (D (- (+ (* *2/i* arcsin-1 k) (* (wrsqrt alpha) 4 arccos-2 k) 
+		  (* (/ litL 12) (wrsqrt 4alpha+2)))))
+	 ; JM: Note that E cancels out in the two boundary terms. I
+	 ; left it in for clarity, since it exists in each boundary
+	 ; term.
 	 (E (- (* k (/ pi *i*))))
 	 (F (* *2/i* k arccos-1))
 	 (G (* (/ k *i*) arcsin-1)))
     (if ret-coup
 	(list arcsin-1 arccos-1 arccos-2 arccos-3 A B C D E F G)
 	; Bulk term
-	(+ (* A num1-sl-bulk k) (* B num1-tl) (* C num3-31-bulk) (* D num3-22-bulk)
-	   ; Boundary term
-	   (* E num1-sl-boundary) (* F num1-sl-boundary) (* G num3-22-boundary)))))
+	(+ (* A num1-sl-bulk k) (* B num1-tl) (* C num3-31-bulk) 
+	   (* D num3-22-bulk)
+	   ; Boundary term (bottom boundary)
+	   E (* F num1-sl-bot) (* G num3-22-bot)
+	   ; Boundary term (top boundary). Note opposite sign.
+	   (- (+ E (* F num1-sl-top) (* G num3-22-top)))))))
 
 (defun make-action (alpha k litL)
-  "Construct an action with fixed coupling constants for use in the simulation."
+  "Construct an action with fixed coupling constants 
+for use in the simulation."
   (setf (symbol-function 'action)
 	#'(lambda (num1-sl num1-tl num3-31 num3-22
-		   num1-sl-boundary num3-22-boundary num3-31-boundary)
+		   num1-sl-top num3-22-top num3-31-top
+		   num1-sl-bot num3-22-bot num3-31-bot)
 	    (action-exposed num1-sl num1-tl num3-31 num3-22
-			    num1-sl-boundary num3-22-boundary num3-31-boundary
+			    num1-sl-top num3-22-top num3-31-top
+			    num1-sl-bot num3-22-bot num3-31-bot 
 			    alpha k litL))))
 
 ;;; Functions to set coupling constants and build action. Both
@@ -568,14 +616,15 @@
 
 ;; reset-spacetime-fast is a faster way to reset the spacetime, but it
 ;; is dangerous because I am not certain all hash tables and important
-;; variables are reset. Use at your own risk. Further note that
-;; boundary variables are not reset.
+;; variables are reset. Use at your own risk.
 (defun reset-spacetime-fast ()
   "the state of the simulation after (reset-spacetime) is identical 
 to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
   ;; clear the hash tables
   (clrhash *TL2SIMPLEX->ID*)
   (clrhash *SL2SIMPLEX->ID*)
+  (clrhash *TL1SIMPLEX->ID*)
+  (clrhash *SL1SIMPLEX->ID*)
   (clrhash *ID->SPATIAL-2SIMPLEX*)
   (clrhash *ID->3SIMPLEX*)
   ;; reset the counters
@@ -591,6 +640,13 @@ to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
   (setf N2-TL 0)
   (setf N3-TL-31 0)
   (setf N3-TL-22 0)
+  ;; Reset the ''boundary'' variables
+  (setf *N1-SL-TOP* 0)
+  (setf *N1-SL-BOT* 0)
+  (setf *N3-22-TOP* 0)
+  (setf *N3-22-BOT* 0)
+  (setf *N3-31-TOP* 0)
+  (setf *N3-31-BOT* 0)
   ;; reset the parameters
   (setf *k0* 0.0)
   (setf *k3* 0.0)
@@ -612,7 +668,9 @@ to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
   (setf 23MARKER 0.0)
   (setf 44MARKER 0.0)
   (setf 32MARKER 0.0)
-  (setf 62MARKER 0.0))
+  (setf 62MARKER 0.0)
+  ;; Reset attempted moves list
+  (reset-move-counts))
 
 ;; reset-spacetime-slow simply reloads all modules and essentially
 ;; restarts the simulation. Only useful for runtime debugging.
@@ -620,6 +678,8 @@ to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
   "Reloads all modules and restarts simulation. Use at your own risk."
   (load "cdt2p1.lisp"))
 
+;; For debugging. Use only to quickly test the simulation while in the
+;; lisp REPL.
 (defun test-initialization nil
   "A simple initialization command for use in debugging."
   (initialize-t-slices-with-v-volume :num-time-slices 64
