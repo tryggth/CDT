@@ -45,3 +45,5 @@ _ReSharper*/
 /.lein-deps-sum
 *.iml
 /.metadata
+#ignore Leiningen target files
+[Tt]arget/
