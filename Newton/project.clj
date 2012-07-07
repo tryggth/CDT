@@ -1,7 +1,5 @@
 (defproject Newton "1.0.0-SNAPSHOT"
   :description "Causal Dynamical Triangulations"
-  :dependencies [[org.clojure/clojure "1.3.0"]]
-  :main Newton.core
-  :manifest {"Class-Path" "lib/clojure-1.3.0.jar"}
-  :dev-dependencies [[lein-marginalia "0.7.0"]]
-  :marginalia {:javascript ["mathjax/MathJax.js"]})
+  :url "https://github.com/ucdavis/CDT"
+  :dependencies [[org.clojure/clojure "1.4.0"]]
+  :plugins [[lein-ring "0.4.5"][lein-marginalia "0.7.1"]])
