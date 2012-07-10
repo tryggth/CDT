@@ -109,7 +109,8 @@
 	 (action-okay (zerop (imagpart delta-action))))
 
     ;; Raise an error message if the action is not okay.
-    ;;    (print delta-action) ; For debugging the action. 
+    (print delta-action) ; For debugging the action. 
+    (print (N3)) ; For debugging the action
     (if (not action-okay)
 	(prog nil
 	   (print "Data:")
@@ -172,7 +173,7 @@
 	(incf num-attempted) ;; number-of-attempted-moves-counter for this sweep
 	(incf (nth mtype ATTEMPTED-MOVES)) ;; number of moves of mtype that have been attempted
 	(when (accept-move? mtype sxid)
-;;	  (printmove mtype) ; for debugging purposes.
+	  (printmove mtype) ; for debugging purposes.
 	  (incf (nth mtype SUCCESSFUL-MOVES)) ;; number of moves of mtype that have succeeded
 	  (2plus1move movedata))))))
 

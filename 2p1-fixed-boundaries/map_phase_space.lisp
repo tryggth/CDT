@@ -37,6 +37,9 @@
 (defvar *k3-max* 3.5 "The maximum value of k3 for each k0.")
 (defvar *k3-increment* 0.001 "How much we increase k3 as we loop over it.")
 
+;; The alpha value we use:
+(defvar *target-alpha* -1 "Alpha we set.")
+
 ;; Simulation parameters
 (defvar *target-volume* (* 8 1024)
   "The volume we want our simulation to thermalize to.") 
@@ -77,6 +80,19 @@
 				    :boundary-conditions "OPEN"
 				    :initial-spatial-geometry initial-geometry
 				    :final-spatial-geometry final-geometry))
+
+(defun reset-parameters (k0 k3 &optional (initial-geometry "tetra.txt")
+				 (final-geometry "tetra.txt"))
+  "Resets k0 and k3 and resets the spacetime to prevent crashing"
+  (set-k0-k3-alpha k0 k3 *target-alpha*) ; resets parameters
+  (reset-spacetime-slow) ; resets spacetime to prevent memory leakage
+			 ; and crashes
+  (initialize-t-slices-with-v-volume :num-time-slices *num-time-slices*
+				     :target-volume *target-volume*
+				     :spatial-topology "S2"
+				     :boundary-conditions "OPEN"
+			     :initial-spatial-geometry initial-geometry
+			     :final-spatial-geometry   final-geometry))
 
 (defun open-file-for-the-first-time (outfile)
   "Opens the output file for the fist time and 
@@ -134,14 +150,21 @@ but designed to test the phase space."
 		     (final-geometry "tetra.txt"))
   "Varies k0 and k3 to map out the phase space."
   (prog nil
+     ; Start simulation for the first time. Load and compile modules
      (start-simulation initial-geometry final-geometry)
+     ; Make the output file
      (open-file-for-the-first-time outfile)
+     ; Loop through k0 and k3, testing simulation
      (loop for k0 from k0-min to k0-max by k0-increment do
 	  (loop for k3 from k3-min to k3-max by k3-increment do
 	       (prog ((data nil))
-		  (set-k0-k3-alpha k0 k3 -1)
+		  ; Reset the spacetime to prevent massive memory
+		  ; leakage in case of simulation blow-up
+		  (reset-parameters k0 k3 initial-geometry final-geometry)
+		  ; Thermalize, collect data
 		  (setf data (collect-volume-data thermalization-sweeps
 						   data-sweeps))
+		  ; Analyze the data and send it to output files
 		  (add-data-to-file outfile k0 k3 
 				    (float (mean data))
 				    (float (standard-deviation data))
