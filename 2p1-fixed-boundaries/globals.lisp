@@ -486,7 +486,8 @@
 
     (if ret-coup ; if ret-coup, just return debugging info. Otherwise,
 		 ; return the action.
-	(list arcsin-1 arccos-1 arccos-2 arccos-3 A B C D E F G)
+	(list theta-22-sl theta-31-sl theta-22-tl theta-31-tl
+	      v3-22 v3-31 A B C D E F G H I J K)
 
 	(+ ;; BULK TERM
 	 ; we need to subtract the boundary simplices from the bulk
