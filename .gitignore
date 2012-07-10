@@ -45,6 +45,9 @@ _ReSharper*/
 /.lein-deps-sum
 *.iml
 /.metadata
+# ignore .diff files used for comparison.
+*.diff.lisp
+*.diff
 #ignore Leiningen target files
 [Tt]arget/
 #ignores files created by diff
