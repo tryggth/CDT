@@ -92,3 +92,7 @@ July 5th, 2012 --- Discovered that the the boundary term should actually
 	       --- Discovered an error in the in-upper-sandwich and 
 	           in-lower-sandwich macros. Misplaced parentheses causing them
 		   to always return true. Fixed this error.
+
+July 9th, 2012 --- Significantly reworked the action in action-exposed
+     	       	   in globals.lisp. Fixed a small error in action
+     	       	   formulation, but mostly the goal was improved clarity.

@@ -265,6 +265,7 @@
 (defparameter *i* #C(0.0 1.0))   ; complex number i
 (defparameter *-i* #C(0.0 -1.0)) ; complex number -i
 (defparameter *2/i* (/ 2 *i*))
+(defparameter *pi/i* (/ pi *i*))
 (defparameter *2pi/i* (* *2/i* pi))
 (defparameter *3/i* (/ 3 *i*))
 ;; JM : It's bad lisp style to use constants without *constant*. 
@@ -391,7 +392,7 @@
 ;;; algorithm. Instead, make-action is called by set-k0-k3-alpha (or
 ;;; alternatively set-k-litL-alpha), which then sets the variable
 ;;; name, 'action, which was set with defvar above to the proper
-;;; function. This save somputational time because alpha, k, and litL
+;;; function. This saves computational time because alpha, k, and litL
 ;;; don't have to passed to the function every time, but are still
 ;;; change-able at run-time. This is a trick that would only work in a
 ;;; language like lisp, where functions are compiled but an
@@ -421,7 +422,7 @@
 	      alpha k litL ; Tuning parameters
 	      &optional (ret-coup nil))
   "The action before setting coupling constants."
-  (let* ((2alpha+1 (+ (* 2 alpha) 1))
+  (let* ((2alpha+1 (+ (* 2 alpha) 1)) ; self-explanatory
 	 (4alpha+1 (+ (* 4 alpha) 1))
 	 (4alpha+2 (+ (* 4 alpha) 2))
 	 (3alpha+1 (+ (* 3 alpha) 1))
@@ -432,42 +433,93 @@
 	 ; (3,1)- and (1,3)-simplices on the whole boundary
 	 (num3-31-boundary (+ num3-31-top num3-31-bot))
          ; (2,2)-simpleses in the bulk
-	 (num3-22-bulk (- num3-22 num3-22-boundary))
+	 (num3-22-bulk (- num3-22 (* 1/2 num3-22-boundary)))
 	 ; (3,1)-simplexes in the bulk
 	 (num3-31-bulk (- num3-31 num3-31-boundary))
 	 ; Space-like edges/links in the bulk
 	 (num1-sl-bulk (- num1-sl num1-sl-boundary))
 	 ; dihedral angle around spacelike bone for (2,2) simplices
-	 (arcsin-1 (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1))) 
+	 (theta-22-sl (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1))) 
 	 ; dihedral angle around spacelike bones for (3,1) simplices
-	 (arccos-1 (acos (/ *-i* (wrsqrt (* 3 4alpha+1)))))
+	 (theta-31-sl (acos (/ *-i* (wrsqrt (* 3 4alpha+1)))))
 	 ;dihedral angle around timelike bones for (2,2) simplices
-	 (arccos-2 (acos (/ -1 4alpha+1)))
+	 (theta-22-tl (acos (/ -1 4alpha+1)))
 	 ; dihedral angle around time-like bones for (3,1) simplices
-	 (arccos-3 (acos (/ 2alpha+1 4alpha+1)))
-	 ;; Bulk action assuming closed manifold.
-	 (A (* *2pi/i* k))
-	 (B (* (wrsqrt alpha) 2 pi k))
-	 (C (- (+ (* *3/i* arccos-1 k) (* (wrsqrt alpha) 3 arccos-3 k) 
-		  (* (/ litL 12) (wrsqrt 3alpha+1)))))
-	 (D (- (+ (* *2/i* arcsin-1 k) (* (wrsqrt alpha) 4 arccos-2 k) 
-		  (* (/ litL 12) (wrsqrt 4alpha+2)))))
-	 ; JM: Note that E cancels out in the two boundary terms. I
-	 ; left it in for clarity, since it exists in each boundary
-	 ; term.
-	 (E (- (* k (/ pi *i*))))
-	 (F (* *2/i* k arccos-1))
-	 (G (* (/ k *i*) arcsin-1)))
-    (if ret-coup
-	(list arcsin-1 arccos-1 arccos-2 arccos-3 A B C D E F G)
-	; Bulk term
-	(+ (* A num1-sl-bulk k) (* B num1-tl) (* C num3-31-bulk) 
-	   (* D num3-22-bulk)
-	   ; Boundary term (bottom boundary)
-	   E (* F num1-sl-bot) (* G num3-22-bot)
-	   ; Boundary term (top boundary). Note opposite sign.
-	   (- (+ E (* F num1-sl-top) (* G num3-22-top)))))))
+	 (theta-31-tl (acos (/ 2alpha+1 4alpha+1)))
+	 ; 3-volume of a (2,2)-simplex
+	 (v3-22 (wrsqrt 4alpha+2))
+	 ; 3-volume of a (3,1)- or (1,3)-simplex
+	 (v3-31 (wrsqrt 3alpha+1))
+	 ;; Coefficients for action assuming closed manifold.
+	 ;; BULK
+	 (A (* *2pi/i* k)) ; spacelike edges term
+	 (B (* (wrsqrt alpha) 2 pi k))   ; timelike edges term
+	 (C (* -1 *2/i* theta-22-sl k))  ; coefficient for
+					 ; (2,2)-simplices around
+					 ; spacelike bone term 
+	 (D (* -2 *2/i* theta-31-sl k))  ; coefficient for dihedral
+				         ; angle of (3,1)-simplices at
+				         ; each edge.
+	 (E (* -3 (wrsqrt alpha) theta-31-tl k)) ; term for dihedral
+					         ; angle around timelike
+					         ; edges of (1,3)- and
+					         ; (3,1)-simplices
+	 (F (* -4 (wrsqrt alpha) theta-22-tl k)) ; term for dihedral
+					         ; angle around timelike
+					         ; edges of (2,2)-
+					         ; simplices
+	 (G (* (/ litL 12) v3-22)) ; volume term for (2,2)-simplices
+	 (H (* (/ litL 12) v3-31)) ; volume term for (3,1)-simplices
+	 ;; BOUNDARY
+	 (I (* k (/ pi *i*))) ; term for sum over spacelike edges
+	 (J (* -1 *2/i* theta-31-sl k)) ; term for sum over dihedral
+				        ; angles of (3,1)-simplices at
+				        ; each bone.
+	 (K (* k (/ -1 *i*) theta-22-sl))) ; term for sum over dihedral
+					   ; angles of (2,2)-simplices
+					   ; attached at each bone
 
+    ;; JM: Note that I keep track of both boundaries separately, even
+    ;; though this isn't really necessary. This is for clarity and in
+    ;; case my conception of the action is incorrect, changes are
+    ;; easier.	     
+
+    (if ret-coup ; if ret-coup, just return debugging info. Otherwise,
+		 ; return the action.
+	(list arcsin-1 arccos-1 arccos-2 arccos-3 A B C D E F G)
+
+	(+ ;; BULK TERM
+	 ; we need to subtract the boundary simplices from the bulk
+	 (* A (- num1-sl (+ num1-sl-top num1-sl-bot)))
+	 (* B num1-tl) ; there are no boundary timelike simplices 
+
+	 ; We subtract half of the (2,2)-simplices at the boundary
+	 ; because each (2,2)-simplex at the boundary contributes one
+	 ; dihedral angle to the bulk sum and one dihedral angle to
+	 ; the boundary sum, while (2,2)-simplices in the bulk
+	 ; contribute 2 dihedral angles to the bulk sum.
+	 (* C (- num3-22 (* 1/2 (+ num3-22-top num3-22-bot))))
+	 ; For (3,1)-simplices attacked to the boundary, we have the
+	 ; same problem as with (2,2)-simplices.
+	 (* D (- num1-sl (* 1/2 (+ num1-sl-top num1-sl-bot))))
+	 ; There are no timelike bones in the boundary, so we don't
+	 ; have to subtract for angles around timelike bones.
+	 (* E num3-31) ; num3-31 is (3,1)- and (1,3)-simplices
+	 (* F num3-22)
+	 (+ (* G num3-22) (* H num3-31)) ; volume term
+
+	 ;; BOUNDARY TERM
+	 (- (+ ; we subtract the sum of the boundary terms
+	     ;; top boundary
+	     (* I num1-sl-top) ; pi term for deficit angle
+	     (* J num1-sl-top) ; (3,1)-simplex contribution to deficit angle
+	     (* K num3-22-top) ; (2,2)-simplex contribution to deficit angle
+	     ;; bottom boundary
+	     (* I num1-sl-bot) ; pi term for deficit angle
+	     (* J num1-sl-bot) ; (3,1)-simplex contribution to deficit angle
+	     (* K num3-22-bot))))))) ; (2,2)-simplex contribution to
+				     ; deficit angle
+	  
 (defun make-action (alpha k litL)
   "Construct an action with fixed coupling constants 
 for use in the simulation."

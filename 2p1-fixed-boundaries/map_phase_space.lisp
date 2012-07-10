@@ -8,7 +8,7 @@
 ;;;; than the equivalent python program, by manipulating the
 ;;;; simulation environment directly.
 
-;; Load modules
+;; Load module
 ;;;--------------------------------------------------------------------------
 (load "../utilities.lisp")
 ;;;--------------------------------------------------------------------------
