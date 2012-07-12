@@ -1,13 +1,3 @@
-#!/usr/bin/env python2
-# Change the above line depending on your system
-
-# tune.py
-# Author: Christian Anderson
-
-# Given a k0 and a k3, this script generates tuning data so that the
-# user can ensure the simulation is on the critical surface of the
-# system.
-
 from subprocess import Popen, PIPE
 import time
 import numpy

@@ -1,0 +1,9 @@
+sphere_generator.py
+
+Author: Jonah Miller (jonah.miller@colorado.edu)
+
+
+The idea of this program is to generate a spheroid out of equilateral
+triangles with as close to uniform curvature for a given surface area
+as possible. The system uses a set of ergotic monte carlo moves to
+generate new triangles.

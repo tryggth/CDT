@@ -1798,7 +1798,7 @@ about the type of the simplex participating in the move"
 	      #'(lambda (x) (make-3simplex-v3 (first x) (second x) (third x) (fourth x) (fifth x) (sixth x) (seventh x)))
 	      (triangulate-between-slices existing-triangles 
 					     (load-triangles-from-file initial-spatial-geometry)
-					     1 0 *LAST-USEDPOINT*))))
+					     1 0 *LAST-USED-POINT*))))
      (when final-spatial-geometry
        (let ((existing-triangles ()))
 	 (dolist (3sxid (get-simplices-in-sandwich (1- NUM-T) NUM-T))

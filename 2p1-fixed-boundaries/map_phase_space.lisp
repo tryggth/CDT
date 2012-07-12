@@ -51,7 +51,7 @@
 (defvar *spatial-topology* "S2" "spatial topology of simulation")
 (defvar *boundary-condition-type* "OPEN" "Boundary condition type")
 (defvar *n-sweeps* 50000 "Just to make the simulation work.")
-(defvar *thermalization-sweeps* 10 
+(defvar *thermalization-sweeps* 5 
   "The number of sweeps to reach target volume, plus a little bit.")
 (defvar *data-sweeps* 5 "Sweeps we do statistics on.")
 
@@ -87,6 +87,7 @@
   (set-k0-k3-alpha k0 k3 *target-alpha*) ; resets parameters
   (reset-spacetime-slow) ; resets spacetime to prevent memory leakage
 			 ; and crashes
+  (gc :full t) ; Garbage collects to prevent memory overflow
   (initialize-t-slices-with-v-volume :num-time-slices *num-time-slices*
 				     :target-volume *target-volume*
 				     :spatial-topology "S2"
@@ -164,7 +165,7 @@ but designed to test the phase space."
 		  ; Thermalize, collect data
 		  (setf data (collect-volume-data thermalization-sweeps
 						   data-sweeps))
-		  ; Analyze the data and send it to output files
+		  ; Analyze the data and send it to output 
 		  (add-data-to-file outfile k0 k3 
 				    (float (mean data))
 				    (float (standard-deviation data))
