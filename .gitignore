@@ -53,3 +53,4 @@ _ReSharper*/
 #ignores files created by diff
 *.diff.lisp
 *.diff
+*.boundary
