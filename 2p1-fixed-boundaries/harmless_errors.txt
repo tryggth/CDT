@@ -1,24 +1,58 @@
 Author: Jonah Miller (jonah.miller@colorado.edu)
-Date: June 28, 2012
+Date: July 13, 2012
 
 The Following Errors Are Harmless
 
 (load "/home/jonah/CDT/2p1-fixed-boundaries/cdt2p1.lisp")
 
-
 ; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/globals.lisp
-; in: DEFUN RESET-SPACETIME-FAST
-;     (SETF *LAST-USED-2SXID* 0)
-; ==>
-;   (SETQ *LAST-USED-2SXID* 0)
+; in: DEFUN ACTION-EXPOSED
+;     (LET* ((2ALPHA+1 (+ (* 2 ALPHA) 1))
+;            (4ALPHA+1 (+ (* 4 ALPHA) 1))
+;            (4ALPHA+2 (+ (* 4 ALPHA) 2))
+;            (3ALPHA+1 (+ (* 3 ALPHA) 1))
+;            (NUM1-SL-BOUNDARY (+ NUM1-SL-TOP NUM1-SL-BOT))
+;            (NUM3-22-BOUNDARY (+ NUM3-22-TOP NUM3-22-BOT))
+;            (NUM3-31-BOUNDARY (+ NUM3-31-TOP NUM3-31-BOT))
+;            (NUM3-22-BULK (- NUM3-22 (* 1/2 NUM3-22-BOUNDARY)))
+;            (NUM3-31-BULK (- NUM3-31 NUM3-31-BOUNDARY))
+;            (NUM1-SL-BULK (- NUM1-SL NUM1-SL-BOUNDARY))
+;            (THETA-22-SL (ASIN (/ # 4ALPHA+1)))
+;            (THETA-31-SL (ACOS (/ *-I* #)))
+;            ...)
+;       (IF RET-COUP
+;           (LIST THETA-22-SL THETA-31-SL THETA-22-TL THETA-31-TL V3-22 V3-31 A B C
+;                 D E ...)
+;           (+ (* A (- NUM1-SL #)) (* B NUM1-TL) (* C (- NUM3-22 #))
+;              (* D (- NUM1-SL #)) (* E NUM3-31) (* F NUM3-22)
+;              (+ (* G NUM3-22) (* H NUM3-31)) (- (+ # # # # # #)))))
 ; 
-; caught WARNING:
-;   undefined variable: *LAST-USED-2SXID*
+; caught STYLE-WARNING:
+;   The variable NUM3-22-BULK is defined but never used.
+; 
+; caught STYLE-WARNING:
+;   The variable NUM3-31-BULK is defined but never used.
+; 
+; caught STYLE-WARNING:
+;   The variable NUM1-SL-BULK is defined but never used.
 ; 
 ; compilation unit finished
-;   Undefined variable:
-;     *LAST-USED-2SXID*
-;   caught 1 WARNING condition
+;   caught 3 STYLE-WARNING conditions
+
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/globals.lisp
+; in: DEFUN TEST-INITIALIZATION
+;     (INITIALIZE-T-SLICES-WITH-V-VOLUME :NUM-TIME-SLICES 64 :TARGET-VOLUME 80000
+;      :SPATIAL-TOPOLOGY "s2" :BOUNDARY-CONDITIONS "open" :INITIAL-SPATIAL-GEOMETRY
+;      "tetra.txt" :FINAL-SPATIAL-GEOMETRY ...)
+; 
+; caught STYLE-WARNING:
+;   undefined function: INITIALIZE-T-SLICES-WITH-V-VOLUME
+; 
+; compilation unit finished
+;   Undefined function:
+;     INITIALIZE-T-SLICES-WITH-V-VOLUME
+;   caught 1 STYLE-WARNING condition
 
 ; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
 ; in: DEFUN LIST-KEYS-WITH-TRAIT
@@ -46,53 +80,68 @@ The Following Errors Are Harmless
 ; compilation unit finished
 ;   caught 1 STYLE-WARNING condition
 
-
-; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/moves.lisp
-; in: DEFUN 2->3-MOVE-INTERNAL-12
-;     (LIST NEWSXDATA NBORS (LIST 13ID 22ID) OLDTL2SXS NIL NIL NIL DF23 DB23)
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
+; in: DEFUN LIST-VALS-WITH-TRAIT
+;     (FLET ((DISCRIMINATOR (HKEY HVAL)
+;              (WHEN (FUNCALL TRAIT #) (PUSH HVAL KEYLIST))))
+;       (MAPHASH #'DISCRIMINATOR HASHTABLE)
+;       KEYLIST)
 ; 
-; caught WARNING:
-;   undefined variable: DB23
-; 
-; compilation unit finished
-;   Undefined variable:
-;     DB23
-;   caught 1 WARNING condition
-
-; in: DEFUN 2->3-MOVE-INTERNAL-32
-;     (LIST NEWSXDATA NBORS (LIST 31ID 22ID) OLDTL2SXS NIL NIL NIL DF23 DB23)
-; 
-; caught WARNING:
-;   undefined variable: DB23
+; caught STYLE-WARNING:
+;   The variable HKEY is defined but never used.
 ; 
 ; compilation unit finished
-;   Undefined variable:
-;     DB23
-;   caught 1 WARNING condition
+;   caught 1 STYLE-WARNING condition
 
-; in: DEFUN 3->2-MOVE-INTERNAL-122
-;     (LIST NEWSXDATA NBORS (LIST 13ID 22ID1 22ID2) OLDTL2SXS NIL OLDTL1SXS NIL
-;           DF32 DB32)
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
+; in: DEFUN COUNT-VALS-WITH-TRAIT
+;     (FLET ((DISCRIMINATOR (HKEY HVAL)
+;              (WHEN (FUNCALL TRAIT #) (INCF COUNT 1))))
+;       (MAPHASH #'DISCRIMINATOR HASHTABLE)
+;       COUNT)
 ; 
-; caught WARNING:
-;   undefined variable: DB32
+; caught STYLE-WARNING:
+;   The variable HKEY is defined but never used.
 ; 
 ; compilation unit finished
-;   Undefined variable:
-;     DB32
-;   caught 1 WARNING condition
+;   caught 1 STYLE-WARNING condition
 
-; in: DEFUN 3->2-MOVE-INTERNAL-322
-;     (LIST NEWSXDATA NBORS (LIST 31ID 22ID1 22ID2) OLDTL2SXS NIL OLDTL1SXS NIL
-;           DF32 DB32)
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
+; in: DEFUN COUNT-TIMELIKE-LINKS-IN-SANDWICH
+;     (DEFUN COUNT-TIMELIKE-LINKS-IN-SANDWICH (T-LOW T-HIGH)
+;       "Count time-like links in a sandwich. 
+;   t-high is for compatibility. We only care about t-low."
+;       (COUNT-KEYS-WITH-TRAIT #'(LAMBDA (X) (= X T-LOW)) *TL1SIMPLEX->ID* 1))
+; --> PROGN SB-INT:NAMED-LAMBDA 
+; ==>
+;   #'(SB-INT:NAMED-LAMBDA COUNT-TIMELIKE-LINKS-IN-SANDWICH
+;         (T-LOW T-HIGH)
+;       (BLOCK COUNT-TIMELIKE-LINKS-IN-SANDWICH
+;         (COUNT-KEYS-WITH-TRAIT #'(LAMBDA (X) (= X T-LOW)) *TL1SIMPLEX->ID* 1)))
 ; 
-; caught WARNING:
-;   undefined variable: DB32
+; caught STYLE-WARNING:
+;   The variable T-HIGH is defined but never used.
 ; 
 ; compilation unit finished
-;   Undefined variable:
-;     DB32
-;   caught 1 WARNING condition
+;   caught 1 STYLE-WARNING condition
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/simplex.lisp
+; in: DEFUN COUNT-TIMELIKE-TRIANGLES-IN-SANDWICH
+;     (DEFUN COUNT-TIMELIKE-TRIANGLES-IN-SANDWICH (T0 T1)
+;       "Count the number of timelike triangles in a sandwich."
+;       (COUNT-KEYS-WITH-TRAIT #'(LAMBDA (X) (= T0 X)) *TL2SIMPLEX->ID* 1))
+; --> PROGN SB-INT:NAMED-LAMBDA 
+; ==>
+;   #'(SB-INT:NAMED-LAMBDA COUNT-TIMELIKE-TRIANGLES-IN-SANDWICH
+;         (T0 T1)
+;       (BLOCK COUNT-TIMELIKE-TRIANGLES-IN-SANDWICH
+;         (COUNT-KEYS-WITH-TRAIT #'(LAMBDA (X) (= T0 X)) *TL2SIMPLEX->ID* 1)))
+; 
+; caught STYLE-WARNING:
+;   The variable T1 is defined but never used.
+; 
+; compilation unit finished
+;   caught 1 STYLE-WARNING condition
 
 
 ; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/initialization.lisp
@@ -125,8 +174,10 @@ The Following Errors Are Harmless
 ; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/montecarlo.lisp
 ; in: DEFUN ACCEPT-MOVE?
 ;     (ACTION (+ N1-SL D-N1-SL) (+ N1-TL D-N1-TL) (+ N3-TL-31 D-N3-TL-31)
-;      (+ N3-TL-22 D-N3-TL-22) (+ N1-SL-BOUNDARY D-N1-SL-B)
-;      (+ N3-22-BOUNDARY D-N3-22-B) (+ N3-31-BOUNDARY D-N3-31-B))
+;      (+ N3-TL-22 D-N3-TL-22) (+ *N1-SL-TOP* D-N1-SL-TOP)
+;      (+ *N3-22-TOP* D-N3-22-TOP) (+ *N3-31-TOP* D-N3-31-TOP)
+;      (+ *N1-SL-BOT* D-N1-SL-BOT) (+ *N3-22-BOT* D-N3-22-BOT)
+;      (+ *N3-31-BOT* D-N3-31-BOT))
 ; 
 ; caught STYLE-WARNING:
 ;   undefined function: ACTION
@@ -144,5 +195,5 @@ The Following Errors Are Harmless
 ; 
 ; compilation unit finished
 ;   Undefined function:
-;     ACTIONN
+;     ACTION
 ;   caught 1 STYLE-WARNING condition

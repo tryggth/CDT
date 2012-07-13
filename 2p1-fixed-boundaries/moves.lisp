@@ -1,6 +1,6 @@
-;; try-a->b methods returns the following list, IFF the move can be successfully 
-;; made 
-;; (new3sxids nbors old3sxids oldTL2sxs oldSL2sxs oldTL1sxs oldSL1sx fvector)
+;; try-a->b methods returns the following list, IFF the move can be
+;; successfully made (new3sxids nbors old3sxids oldTL2sxs oldSL2sxs
+;; oldTL1sxs oldSL1sx fvector)
 
 (defun 2plus1move (sxdata)
   (let ((new3sxids (make-3simplices-in-bulk (first sxdata))))
@@ -14,7 +14,7 @@
     (update-f-vector (eighth sxdata))
     (update-b-vector (ninth sxdata))))
 
-;;---------------------------------------------------------------------------[0]
+;;------------------------------------------------------------------------[0]
 ;; 5
 ;;-------------- t+1
 ;; 2 3 4
@@ -31,7 +31,7 @@
 ;; (1|2 3 6) + (2 3 6|5) +
 ;; (1|2 6 4) + (2 6 4|5) +
 ;; (1|6 3 4) + (6 3 4|5)
-;;---------------------------------------------------------------------------[0]
+;;------------------------------------------------------------------------[0]
 (defun 2->6-subcomplex (sxid)
   (let ((subcmplx nil)
 	(sx nil))
@@ -67,13 +67,14 @@
 	      (1 ,13tmlo ,13tmhi (,lopt ,newpt ,@(circular-subseq bigtr 2 2)))
 	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 0 2) ,newpt ,hipt))
 	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 1 2) ,newpt ,hipt))
-	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 2 2) ,newpt ,hipt)))))
+	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 2 2) 
+				    ,newpt ,hipt)))))
       (return-from try-2->6 
 	(list newsxdata nbors curr 
 	      nil oldSL2sxs
 	      nil nil
 	      DF26 DB26)))))
-;;---------------------------------------------------------------------------[1]
+;;------------------------------------------------------------------------[1]
 ;; 5
 ;;-------------- t+1
 ;; 2 3 4
@@ -90,7 +91,7 @@
 ;; (1|6 3 4) + (6 3 4|5)
 ;; ->
 ;; (1|2 3 4) + (2 3 4|5) 
-;;---------------------------------------------------------------------------[1]
+;;------------------------------------------------------------------------[1]
 (defun 6->2-subcomplex (sxid)
   "returns a list of the form ((13id1 13id2 13id3 31id3 31id2 31id1)...)"
   (let ((sx nil)
@@ -200,7 +201,7 @@
 		oldTL1sxs oldSL1sxs
 		DF62 DB62))))))
 
-;;---------------------------------------------------------------------------[2]
+;;------------------------------------------------------------------------[2]
 ;; 6
 ;;-------------- t+1
 ;; 2 3 4 5
@@ -217,7 +218,7 @@
 ;; ->
 ;; (1|2 4 5) + (1|2 3 5) +
 ;; (2 4 5|6) + (2 3 5|6)
-;;---------------------------------------------------------------------------[2]
+;;------------------------------------------------------------------------[2]
 (defun 4->4-subcomplex (sxid)
   "returns a list of the form ((13id1 13id2 31id2 31id1)...)"
   (let ((sx nil)
@@ -231,7 +232,8 @@
 		     (when (3simplices-connected? 
 			    (nth 0 (3sx-sx3ids (get-3simplex 13nbor))) 31id)
 		       (pushnew (list sxid 13nbor 
-				      (nth 0 (3sx-sx3ids (get-3simplex 13nbor)))
+				      (nth 0 (3sx-sx3ids 
+					      (get-3simplex 13nbor)))
 				      31id)
 				subcmplx :test #'set-equal?)))))))
 	    ((= 3 (3sx-type sx))
@@ -242,7 +244,8 @@
 		     (when (3simplices-connected? 
 			    (nth 3 (3sx-sx3ids (get-3simplex 31nbor))) 13id)
 		       (pushnew (list 13id 
-				      (nth 3 (3sx-sx3ids (get-3simplex 31nbor)))
+				      (nth 3 (3sx-sx3ids 
+					      (get-3simplex 31nbor)))
 				      31nbor sxid)
 				subcmplx :test #'set-equal?)))))))))
     subcmplx))
@@ -287,7 +290,7 @@
 		oldTL2sxs oldSL2sxs
 		nil oldSL1sxs
 		DF44 DB44))))))
-;;---------------------------------------------------------------------------[3]
+;;------------------------------------------------------------------------[3]
 ;; 2 3 4
 ;;-------------- t+1
 ;; 1 5
@@ -300,10 +303,11 @@
 ;; (1|2 3 4) + (1 5|3 4) -> (5|2 3 4) + (1 5|2 3) + (1 5|2 4)
 ;; or
 ;; (2 3 4|1) + (3 4|1 5) -> (2 3 4|5) + (2 3|1 5) + (2 4|1 5)
-;;---------------------------------------------------------------------------[3]
+;;------------------------------------------------------------------------[3]
 (defun 2->3-subcomplex (sxid)
-  "returns a list of the form ((1or3 13or31id 22id)...) where the first number 1 or 3 tells us about the
-type of the simplex participating in the move"
+  "returns a list of the form ((1or3 13or31id 22id)...)
+   where the first number 1 or 3 tells us about the
+   type of the simplex participating in the move"
   (let ((sx nil)
 	(subcmplx nil))
     (when (setf sx (get-3simplex sxid))
@@ -386,14 +390,16 @@ type of the simplex participating in the move"
     (unless (null subcmplx)
       (dolist (curr subcmplx)
 	(cond ((= 1 (first curr))
-	       (setf movedata (2->3-move-internal-12 (second curr) (third curr)))
+	       (setf movedata (2->3-move-internal-12 
+			       (second curr) (third curr)))
 	       (when movedata
 		 (return-from try-2->3 movedata)))
 	      ((= 3 (first curr))
-	       (setf movedata (2->3-move-internal-32 (second curr) (third curr)))
+	       (setf movedata (2->3-move-internal-32 
+			       (second curr) (third curr)))
 	       (when movedata
 		 (return-from try-2->3 movedata))))))))
-;;---------------------------------------------------------------------------[4]
+;;------------------------------------------------------------------------[4]
 ;; 2 3 4
 ;;-------------- t+1
 ;; 1 5
@@ -406,10 +412,11 @@ type of the simplex participating in the move"
 ;; (5|2 3 4) + (1 5|2 3) + (1 5|2 4) -> (1|2 3 4) + (1 5|3 4)
 ;; or
 ;; (2 3 4|5) + (2 3|1 5) + (2 4|1 5) -> (2 3 4|1) + (3 4|1 5)
-;;---------------------------------------------------------------------------[4]
+;;------------------------------------------------------------------------[4]
 (defun 3->2-subcomplex (sxid)
-  "returns a list of the form ((1or3 13or31id 22id1 22id2)...) where the first number 1 or 3 tells us 
-about the type of the simplex participating in the move"
+  "returns a list of the form ((1or3 13or31id 22id1 22id2)...) 
+   where the first number 1 or 3 tells us 
+   about the type of the simplex participating in the move"
   (let ((sx nil)
 	(subcmplx nil))
     (when (setf sx (get-3simplex sxid))
@@ -442,7 +449,8 @@ about the type of the simplex participating in the move"
     subcmplx))
 
 (defun 3->2-move-internal-122 (13id 22id1 22id2)
-  "the (3,2) move performed on a (1,3) simplex attached to two (2,2) simplices"
+  "the (3,2) move performed on a (1,3) simplex attached to two (2,2) 
+   simplices"
   (let ((13sx nil) (22sx1 nil) (22sx2 nil))
     (when (and (setf 13sx (get-3simplex 13id)) 
 	       (setf 22sx1 (get-3simplex 22id1))

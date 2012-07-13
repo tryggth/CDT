@@ -1,6 +1,6 @@
-;;;;-----------------------------------------------------------------------;;;;
-;;;;                     SIMPLEX DATA STRUCTURES                           ;;;;
-;;;;-----------------------------------------------------------------------;;;;
+;;;;---------------------------------------------------------------------;;;;
+;;;;                   SIMPLEX DATA STRUCTURES                           ;;;;
+;;;;---------------------------------------------------------------------;;;;
 
 ;;;; This file contains simplex information for the main data
 ;;;; structures of the simulation. It also contains important
@@ -243,27 +243,28 @@
 
 (defun show-id->3simplex-store ()
   (maphash #'(lambda (3sxid 3sx) 
-	       (cond ((= 1 (3sx-type 3sx))
-		      (format t "[~A] (~A ~A ~A (~A|~A ~A ~A) (~A ~A ~A ~A))~%"
-			      3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
-			      (nth-point 3sx 0) (nth-point 3sx 1) 
-			      (nth-point 3sx 2) (nth-point 3sx 3)
-			      (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
-			      (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
-		     ((= 2 (3sx-type 3sx))
-		      (format t "[~A] (~A ~A ~A (~A ~A|~A ~A) (~A ~A ~A ~A))~%"
-			      3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
-			      (nth-point 3sx 0) (nth-point 3sx 1) 
-			      (nth-point 3sx 2) (nth-point 3sx 3)
-			      (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
-			      (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
-		     ((= 3 (3sx-type 3sx))
-		      (format t "[~A] (~A ~A ~A (~A ~A ~A|~A) (~A ~A ~A ~A))~%"
-			      3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
-			      (nth-point 3sx 0) (nth-point 3sx 1) 
-			      (nth-point 3sx 2) (nth-point 3sx 3)
-			      (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
-			      (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))))
+	       (cond 
+		 ((= 1 (3sx-type 3sx))
+		  (format t "[~A] (~A ~A ~A (~A|~A ~A ~A) (~A ~A ~A ~A))~%"
+			  3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
+			  (nth-point 3sx 0) (nth-point 3sx 1) 
+			  (nth-point 3sx 2) (nth-point 3sx 3)
+			  (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
+			  (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
+		 ((= 2 (3sx-type 3sx))
+		  (format t "[~A] (~A ~A ~A (~A ~A|~A ~A) (~A ~A ~A ~A))~%"
+			  3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
+			  (nth-point 3sx 0) (nth-point 3sx 1) 
+			  (nth-point 3sx 2) (nth-point 3sx 3)
+			  (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
+			  (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
+		 ((= 3 (3sx-type 3sx))
+		  (format t "[~A] (~A ~A ~A (~A ~A ~A|~A) (~A ~A ~A ~A))~%"
+			  3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
+			  (nth-point 3sx 0) (nth-point 3sx 1) 
+			  (nth-point 3sx 2) (nth-point 3sx 3)
+			  (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
+			  (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))))
 	   *ID->3SIMPLEX*))
 
 (defun show-tl2simplex-store ()
@@ -579,7 +580,8 @@ t-high is for compatibility. We only care about t-low."
 				(push (list lopt hipt) retval)))
 			    retval)))
 	(setf list-of-links (union list-of-links sx-tl-links 
-				   :test #'(lambda (x y) (not (set-difference x y)))))))
+				   :test #'(lambda (x y) 
+					     (not (set-difference x y)))))))
     (length list-of-links)))
 
 ;; Count the number of time-like links in the entire spacetime. Needs
@@ -686,7 +688,9 @@ t-high is for compatibility. We only care about t-low."
 			 (list (fourth pts) (second pts) (third pts)))))))
 
 	(setf list-of-triangles (union list-of-triangles sx-tl-triangles
-				       :test #'(lambda (x y) (not (set-difference x y)))))))
+				       :test #'(lambda (x y) 
+						 (not 
+						  (set-difference x y)))))))
     (length list-of-triangles)))
 
 
@@ -741,6 +745,7 @@ t-high is for compatibility. We only care about t-low."
 	(pushnew (nth n nids) nbors)))
     nbors))
 
+;; JM: Style rules broken here because it's clearer for the string.
 (defun save-spacetime-to-file (outfile)
   (format outfile "~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A ~A~%" 
 	  BCTYPE STOPOLOGY NUM-T N-INIT *LAST-USED-POINT* *LAST-USED-3SXID* 
@@ -791,18 +796,19 @@ t-high is for compatibility. We only care about t-low."
 		   :for num := (read s nil nil)
 		   :while num
 		   :collect num)))
-      (make-3simplex-v4 (nth 0 data) (nth 1 data) (nth 2 data) (nth 3 data) 
-			(nth 4 data) (nth 5 data) (nth 6 data) (nth 7 data)
-			(nth 8 data) (nth 9 data) (nth 10 data) (nth 11 data)))))
+      (make-3simplex-v4 (nth 0 data) (nth 1 data)  (nth 2 data) 
+			(nth 3 data) (nth 4 data)  (nth 5 data) 
+			(nth 6 data) (nth 7 data)  (nth 8 data)
+			(nth 9 data) (nth 10 data) (nth 11 data)))))
 
 (defun load-spacetime-from-file (infile)
   (parse-parameters-line (read-line infile nil))
   (loop for line = (read-line infile nil)
      while line do (parse-simplex-data-line line)))
 
-;;; spatial 2-simplex is a spatial triangle; this information is needed for 
-;;; computing the spectral and hausdorff dimensions of the spatial slice, among 
-;;; other things.
+;;; spatial 2-simplex is a spatial triangle; this information is
+;;; needed for computing the spectral and hausdorff dimensions of the
+;;; spatial slice, among other things.
 
 ;;; JM: there may be some redundancy with counting functions down here
 ;;; and those above. I will leave it alone so I don't break anything.
@@ -831,8 +837,10 @@ t-high is for compatibility. We only care about t-low."
 	     (points2 (s2sx-points st2))
 	     (line (intersection points1 points2)))
 	(when (= 2 (length line))
-	  (let ((pos1 (position (first (set-difference points1 line)) points1))
-		(pos2 (position (first (set-difference points2 line)) points2)))
+	  (let ((pos1 (position (first (set-difference points1 line))
+				points1))
+		(pos2 (position (first (set-difference points2 line))
+				points2)))
 	    (setf (nth pos1 (s2sx-sx2ids st1)) st2id 
 		  (nth pos2 (s2sx-sx2ids st2)) st1id)))))))
 
@@ -842,7 +850,8 @@ t-high is for compatibility. We only care about t-low."
 	    (connect-s2simplices (nth n sx1ids) (nth m sx1ids)))))
 
 (defun count-s2simplices-in-slice (ts)
-  "counts the number of spaeclike 2-simplices (i.e. spatial triangles) in spatial slice ts"
+  "counts the number of spaeclike 2-simplices
+   (i.e. spatial triangles) in spatial slice ts"
   (let ((count 0))
     (maphash #'(lambda (id sx)
 		 (declare (ignore id))
@@ -863,8 +872,9 @@ stored in the 2-simplex data file for purposes of identification only"
 		   :for num := (read s nil nil)
 		   :while num
 		   :collect num)))
-      (make-s2simplex-v2 (nth 0 data) (nth 1 data) (nth 2 data) (nth 3 data) 
-			 (nth 4 data) (nth 5 data) (nth 6 data) (nth 7 data)))))
+      (make-s2simplex-v2 (nth 0 data) (nth 1 data) (nth 2 data)
+			 (nth 3 data) (nth 4 data) (nth 5 data)
+			 (nth 6 data) (nth 7 data)))))
 
 (defun load-s2simplex-data-from-file (infile)
   "loads spatial 2-simplex data from infile"
@@ -886,12 +896,13 @@ stored in the 2-simplex data file for purposes of identification only"
 	   *ID->SPATIAL-2SIMPLEX*))
 
 (defun 3sx2p1->s2sx2p1 ()
-  "3sx2p1->s2sx2p1 generates the spatial 2-simplex information for each spatial slice 
-from the 3-simplex data for the entire spacetime."
+  "3sx2p1->s2sx2p1 generates the spatial 2-simplex information 
+  for each spatial slice from the 3-simplex data for the entire spacetime."
   (clrhash *ID->SPATIAL-2SIMPLEX*)
   (setf *LAST-USED-S2SXID* 0)
   (for (ts 0 (1- NUM-T))
-       (let ((31simplices (get-simplices-in-sandwich-of-type ts (1+ ts) 3)) ;; list of ids
+       ;; list of ids
+       (let ((31simplices (get-simplices-in-sandwich-of-type ts (1+ ts) 3)) 
 	     (spatial-triangles '()))
 	 (dolist (31simplex 31simplices)
 	   (push (make-s2simplex ts (3sx-lopts (get-3simplex 31simplex))) 
@@ -900,8 +911,8 @@ from the 3-simplex data for the entire spacetime."
 
 (defun generate-s2sx2p1-files (3sx2p1files)
   "3sx2p1files is a list of .3sx2p1 files. For each file in this list, this
-function generates a .s2sx2p1 file. The prefix for the .3sx2p1 and the .s2sx2p1
-file are identical"
+   function generates a .s2sx2p1 file. The prefix for the .3sx2p1 and the 
+   .s2sx2p1 file are identical"
   (loop for line = (read-line 3sx2p1files nil)
        while line do
        (let ((outfilename (change-file-suffix line "s2sx2p1")))

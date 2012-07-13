@@ -32,7 +32,7 @@
 
 
 
-;;------------------------------------------------------------------------------
+;;---------------------------------------------------------------------------
 ;; timelike subsimplices have the form (type tmlo (p0 p1 ...))
 (defun tlsubsx->id-hashfn (tlsx)
   (sxhash (sort (copy-list (third tlsx)) #'<)))
@@ -52,7 +52,7 @@
 (sb-ext:define-hash-table-test slsubsx->id-equality slsubsx->id-hashfn)
 (defparameter *SL2SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
 (defparameter *SL1SIMPLEX->ID* (make-hash-table :test 'slsubsx->id-equality))
-;;-----------------------------------------------------------------------------
+;;---------------------------------------------------------------------------
 (defparameter *ID->SPATIAL-2SIMPLEX* (make-hash-table))
 (defparameter *ID->3SIMPLEX* (make-hash-table :test 'equal))
 
@@ -236,7 +236,8 @@
 (defparameter NUM-T 666666 
   "number of time slices --- set to a non-zero value so (mod ts NUM-T) works")
 (defparameter N-INIT 0 
-  "initial volume of spacetime; we try to keep the volume close to this number")
+  "initial volume of spacetime; 
+   we try to keep the volume close to this number")
 (defparameter NUM-SWEEPS 0 
   "number of sweeps for which the simulation is to run")
 (defparameter SIM-START-TIME (cdt-now-str) 
@@ -291,14 +292,18 @@
 (defvar action nil)
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
-(defun generate-filename (&optional (start-sweep 1) (end-sweep (+ start-sweep NUM-SWEEPS -1)))
+(defun generate-filename (&optional (start-sweep 1) 
+			    (end-sweep (+ start-sweep NUM-SWEEPS -1)))
   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-on-~A-started~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* start-sweep end-sweep (hostname) (cdt-now-str)))
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* start-sweep 
+	  end-sweep (hostname) (cdt-now-str)))
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-hostname-starttime-currenttime
-(defun generate-filename-v2 (&optional (ssweep 1) (csweep 0) (esweep (+ ssweep NUM-SWEEPS -1)))
+(defun generate-filename-v2 (&optional (ssweep 1) (csweep 0) 
+			       (esweep (+ ssweep NUM-SWEEPS -1)))
   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-on-~A-start~A-curr~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* ssweep csweep esweep 
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
+	  ssweep csweep esweep 
 	  (hostname) SIM-START-TIME (cdt-now-str)))
 
 (defvar 26MARKER 0.0)
@@ -433,11 +438,11 @@
 	 ; (3,1)- and (1,3)-simplices on the whole boundary
 	 (num3-31-boundary (+ num3-31-top num3-31-bot))
          ; (2,2)-simpleses in the bulk
-	 (num3-22-bulk (- num3-22 (* 1/2 num3-22-boundary)))
+	 ;; (num3-22-bulk (- num3-22 (* 1/2 num3-22-boundary)))
 	 ; (3,1)-simplexes in the bulk
-	 (num3-31-bulk (- num3-31 num3-31-boundary))
+	 ;; (num3-31-bulk (- num3-31 num3-31-boundary))
 	 ; Space-like edges/links in the bulk
-	 (num1-sl-bulk (- num1-sl num1-sl-boundary))
+	 ;; (num1-sl-bulk (- num1-sl num1-sl-boundary))
 	 ; dihedral angle around spacelike bone for (2,2) simplices
 	 (theta-22-sl (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1))) 
 	 ; dihedral angle around spacelike bones for (3,1) simplices
@@ -541,7 +546,8 @@ for use in the simulation."
 (defun set-k0-k3-alpha (k0 k3 alpha)
   (setf *k0* k0 *k3* k3 *alpha* alpha)
   (setf *k* (/ *k0* (* 2 *a* pi)))
-  (setf *litL* (* (- *k3* (* 2 *a* pi *k* 3KAPPAMINUS1)) (/ 6ROOT2 (* *a* *a* *a*))))
+  (setf *litL* (* (- *k3* (* 2 *a* pi *k* 3KAPPAMINUS1)) 
+		  (/ 6ROOT2 (* *a* *a* *a*))))
   (make-action *alpha* *k* *litL*)
   (initialize-move-markers))
 
@@ -553,7 +559,8 @@ for use in the simulation."
 	   *litL*  litL
 	   *alpha* alpha)
      (setf *k0* (* *k* (* 2 *a* pi))
-	   *k3* (+ (/ (* *litL* *a* *a* *a*) 6ROOT2) (* 2 *a* pi *k* 3KAPPAMINUS1)))
+	   *k3* (+ (/ (* *litL* *a* *a* *a*) 6ROOT2) 
+		   (* 2 *a* pi *k* 3KAPPAMINUS1)))
      (make-action *alpha* *k* *litL*)
      (initialize-move-markers)))
 
@@ -589,9 +596,9 @@ for use in the simulation."
 		 (+ (* k3TL31 n3TL31) (* k3TL22 n3TL22)))))))
   
 
-;;;----------------------------------------------------------------------------------------------------------  
+;;;------------------------------------------------------------------------  
 ;;; initialization data 
-;;;----------------------------------------------------------------------------------------------------------  
+;;;------------------------------------------------------------------------  
 
 
 ;;; JM: I am unconvinced the initialization data should be in the
@@ -614,10 +621,15 @@ for use in the simulation."
 (defparameter N2-TL-PER-SLICE 24)
 (defparameter N3-TL-13-PER-SLICE 4)
 (defparameter N3-TL-22-PER-SLICE 6)
-(defparameter N3-TL-31-PER-SLICE 4) ; here (3,1) means just (3,1), not (3,1)+(1,3)
+; here (3,1) means just (3,1), not (3,1)+(1,3)
+(defparameter N3-TL-31-PER-SLICE 4) 
 (defparameter S2-1/2-31 '((1 2 3 5) (2 3 4 6) (3 4 1 7) (4 1 2 8)))
-(defparameter S2-1/2-22 '((1 2 5 8) (2 3 5 6) (3 1 5 7) (3 4 6 7) (4 2 6 8) (4 1 7 8)))
+(defparameter S2-1/2-22 '((1 2 5 8) (2 3 5 6) (3 1 5 7) (3 4 6 7) 
+			  (4 2 6 8) (4 1 7 8)))
 (defparameter S2-1/2-13 '((1 5 7 8) (2 5 6 8) (3 5 6 7) (4 6 7 8)))
+
+;; JM: Style rules broken here because I can't figure out how to fix
+;; this comment without ruining it.
 
 ;; 13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44
 ;;------------------------------------------------------------------------------------------------- t=1
@@ -658,9 +670,9 @@ for use in the simulation."
 
 
 
-;;;-----------------------------------------------------------------------------
+;;;--------------------------------------------------------------------------
 ;;; RESET THE SIMULATION
-;;;-----------------------------------------------------------------------------
+;;;--------------------------------------------------------------------------
 
 ;;; JM: Resetting the simulation at runtime is tricky business. The
 ;;; following two functions reset the system in different ways. It's

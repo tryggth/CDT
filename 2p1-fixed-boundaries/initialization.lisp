@@ -1,9 +1,10 @@
-;...........................................................................................................
-; cdt-2plus1-initialization.lisp
-;...........................................................................................................
 
-;;function to find neighbors of a given triangle in a list of triangles (triangles are stored as
-;;3-tuples of vertices)
+;............................................................................
+; cdt-2plus1-initialization.lisp
+;............................................................................
+
+;;function to find neighbors of a given triangle in a list of
+;;triangles (triangles are stored as 3-tuples of vertices)
 (defun get-nbors-of-triangle (key-triangle list-of-triangles)
   (let ((retval ()))
     (dolist (tri list-of-triangles)
@@ -11,7 +12,8 @@
 	(setf retval (push tri retval))))
     retval))
 
-;;find all triangles containing a particular point.  triangles are represented in a list of 3-tuples
+;;find all triangles containing a particular point.  triangles are
+;;represented in a list of 3-tuples
 (defun triangles-around-point (point list-of-triangles)
   (let ((retval ()))
     (dolist (tri list-of-triangles)
@@ -19,17 +21,20 @@
 	(setf retval (push tri retval))))
     retval))
 
-;;function to retrieve "pseudo-faces" and "pseudo-edges" from a list of triangle verticies,
-;; of the form ((id1 id2 id3) ...).
+;;function to retrieve "pseudo-faces" and "pseudo-edges" from a list
+;; of triangle verticies, of the form ((id1 id2 id3) ...).
 
 ;;the return value is of the form 
 
-;;  ((point1 point2 point3 point4) (face1 face2 face3 face4) (edge12 edge13 edge14 edge23 edge24 edge34))
+;;  ((point1 point2 point3 point4) (face1 face2 face3 face4) (edge12
+;;  edge13 edge14 edge23 edge24 edge34))
 
-;;where faces are lists of 3-tuples of vertices and edges are lists of pairs of vertices.  the numbers
-;;in the edge names refer to the numbers of the end points.  the numbers of points are the same
-;;as the numbers of the faces opposite the points.  point* are just the point ids of the points that
-;;are the verticies of the "tetrahedra" that we are pretending the s2 triangulation is.  
+;;where faces are lists of 3-tuples of vertices and edges are lists of
+;;pairs of vertices.  the numbers in the edge names refer to the
+;;numbers of the end points.  the numbers of points are the same as
+;;the numbers of the faces opposite the points.  point* are just the
+;;point ids of the points that are the verticies of the "tetrahedra"
+;;that we are pretending the s2 triangulation is.
 
 (defun get-s2-pseudo-faces-and-edges (triangle-sheet)
 
@@ -38,23 +43,29 @@
   (let* (;;pick a random triangle for face1
 	 (face1 (list (nth (random (length triangle-sheet)) triangle-sheet)))
 	 
-	 ;;choose a random neighbor of that triangle to be face2.  the vertex of face2 not shared
-	 ;;with face1 becomes point1.  the vertex of face1 not shared with face2 becomes point2
-	 (face2  (list (first (get-nbors-of-triangle (first face1) triangle-sheet))))
+	 ;; choose a random neighbor of that triangle to be face2.  
+	 ;; the ;vertex of face2 not shared with face1 becomes point1.  
+	 ;; the vertex of face1 not shared with face2 becomes point2
+	 (face2  (list (first (get-nbors-of-triangle 
+			       (first face1) triangle-sheet))))
 	 (point1 (first (set-difference (first face2) (first face1))))
 	 (point2 (first (set-difference (first face1) (first face2))))
 		 
-	 ;;choose all other triangles meeting at a random endpoint of the border line segment for face3.
-	 ;;the endpoint selected becomes point4, the other endpoint becomes point3.  the edge along the rounded part
-	 ;;of this "triangle fan" is the only non-trivial edge (edge12) to construct.  
+	 ;;choose all other triangles meeting at a random endpoint of
+	 ;;the border line segment for face3.  the endpoint selected
+	 ;;becomes point4, the other endpoint becomes point3.  the
+	 ;;edge along the rounded part of this "triangle fan" is the
+	 ;;only non-trivial edge (edge12) to construct.
 	 (border-segment (intersection (first face1) (first face2)))
 	 (point3 (first  border-segment))
 	 (point4 (second border-segment))
+	 ;(assuming x and y have the same cardinality)
 	 (face3 (set-difference
 		 (triangles-around-point point4 triangle-sheet)
 		 (concatenate 'list face1 face2)
-		 :test #'(lambda (x y) (not (set-difference x y))))) ;(assuming x and y have the same cardinality)
-	 (edge12 (map 'list #'(lambda (x) (set-difference x (list point4))) face3))
+		 :test #'(lambda (x y) (not (set-difference x y))))) 
+	 (edge12 (map 'list 
+		      #'(lambda (x) (set-difference x (list point4))) face3))
 
 	 ;;come up with other edges
 	 (edge13 (list (list point1 point3)))
@@ -66,31 +77,41 @@
 	 ;;all other triangles form face4
 	 (face4 (set-difference triangle-sheet 
 				(concatenate 'list face1 face2 face3) 
-				:test #'(lambda (x y) (not (set-difference x y))))))
+				:test #'(lambda (x y) 
+					  (not (set-difference x y))))))
 
     ;;get all of the values into a list to return
     (list (list point1 point2 point3 point4)
 	  (list face1  face2  face3  face4 )
 	  (list edge12 edge13 edge14 edge23 edge24 edge34))))
 
-;;an analogous function to get-s2-pseudo-faces-and-edges, but for triangle-sheet of t2 topology
+;;an analogous function to get-s2-pseudo-faces-and-edges, but for
+;;triangle-sheet of t2 topology
 (defun get-t2-pseudo-faces-and-edges (triangle-sheet)
   (declare (ignore triangle-sheet))
   (error "t2 topology not implemented yet"))
 
-;;functions/macros to triangulate different types of complices into many simplices of the same type.  the 
-;;simplices are returned as a list of lists, each with the form (type tmlo tmhi id1 id2 id3 id4), for
-;;easy use with make-simplex-v3.  
+;;functions/macros to triangulate different types of complices into
+;;many simplices of the same type.  the simplices are returned as a
+;;list of lists, each with the form (type tmlo tmhi id1 id2 id3 id4),
+;;for easy use with make-simplex-v3.
 
 (defun triangulate-31-complex (face point tmlo tmhi)
   (if (> tmlo tmhi) 
-      (triangulate-13-complex point face tmhi tmlo) ;this causes warnings, but is harmless
-      (map 'list #'(lambda (x) (list 3 tmlo tmhi (first x) (second x) (third x) point)) face)))
+      ;this causes warnings, but is harmless
+      (triangulate-13-complex point face tmhi tmlo) 
+      (map 'list #'(lambda (x) (list 3 tmlo tmhi 
+				     (first x) 
+				     (second x) 
+				     (third x) point)) face)))
 
 (defun triangulate-13-complex (point face tmlo tmhi)
   (if (> tmlo tmhi)
       (triangulate-31-complex face point tmhi tmlo)
-      (map 'list #'(lambda (x) (list 1 tmlo tmhi point (first x) (second x) (third x))) face)))
+      (map 'list #'(lambda (x) (list 1 tmlo tmhi point 
+				     (first x) 
+				     (second x) 
+				     (third x))) face)))
 
 (defun triangulate-22-complex (edge1 edge2 tmlo tmhi)
   (if (> tmlo tmhi)
@@ -98,42 +119,62 @@
       (let ((retval ()))
 	(dolist (lo-edge edge1)
 	  (dolist (hi-edge edge2)
-	    (push (list 2 tmlo tmhi (first lo-edge) (second lo-edge) (first hi-edge) (second hi-edge))
+	    (push (list 2 tmlo tmhi 
+			(first lo-edge) (second lo-edge) 
+			(first hi-edge) (second hi-edge))
 		  retval)))
 	retval)))
 
-;; original-sheet and new-sheet are lists of 3-tuples of pt ids, to be connected by tetrahedra.  
-;; the function will return a list of tetrahedra connecting the two sheets of triangles, such that 
-;; all tetrahedra meet at time-like faces with one another.  both sheets are assumed to have topology s2.
+;; original-sheet and new-sheet are lists of 3-tuples of pt ids, to be
+;; connected by tetrahedra.  the function will return a list of
+;; tetrahedra connecting the two sheets of triangles, such that all
+;; tetrahedra meet at time-like faces with one another.  both sheets
+;; are assumed to have topology s2.
 
-;; the list of returned tetrahedra is of the form
-;; ((type tmlo tmhi id1 id2 id3 id4) ... ),
-;; for use with make-simplex-v3.  the call to make-simplex will automatically update the last-used
-;; point id as tethrahedra are added to the hash table.
+;; the list of returned tetrahedra is of the form 
 
-;; point ids in original-sheet will not be changed.  values in new-sheet will be set to 
-;; reflect connectivity with original-sheet.  t0 will become the new time value of all verticies in
-;; original-sheet and t1 will be the new time value for verticies in new-sheet.  last-used-pt-id is the 
-;; last used id of points and will be added to all id's in new-sheet to prevent spurious connections to 
-;; other geometry
+;; ((type tmlo tmhi id1 id2 id3 id4) ... ), 
 
-(defun triangulate-between-s2-slices (original-sheet new-sheet t0 t1 last-used-pt-id)
+;; for use with make-simplex-v3.  the call to make-simplex will
+;; automatically update the last-used point id as tethrahedra are
+;; added to the hash table.
 
-  ;;the approach here is to break each s2-topology sheet of triangles into four "pseudo-faces",
-  ;;connected analogously to those of a single tetrahedron.  we can then follow the program
-  ;;for filling the space between two tetrahedra, with the slight complication that the 3-simplices
-  ;;of the inter-tetrahedral filling are replaced with analogous complices, each of which may be
-  ;;decomposed into many simplices of the same type.  
+;; point ids in original-sheet will not be changed.  values in
+;; new-sheet will be set to reflect connectivity with original-sheet.
+;; t0 will become the new time value of all verticies in
+;; original-sheet and t1 will be the new time value for verticies in
+;; new-sheet.  last-used-pt-id is the last used id of points and will
+;; be added to all id's in new-sheet to prevent spurious connections
+;; to other geometry
+
+(defun triangulate-between-s2-slices (original-sheet new-sheet 
+				      t0 t1 last-used-pt-id)
+
+  ;;the approach here is to break each s2-topology sheet of triangles
+  ;;into four "pseudo-faces", connected analogously to those of a
+  ;;single tetrahedron.  we can then follow the program for filling
+  ;;the space between two tetrahedra, with the slight complication
+  ;;that the 3-simplices of the inter-tetrahedral filling are replaced
+  ;;with analogous complices, each of which may be decomposed into
+  ;;many simplices of the same type.
 
   ;;add last-used-pt-id to all verticies of new-sheet
-  (let* ((adjusted-new-sheet (map 'list #'(lambda (x) (map 'list #'(lambda (y) (+ y last-used-pt-id)) x)) new-sheet))
+  (let* ((adjusted-new-sheet 
+	  (map 
+	   'list 
+	   #'(lambda (x) (map 
+			  'list 
+			  #'(lambda (y) (+ y last-used-pt-id)) x)) new-sheet))
 	 
-	 ;;first, we must decide on the pseudo-faces and pseudo-edges.  Store the pseudo-faces as lists of 
-	 ;;triangles, and pseudo-edges as lists of pairs of points.
+	 ;;first, we must decide on the pseudo-faces and pseudo-edges.
+	 ;;Store the pseudo-faces as lists of triangles, and
+	 ;;pseudo-edges as lists of pairs of points.
 
 	 ;;get the points, faces, ad edges
-	 (original-pseudo-faces-and-edges (get-s2-pseudo-faces-and-edges original-sheet))
-	 (new-pseudo-faces-and-edges      (get-s2-pseudo-faces-and-edges adjusted-new-sheet))
+	 (original-pseudo-faces-and-edges 
+	  (get-s2-pseudo-faces-and-edges original-sheet))
+	 (new-pseudo-faces-and-edges      
+	  (get-s2-pseudo-faces-and-edges adjusted-new-sheet))
 
 	 ;;make convenient bindings for the points, faces and edges
 	 (original-points (first  original-pseudo-faces-and-edges))
@@ -143,8 +184,9 @@
 	 (new-faces       (second new-pseudo-faces-and-edges))
 	 (new-edges       (third  new-pseudo-faces-and-edges))
 
-	 ;;come up with numbered names for easier correspondence with the inter-tetrahedral
-	 ;;filling scheme (vertex numbers opposite face numbers)
+	 ;;come up with numbered names for easier correspondence with
+	 ;;the inter-tetrahedral filling scheme (vertex numbers
+	 ;;opposite face numbers)
 
 	 ;;verticies
 	 (point1 (first  original-points))
@@ -180,8 +222,9 @@
 	 (edge68 (fifth  new-edges))
 	 (edge78 (sixth  new-edges)))
 
-    ;;use the point/face/edge bindings and the triangulation between tetrahedra scheme
-    ;;to come up with the complices that correctly triangulate between the two sheets
+    ;;use the point/face/edge bindings and the triangulation between
+    ;;tetrahedra scheme to come up with the complices that correctly
+    ;;triangulate between the two sheets
     (concatenate 'list
 
 		 ;;(3,1) complices:
@@ -205,7 +248,8 @@
 		 (triangulate-13-complex point4 face5 t0 t1))))
 
 ;;anaologous function for triangle sheets of t2 topology
-(defun triangulate-between-t2-slices (original-sheet new-sheet t0 t1 last-used-pt-id)
+(defun triangulate-between-t2-slices (original-sheet new-sheet 
+				      t0 t1 last-used-pt-id)
   (declare (ignore original-sheet)
 	   (ignore new-sheet)
 	   (ignore t0)
@@ -214,46 +258,57 @@
   (error "t2 topology not yet implemented"))
 
 ;;macro to automatically choose the right triangulation between slices
-(defmacro triangulate-between-slices (original-sheet new-sheet t0 t1 last-used-pt-id)
+(defmacro triangulate-between-slices (original-sheet new-sheet 
+				      t0 t1 last-used-pt-id)
   `(cond 
      ((string= STOPOLOGY "S2")
-      (triangulate-between-s2-slices ,original-sheet ,new-sheet ,t0 ,t1 ,last-used-pt-id))
+      (triangulate-between-s2-slices ,original-sheet ,new-sheet 
+				     ,t0 ,t1 ,last-used-pt-id))
      ((string= STOPOLOGY "T2")
-      (triangulate-between-t2-slices ,original-sheet ,new-sheet ,t0 ,t1 ,last-used-pt-id))
+      (triangulate-between-t2-slices ,original-sheet ,new-sheet 
+				     ,t0 ,t1 ,last-used-pt-id))
      (t (error "unrecognized spatial topology"))))
 
-;;test function to generate an s2 triangulation of arbitrary size.  this particular method focuses
-;;a lot of curvature at a few points, so it's not particularly spherical, but it is a useful test
-;;when only topology matters
+;;test function to generate an s2 triangulation of arbitrary size.
+;;this particular method focuses a lot of curvature at a few points,
+;;so it's not particularly spherical, but it is a useful test when
+;;only topology matters
 (defun generate-s2-triangulation-of-size (n)
   
-  (let* ((triangulation (list (list 4 3 2) (list 1 3 4) (list 1 4 2) (list 2 3 1)))
+  (let* ((triangulation (list (list 4 3 2) (list 1 3 4)
+			      (list 1 4 2) (list 2 3 1)))
 	 (number-of-triangles 4)
 	 (current-triangle () )
 	 (rest-of-list     () )
 	 (last-used-point 4))
     (while (< number-of-triangles n)
       (setf current-triangle triangulation)
-      (while (and (< number-of-triangles n) (setf rest-of-list (cdr current-triangle)))
+      (while (and (< number-of-triangles n) 
+		  (setf rest-of-list (cdr current-triangle)))
 	(let* ((triangle (car current-triangle))
-	       (p1 (first triangle)) (p2 (second triangle)) (p3 (third triangle))
-	       (p4 (incf last-used-point)))
+	       (p1 (first triangle)) (p2 (second triangle)) 
+	       (p3 (third triangle)) (p4 (incf last-used-point)))
 	  (setf (car current-triangle) (list p1 p4 p3))
-	  (setf (cdr current-triangle) (concatenate 'list (list (list p1 p2 p4) (list p2 p3 p4)) rest-of-list))
+	  (setf (cdr current-triangle) 
+		(concatenate 'list (list (list p1 p2 p4) 
+					 (list p2 p3 p4)) rest-of-list))
 	  (setf current-triangle (cdr (cdr (cdr current-triangle))))
 	  (setf number-of-triangles (+ 2 number-of-triangles)))))
     triangulation))
 
-;;function to load a set of triangles from a file.  the triangles are assumed to be stored as a
-;;lisp readable list of lists of 3 integers each.  The 3 integers represent point ids.  The point id's
-;;can just start at 1, as they will be fixed to match the rest of the spacetime later.  
+;;function to load a set of triangles from a file.  the triangles are
+;;assumed to be stored as a lisp readable list of lists of 3 integers
+;;each.  The 3 integers represent point ids.  The point id's can just
+;;start at 1, as they will be fixed to match the rest of the spacetime
+;;later.
 (defun load-triangles-from-file (filename)
   (with-open-file (f filename)
     (read f)))
 
 ;;function to connect simplices that have been generated
 ;;by initialization functions
-(defun connect-existing-simplices (&optional initial-spatial-geometry final-spatial-geometry)
+(defun connect-existing-simplices (&optional initial-spatial-geometry 
+				     final-spatial-geometry)
   
   (cond
     ((string= BCTYPE "PERIODIC")
@@ -272,13 +327,15 @@
      ;;periodicity gives a 1-to-1 correspondence between spatial
      ;;sheets and 3-d sandwiches, so all per-slice quantities are
      ;;just multiplied by NUM-T
-     (set-f-vector (* NUM-T N0-PER-SLICE)                               ; N0
-		   (* NUM-T N1-SL-PER-SLICE)                            ; N1-SL
-		   (* NUM-T N1-TL-PER-SLICE)                            ; N1-TL
-		   (* NUM-T N2-SL-PER-SLICE)                            ; N2-SL
-		   (* NUM-T N2-TL-PER-SLICE)                            ; N2-TL
-		   (* NUM-T (+ N3-TL-13-PER-SLICE N3-TL-31-PER-SLICE))  ; N3-TL-13 + N3-TL-31
-		   (* NUM-T N3-TL-22-PER-SLICE)))                       ; N3-TL-22
+     (set-f-vector (* NUM-T N0-PER-SLICE)    ; N0
+		   (* NUM-T N1-SL-PER-SLICE) ; N1-SL
+		   (* NUM-T N1-TL-PER-SLICE) ; N1-TL
+		   (* NUM-T N2-SL-PER-SLICE) ; N2-SL
+		   (* NUM-T N2-TL-PER-SLICE) ; N2-TL
+                   ; N3-TL-13 + N3-TL-31
+		   (* NUM-T (+ N3-TL-13-PER-SLICE N3-TL-31-PER-SLICE))
+		   (* NUM-T N3-TL-22-PER-SLICE))) ; N3-TL-22
+
 
     ((string= BCTYPE "OPEN")
 
@@ -293,13 +350,18 @@
 	   (let* ((3sx  (get-3simplex 3sxid))
 		  (pts (3sx-points 3sx)))
 	     (when (= 1 (3sx-type 3sx))
-	       (push (list (second pts) (third pts) (fourth pts)) existing-triangles)))
+	       (push (list (second pts) (third pts) (fourth pts)) 
+		     existing-triangles)))
 	   (remhash 3sxid *ID->3SIMPLEX*))
-	 ;; Make simplexes in the first slice based on the initial spatial geometry.
+	 ;; Make simplexes in the first slice based on the initial
+	 ;; spatial geometry.
 	 (map 'list 
-	      #'(lambda (x) (make-3simplex-v3 (first x) (second x) (third x) (fourth x) (fifth x) (sixth x) (seventh x)))
+	      #'(lambda (x) (make-3simplex-v3 (first x) (second x) (third x) 
+					      (fourth x) (fifth x) (sixth x) 
+					      (seventh x)))
 	      (triangulate-between-slices existing-triangles 
-					     (load-triangles-from-file initial-spatial-geometry)
+					     (load-triangles-from-file 
+					      initial-spatial-geometry)
 					     1 0 *LAST-USED-POINT*))))
      (when final-spatial-geometry
        (let ((existing-triangles ()))
@@ -314,13 +376,18 @@
 	   (let* ((3sx  (get-3simplex 3sxid))
 		  (pts (3sx-points 3sx)))
 	     (when (= 3 (3sx-type 3sx))
-	       (push (list (first pts) (second pts) (third pts)) existing-triangles)))
+	       (push (list (first pts) (second pts) (third pts))
+		     existing-triangles)))
 	   (remhash 3sxid *ID->3SIMPLEX*))
 	 (map 'list 
-	      #'(lambda (x) (make-3simplex-v3 (first x) (second x) (third x) (fourth x) (fifth x) (sixth x) (seventh x)))
+	      #'(lambda (x) (make-3simplex-v3 (first x) (second x) (third x)
+					      (fourth x) (fifth x) (sixth x)
+					      (seventh x)))
 	      (triangulate-between-slices existing-triangles 
-					     (load-triangles-from-file final-spatial-geometry)
-					     (1- NUM-T) NUM-T *LAST-USED-POINT*))))
+					     (load-triangles-from-file
+					      final-spatial-geometry)
+					     (1- NUM-T) NUM-T 
+					     *LAST-USED-POINT*))))
 
      ;;connect simplices inside of slices
      (for (ts 0  (1- NUM-T))
@@ -387,51 +454,84 @@
   (defparameter N2-TL-PER-SLICE 24)
   (defparameter N3-TL-13-PER-SLICE 4)
   (defparameter N3-TL-22-PER-SLICE 6)
-  (defparameter N3-TL-31-PER-SLICE 4) ; here (3,1) means just (3,1), not (3,1)+(1,3)                 
+  ; here (3,1) means just (3,1), not (3,1)+(1,3)
+  (defparameter N3-TL-31-PER-SLICE 4) 
   (defparameter S2-1/2-31 '((1 2 3 5) (2 3 4 6) (3 4 1 7) (4 1 2 8)))
-  (defparameter S2-1/2-22 '((1 2 5 8) (2 3 5 6) (3 1 5 7) (3 4 6 7) (4 2 6 8) (4 1 7 8)))
+  (defparameter S2-1/2-22 '((1 2 5 8) (2 3 5 6) (3 1 5 7) (3 4 6 7) 
+			    (4 2 6 8) (4 1 7 8)))
   (defparameter S2-1/2-13 '((1 5 7 8) (2 5 6 8) (3 5 6 7) (4 6 7 8)))
 
   (for (n 0 (1- (/ NUM-T 2)))
+        ;-----o------------ t = 1
+        ;    / \
+        ;   /   \
+        ;  /     \
+        ;-o-------o-------- t = 0
        (dolist (fourpts S2-1/2-31)
-	 (make-3simplex-v3 3 (* 2 n) (1+ (* 2 n))                       ;-----o------------ t = 1
-			   (+ (* 2 n N0-PER-SLICE) (first fourpts))     ;    / \
-			   (+ (* 2 n N0-PER-SLICE) (second fourpts))    ;   /   \
-			   (+ (* 2 n N0-PER-SLICE) (third fourpts))     ;  /     \
-			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))))  ;-o-------o-------- t = 0
+	 (make-3simplex-v3 3 (* 2 n) (1+ (* 2 n))                      
+			   (+ (* 2 n N0-PER-SLICE) (first fourpts))    
+			   (+ (* 2 n N0-PER-SLICE) (second fourpts))   
+			   (+ (* 2 n N0-PER-SLICE) (third fourpts))    
+			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts)))) 
+       ;-----o-----o------ t = 1
+       ;    /     / 
+       ;   /     /     
+       ;  /     /  
+       ;-o-----o---------- t = 0
        (dolist (fourpts S2-1/2-22)
-	 (make-3simplex-v3 2 (* 2 n) (1+ (* 2 n))                       ;-----o-----o------ t = 1
-			   (+ (* 2 n N0-PER-SLICE) (first fourpts))     ;    /     / 
-			   (+ (* 2 n N0-PER-SLICE) (second fourpts))    ;   /     /     
-			   (+ (* 2 n N0-PER-SLICE) (third fourpts))     ;  /     /  
-			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))))  ;-o-----o---------- t = 0
+	 (make-3simplex-v3 2 (* 2 n) (1+ (* 2 n))                       
+			   (+ (* 2 n N0-PER-SLICE) (first fourpts))    
+			   (+ (* 2 n N0-PER-SLICE) (second fourpts))   
+			   (+ (* 2 n N0-PER-SLICE) (third fourpts))    
+			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts)))) 
+       ;-o-------o-------- t = 1
+       ;  \     /
+       ;   \   /
+       ;    \ /
+       ;-----o------------ t = 0
        (dolist (fourpts S2-1/2-13)
-	 (make-3simplex-v3 1 (* 2 n) (1+ (* 2 n))                       ;-o-------o-------- t = 1
-			   (+ (* 2 n N0-PER-SLICE) (first fourpts))     ;  \     /
-			   (+ (* 2 n N0-PER-SLICE) (second fourpts))    ;   \   /
-			   (+ (* 2 n N0-PER-SLICE) (third fourpts))     ;    \ /
-			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))))  ;-----o------------ t = 0
+	 (make-3simplex-v3 1 (* 2 n) (1+ (* 2 n))                       
+			   (+ (* 2 n N0-PER-SLICE) (first fourpts))    
+			   (+ (* 2 n N0-PER-SLICE) (second fourpts))    
+			   (+ (* 2 n N0-PER-SLICE) (third fourpts))     
+			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))))  
+       ;-o-------o-------- t = 2
+       ;  \     /
+       ;   \   /
+       ;    \ /
+       ;-----o------------ t = 1
        (dolist (fourpts S2-1/2-31)
-	 (make-3simplex-v3 1 (1+ (* 2 n)) (2+ (* 2 n))                      ;-o-------o-------- t = 2
-			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))        ;  \     /
-			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fourpts))   ;   \   /
-			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fourpts))  ;    \ /
-			   (+ (* 2 (+ n 1) N0-PER-SLICE) (third fourpts)))) ;-----o------------ t = 1
+	 (make-3simplex-v3 1 (1+ (* 2 n)) (2+ (* 2 n))                      
+			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))        
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fourpts))   
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fourpts))  
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (third fourpts)))) 
+       ;-----o-----o------ t = 2
+       ;      \     \  
+       ;       \     \
+       ;        \     \
+       ;---------o-----o-- t = 1
        (dolist (fourpts S2-1/2-22)
-	 (make-3simplex-v3 2 (1+ (* 2 n)) (2+ (* 2 n))                      ;-----o-----o------ t = 2
-			   (+ (* 2 n N0-PER-SLICE) (third fourpts))         ;      \     \  
-			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))        ;       \     \
-			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fourpts))   ;        \     \
-			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fourpts))));---------o-----o-- t = 1
+	 (make-3simplex-v3 2 (1+ (* 2 n)) (2+ (* 2 n))                      
+			   (+ (* 2 n N0-PER-SLICE) (third fourpts))         
+			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))        
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fourpts))   
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (second fourpts))))
+       ;-----o------------ t = 2
+       ;    / \
+       ;   /   \
+       ;  /     \
+       ;-o-------o-------- t = 1
        (dolist (fourpts S2-1/2-13)
-	 (make-3simplex-v3 3 (1+ (* 2 n)) (2+ (* 2 n))                      ;-----o------------ t = 2
-			   (+ (* 2 n N0-PER-SLICE) (second fourpts))        ;    / \
-			   (+ (* 2 n N0-PER-SLICE) (third fourpts))         ;   /   \
-			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))        ;  /     \
-			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fourpts)))));-o-------o-------- t = 1
+	 (make-3simplex-v3 3 (1+ (* 2 n)) (2+ (* 2 n))                      
+			   (+ (* 2 n N0-PER-SLICE) (second fourpts))        
+			   (+ (* 2 n N0-PER-SLICE) (third fourpts))         
+			   (+ (* 2 n N0-PER-SLICE) (fourth fourpts))        
+			   (+ (* 2 (+ n 1) N0-PER-SLICE) (first fourpts)))))
 
   ;;match triangular faces between 3-simplices
-  (connect-existing-simplices initial-spatial-geometry final-spatial-geometry))
+  (connect-existing-simplices initial-spatial-geometry 
+			      final-spatial-geometry))
 
 (defun initialize-T2-triangulation (num-time-slices boundary-conditions
 				    &optional 
@@ -466,14 +566,19 @@
 
   ;;set up the numbers of initial simplices according to the T2
   ;;initialization of the geometry
-  (defparameter N0-PER-SLICE 16)        ; count one corner of each cell
-  (defparameter N1-SL-PER-SLICE 48)     ; (3 per cell) x (16 cells)
-  (defparameter N1-TL-PER-SLICE 48)     ; (1 internal + 2 external per cell) x (16 cells)
-  (defparameter N2-SL-PER-SLICE 32)     ; (2 per cell) x (16 cells)
-  (defparameter N2-TL-PER-SLICE 96)     ; (2 internal + 4 external per cell) x (16 cells)
-  (defparameter N3-TL-13-PER-SLICE 32)  ; <---|
-  (defparameter N3-TL-22-PER-SLICE 32)  ; <---|---| two of each type per cell
-  (defparameter N3-TL-31-PER-SLICE 32)  ; <---|
+  ; count one corner of each cell
+  (defparameter N0-PER-SLICE 16)        
+  ; (3 per cell) x (16 cells)
+  (defparameter N1-SL-PER-SLICE 48)     
+  ; (1 internal + 2 external per cell) x (16 cells)
+  (defparameter N1-TL-PER-SLICE 48)     
+  ; (2 per cell) x (16 cells)
+  (defparameter N2-SL-PER-SLICE 32)     
+  ; (2 internal + 4 external per cell) x (16 cells)
+  (defparameter N2-TL-PER-SLICE 96)     
+  (defparameter N3-TL-13-PER-SLICE 32) ; <---|
+  (defparameter N3-TL-22-PER-SLICE 32) ; <---|---| two of each type per cell
+  (defparameter N3-TL-31-PER-SLICE 32) ; <---|
 
   ;;iterate over time slices
   (for (time-slice 0 (1- NUM-T))
@@ -500,26 +605,40 @@
 
            (progn ;;create 6 3-simplices for the current cell
 
-             (make-3simplex-v3 3 time-slice (1+ time-slice) p0  p1      p2      p1-next)
-             (make-3simplex-v3 2 time-slice (1+ time-slice) p0  p2      p1-next p2-next)
-             (make-3simplex-v3 1 time-slice (1+ time-slice) p0  p0-next p1-next p2-next)
+             (make-3simplex-v3 3 time-slice (1+ time-slice) 
+			       p0 p1 p2 p1-next)
+             (make-3simplex-v3 2 time-slice (1+ time-slice) 
+			       p0 p2 p1-next p2-next)
+             (make-3simplex-v3 1 time-slice (1+ time-slice) 
+			       p0 p0-next p1-next p2-next)
 
-             (make-3simplex-v3 3 time-slice (1+ time-slice) p1  p2      p3      p1-next)
-             (make-3simplex-v3 2 time-slice (1+ time-slice) p2  p3      p1-next p2-next)
-             (make-3simplex-v3 1 time-slice (1+ time-slice) p3  p1-next p2-next p3-next))
+             (make-3simplex-v3 3 time-slice (1+ time-slice)
+			       p1 p2 p3 p1-next)
+             (make-3simplex-v3 2 time-slice (1+ time-slice)
+			       p2 p3 p1-next p2-next)
+             (make-3simplex-v3 1 time-slice (1+ time-slice)
+			       p3 p1-next p2-next p3-next))
 
-           (progn ;;otherwise, invert the simplicial breakdown (along the time-direction)
+           (progn ;;otherwise, invert the simplicial breakdown (along
+		  ;;the time-direction)
 
-             (make-3simplex-v3 1 time-slice (1+ time-slice) p1  p0-next p1-next p2-next)
-             (make-3simplex-v3 2 time-slice (1+ time-slice) p1  p2      p0-next p2-next)
-             (make-3simplex-v3 3 time-slice (1+ time-slice) p0  p1      p2      p0-next)
+             (make-3simplex-v3 1 time-slice (1+ time-slice) 
+			       p1 p0-next p1-next p2-next)
+             (make-3simplex-v3 2 time-slice (1+ time-slice) 
+			       p1 p2 p0-next p2-next)
+             (make-3simplex-v3 3 time-slice (1+ time-slice) 
+			       p0 p1 p2 p0-next)
 
-             (make-3simplex-v3 1 time-slice (1+ time-slice) p1  p1-next p2-next p3-next)
-             (make-3simplex-v3 2 time-slice (1+ time-slice) p1  p2      p2-next p3-next)
-             (make-3simplex-v3 3 time-slice (1+ time-slice) p1  p2      p3      p3-next)))))))
+             (make-3simplex-v3 1 time-slice (1+ time-slice) 
+			       p1 p1-next p2-next p3-next)
+             (make-3simplex-v3 2 time-slice (1+ time-slice)
+			       p1 p2 p2-next p3-next)
+             (make-3simplex-v3 3 time-slice (1+ time-slice) 
+			       p1 p2 p3 p3-next)))))))
 
   ;;match triangular faces between 3-simplices
-  (connect-existing-simplices initial-spatial-geometry final-spatial-geometry))
+  (connect-existing-simplices initial-spatial-geometry 
+			      final-spatial-geometry))
             
 
 
@@ -536,20 +655,23 @@
 
   ;;perform initialization based on type of spatial topology
   (cond 
-    ((string= STOPOLOGY "S2") (initialize-S2-triangulation num-time-slices boundary-conditions 
-							   initial-spatial-geometry
-							   final-spatial-geometry))
-    ((string= STOPOLOGY "T2") (initialize-T2-triangulation num-time-slices boundary-conditions
-							   initial-spatial-geometry
-							   final-spatial-geometry))
-    (t                        (error "unrecognized spatial topology")))
+    ((string= STOPOLOGY "S2")
+     (initialize-S2-triangulation num-time-slices boundary-conditions 
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    ((string= STOPOLOGY "T2") 
+     (initialize-T2-triangulation num-time-slices boundary-conditions
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    (t (error "unrecognized spatial topology")))
   
   ;; For debugging. Comment out for general use.
-;;  (let ((duplicates (list-vals-with-trait #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
+;;  (let ((duplicates 
+;;	 (list-vals-with-trait 
+;;	  #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
 ;;    (format t "Duplicate simplices: ~%~S~%" duplicates))
 
   (format t "initial count = ~A~%" (count-simplices-of-all-types))
-
 
   ;; JM: what follows are two methods to increase the volume up to the
   ;; desired size. The system has yet to thermalize, so algorithm
@@ -558,12 +680,16 @@
   ;; poison.
 
 
-  ;;try volume-increasing moves on random simplices until the desired volume is reached
+  ;;try volume-increasing moves on random simplices until the desired
+  ;;volume is reached
   (while (< (N3) target-volume)
-    (let* ((type-chooser (random 6)) ;the range of type-chooser affects 23 / 13 / 31 balance
-	   (movedata (try-move (random *LAST-USED-3SXID*) (if (< type-chooser 1) 0 1))))
-;;      (format t "type-chooser: ~%~$~%" type-chooser) ; for debugging. Comment out for general use.
-;;      (format t "move data: ~%~S~%" movedata)        ; for debugging. Comment out for general use.
+    ;the range of type-chooser affects 23 / 13 / 31 balance
+    (let* ((type-chooser (random 6)) 
+	   (movedata (try-move (random *LAST-USED-3SXID*) 
+			       (if (< type-chooser 1) 0 1))))
+      ;; for debugging. Comment out for general use.
+;;      (format t "type-chooser: ~%~$~%" type-chooser)
+;;      (format t "move data: ~%~S~%" movedata)        
       (when movedata (2plus1move movedata))))
 
   ;; use moves to increase the number of simplices until the target
@@ -571,8 +697,9 @@
 ;;  (loop named tv
 ;;     do
        
-       ;; This is for debugging. Comment it out in general.
-;;       (let ((duplicates (list-vals-with-trait #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
+     ;; This is for debugging. Comment it out in general.
+;;       (let ((duplicates (list-vals-with-trait 
+;;			  #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
 ;;	 (format t "Duplicate simplices: ~%~S" duplicates))
 
 ;;       (dolist (id23 (get-simplices-of-type 2))
