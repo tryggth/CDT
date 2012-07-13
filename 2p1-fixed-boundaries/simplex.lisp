@@ -452,7 +452,59 @@ compared to those only in the bulk."
 	     *ID->3SIMPLEX*)
     count))
 
+;; Function to count objects in a single time slice over the entire
+;; spacetime. I know this could be written as a macro, but it works
+;; passably as a function, so we'll do that. It's true that if the
+;; boundary conditions are periodic, this count will look at the empty
+;; NUM-T time slice, but since the slice is empty (and there's no
+;; periodic boundary conditions modulo going on here), the result of
+;; the count there will be zero.
+(defun count-over-all-spacetime-slices (counting-function 
+					&optional (count-argument nil))
+  "Runs a counting function of a single time slice over all spacetime
+slices and returns the sum. If the spacetime. If a count-argument is
+given, this is passed to the counting-function as the second argument
+after time-slice."
+  (let ((count 0))
+    (if (not count-argument)
+	(loop for time-slice from 0 to NUM-T do
+	     (setf count (+ count (funcall counting-function time-slice))))
+	(loop for time-slice from 0 to NUM-T do
+	     (setf count (+ count (funcall 
+				   counting-function 
+				   time-slice 
+				   count-argument)))))
+    count))
+       
 
+;; Function to count objects in a sandwich over the entire
+;; spacetime. I know this could be written as a macro, but it works
+;; passably as a function, so we'll do that. It's true that if the
+;; boundary conditions are periodic, this count will look at the empty
+;; NUM-T-1, NUM-T, sandwich, but since the slice is empty (and there's no
+;; periodic boundary conditions modulo going on here), the result of
+;; the count there will be zero.
+(defun count-over-all-spacetime-sandwiches (counting-function 
+					    &optional (count-argument nil))
+  "Runs a counting function of a single sandwich over all sandwiches
+in the spacetime and returns the sum. If a count-argument is given,
+this is passed to the counting-function as the second argument after
+time-slice."
+  (let ((count 0))
+    (if (not count-argument)
+	(loop for time-slice from 0 to (1- NUM-T) do
+	     (setf count (+ count (funcall counting-function 
+					   time-slice
+					   (1+ time-slice)))))
+	(loop for time-slice from 0 to (1- NUM-T) do
+	     (setf count (+ count (funcall 
+				   counting-function 
+				   time-slice 
+				   (1+ time-slice)
+				   count-argument)))))
+    count))
+
+    
 ;; function to count the number of points in a particular time slice
 ;; JM: This function could probably benefit from Rajesh's new data
 ;; structures. However, I believe the benefit is minimal, since all
@@ -481,6 +533,14 @@ compared to those only in the bulk."
 	(setf previous-element i)))
     count))
 
+
+;;; JM: I've added this function to count all the points in the entire
+;;; spacetime for use in the initialization phase.
+(defun count-points-in-spacetime ()
+  "Count points in the entire spacetime."
+  (count-over-all-spacetime-slices #'count-points-at-time))
+
+
 ;;; JM: I have changed count-timelike-links-in-sandwich to take
 ;;; advantage of Rajesh's bug-fixed code, including the new
 ;;; sub-simplex hash tables. Thus, the old
@@ -495,13 +555,9 @@ compared to those only in the bulk."
 ;; fine. Note: This function calls a parameter it never uses for
 ;; compatibility reasons. All we care about is t-low.
 
-;; TODO: Understand whether condition for failure should be 
-;; (> t0 NUM-T) or
-;; (>= t0 NUM-T)
 (defun count-timelike-links-in-sandwich (t-low t-high)
-  ;; To prevent runtime errors, ensure your time exists.
-  (when (or (> t-high NUM-T) (< t-low 0) (not (= 1 (- t-high t-low))))
-    (error "You are referencing a time that does not exist. Remember, order matters."))
+  "Count time-like links in a sandwich. 
+t-high is for compatibility. We only care about t-low."
   (count-keys-with-trait #'(lambda (x) (= x t-low)) *TL1SIMPLEX->ID* 1))
 
 
@@ -526,11 +582,12 @@ compared to those only in the bulk."
 				   :test #'(lambda (x y) (not (set-difference x y)))))))
     (length list-of-links)))
 
-;; Count number of spacelike links at time slice tslice. To prevent
-;; runtime errors, make sure your time slice exists.
-(defun count-spacelike-links-at-time (tslice)
-  "Count number of spacelike links on a given time slice."
-  (count-keys-with-trait #'(lambda (x) (= x tslice)) *SL1SIMPLEX->ID* 0))
+;; Count the number of time-like links in the entire spacetime. Needs
+;; to be careful of indices to avoid double-counting
+(defun count-timelike-links-in-spacetime ()
+  "Count all the timelike links in the entire spacetime."
+  (count-over-all-spacetime-sandwiches #'count-timelike-links-in-sandwich))
+
 
 ;;; JM: I have changed count-spacelike-triangles-at-time to take
 ;;; advantage of Rajesh's bug-fixed code, including the new
@@ -538,11 +595,8 @@ compared to those only in the bulk."
 ;;; function is deprecated. It has been marked
 ;;; as such, and I leave it only for completeness sake. Use at your
 ;;; own risk.
-
-;; TODO: Understand whether condition for failure should be 
-;; (> t0 NUM-T) or
-;; (>= t0 NUM-T)
 (defun count-spacelike-triangles-at-time (t0)
+  "Count spacelike triangles (2-simplices) on a given time-slice."
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL2SIMPLEX->ID* 0))
 
 ;;count the number of spacelike triangles at a certain time
@@ -557,6 +611,11 @@ compared to those only in the bulk."
       (count-simplices-in-sandwich-of-type 0 1 3)
       (count-simplices-in-sandwich-of-type (1- t0) t0 1)))
 
+;; Count the number of spacelike triangles at all times
+(defun count-spacelike-triangles-in-spacetime ()
+  "Count all the spacelike 2-simplices in the spacetime."
+  (count-over-all-spacetime-slices #'count-spacelike-triangles-at-time))
+
 ;;; JM: I have changed count-spacelike-links-at-time to take
 ;;; advantage of Rajesh's bug-fixed code, including the new
 ;;; sub-simplex hash tables. Thus, the old
@@ -564,13 +623,8 @@ compared to those only in the bulk."
 ;;; as such, and I leave it only for completeness sake. Use at your
 ;;; own risk.
 
-;; TODO: Understand whether condition for failure should be 
-;; (> t0 NUM-T) or
-;; (>= t0 NUM-T)
 (defun count-spacelike-links-at-time (t0)
-;; To prevent runtime errors, make sure your time slice exists.
-;;  (when (or (> t0 NUM-T) (< t0 0))
-;;    (error "You must choose a time-slice that exists."))
+  "Count number of spacelike links on a given time slice."
   (count-keys-with-trait #'(lambda (x) (= x t0)) *SL1SIMPLEX->ID* 0))
     
 
@@ -586,6 +640,13 @@ compared to those only in the bulk."
     ;;  (chi = n0 - n1 + n2)  =>  (n1 = n0 + n2 - chi)
     (- (+ n0 n2) chi)))
 				    
+
+;; Count the total number of spacelike links in the spacetime.
+(defun count-spacelike-links-in-spacetime ()
+  "Count the total number of spacelike links in all of space and time."
+  (count-over-all-spacetime-slices #'count-spacelike-links-at-time))
+
+
 ;;; JM: I have modified count-timelike-triangles-in-sandwich to take
 ;;; advantage of Rajesh's new and improved data structures. The first
 ;;; function is mine. The second one is deprecated, left in for
@@ -594,13 +655,8 @@ compared to those only in the bulk."
 ;;; TODO: It seems that these count functions only work in the fixed
 ;;; boundary case. Fix this using David Kamensky's bc-mod macro.
 
-;; Count the number of timelike triangles in a particular sandwich
-;; TODO: Understand whether condition for failure should be 
-;; (> t0 NUM-T) or
-;; (>= t0 NUM-T)
 (defun count-timelike-triangles-in-sandwich (t0 t1)
-  (when (or (< t0 0) (> t1 NUM-T) (not (= 1 (- t1 t0))))
-    (error "You must choose a time sandwich that exists. Order matters!"))
+  "Count the number of timelike triangles in a sandwich."
   (count-keys-with-trait #'(lambda (x) (= t0 x)) *TL2SIMPLEX->ID* 1))
 
 ;; count the number of timelike triangles in a particular sandwich
@@ -633,6 +689,11 @@ compared to those only in the bulk."
 				       :test #'(lambda (x y) (not (set-difference x y)))))))
     (length list-of-triangles)))
 
+
+(defun count-timelike-triangles-in-spacetime ()
+  "Count the total number of spacelike triangles in the entire spacetime."
+  (count-over-all-spacetime-sandwiches 
+   #'count-timelike-triangles-in-sandwich))
 
 ;; JM: The following two functions are useful for open boundary
 ;; conditions. They're mostly convenient for debugging.

@@ -90,9 +90,20 @@ July 5th, 2012 --- Discovered that the the boundary term should actually
      	       	   keep track of the boundaries separately and with opposite 
 		   sign. Implimented this.
 	       --- Discovered an error in the in-upper-sandwich and 
-	           in-lower-sandwich macros. Misplaced parentheses causing them
+	           in-lower-sandwich macros. Misplaced parentheses causing
+		   them
 		   to always return true. Fixed this error.
 
 July 9th, 2012 --- Significantly reworked the action in action-exposed
      	       	   in globals.lisp. Fixed a small error in action
      	       	   formulation, but mostly the goal was improved clarity.
+
+July 12th, 2012 -- Discovered an error in initialization.lisp. The initialial
+     	   	   counts for n-dimensional simplices were all off for
+		   initial geometries other than the initial triangulation.
+		   They were calculated using an extremely naive 
+		   (NUMBER OF POINTS PER SLICE) * (NUMBER OF TIME SLICES)
+		   formula which only works when the number of points per
+		   slice is constant. This has been updated and a number 
+		   of counting functions were added to simplex.lisp to
+		   make things more readable.

@@ -264,14 +264,9 @@
 	  (connect-simplices-in-sandwich ts (1+ ts) )
 	  (connect-simplices-in-adjacent-sandwiches ts (+ ts 1) (+ ts 2)))
 
-     ;; JM: In Rajesh's code, there's a command here to set the last used
-     ;; point. I'm adding it in case there's a problem.
-
-     ;; UPDATE: This is definitely the problem. With this command in
-     ;; the code, the code runs fine for periodic boundary
-     ;; conditions. I no longer see any simplices with multiple
-     ;; points. I now need to figure out how to integrate this command
-     ;; into the open boundary conditions code.
+     ;; JM: For periodic boundary conditions, the last used point is
+     ;; this. However, this relation doesn't hold if the boundaries
+     ;; are arbitrary.
      (set-last-used-pt (* NUM-T N0-PER-SLICE))
 
      ;;periodicity gives a 1-to-1 correspondence between spatial
@@ -332,44 +327,23 @@
         (connect-simplices-in-sandwich ts (1+ ts))
         (connect-simplices-in-adjacent-sandwiches ts (+ ts 1) (+ ts 2)))
 
-     ;; JM: I'm putting this line in here by stupid analogy. It's
-     ;; required for the periodic boundary conditions case to make
-     ;; moves work properly, so its perhaps required here. ... In a
-     ;; lot of ways, this indicates that I'm a terrible programmer.
-     (set-last-used-pt (* NUM-T N0-PER-SLICE))
+     ;; JM: We need to count up the number of points we've used so far
+     ;; so that we don't re-use or re-assign points.
+     (set-last-used-pt (count-points-in-spacetime))
 
      ;;set the f-vector.  make sure to consider the arbitrary boundary sheets
      ;;of triangles, computing and adding their contributions separately
      
-     ;; JM: These calculations don't seem right to me. N0-PER-SLICE
-     ;; doesn't seem obviously correct to me. Also there are clearly
-     ;; NUM-T+1 slices in David's system.
+     ;; JM: Although we can use *-PER-SLICE* in the periodic boundary
+     ;; conditions system, this isn't sufficient for when boundary
+     ;; conditions are not minimal.
      (set-f-vector 
-      
-      ;; N0
-      (+ (count-points-at-time 0)
-	 (count-points-at-time NUM-T)
-	 (* (1- NUM-T) N0-PER-SLICE))
-
-      ;;N1-SL
-      (+ (count-spacelike-links-at-time 0)
-	 (count-spacelike-links-at-time NUM-T)
-	 (* (1- NUM-T) N1-SL-PER-SLICE)) 
-      
-      ;;N1-TL
-      (+ (count-timelike-links-in-sandwich 0 1)
-	 (count-timelike-links-in-sandwich (1- NUM-T) NUM-T)
-	 (* (- NUM-T 2) N1-TL-PER-SLICE))
-      
-      ;;N2-SL
-      (+ (count-spacelike-triangles-at-time 0)
-	 (count-spacelike-triangles-at-time NUM-T)
-	 (* (1- NUM-T) N2-SL-PER-SLICE)) 
-      
-      ;;N2-TL
-      (+ (count-timelike-triangles-in-sandwich 0 1)
-	 (count-timelike-triangles-in-sandwich (1- NUM-T) NUM-T)
-	 (* (- NUM-T 2) N2-TL-PER-SLICE))
+      ;; nSIMPLICES where n<3
+      (count-points-in-spacetime)              ;; N0
+      (count-spacelike-links-in-spacetime)     ;; N1-SL 
+      (count-timelike-links-in-spacetime)      ;; N1-TL
+      (count-spacelike-triangles-in-spacetime) ;; N2-SL
+      (count-timelike-triangles-in-spacetime)  ;; N2-TL
       
       ;;N3 = N3-TL-13 + N3-TL-31
       (+ (count-simplices-of-type 3)
