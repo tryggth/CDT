@@ -134,6 +134,9 @@
 	     (decf p3 (* N0-PER-SLICE NUM-T)))
 	    ((= 3 sxtype)
 	     (decf p3 (* N0-PER-SLICE NUM-T)))))
+    ;; set last used point if a new point is used
+    ;; Required by David's initialization.lisp code.
+    (setf *LAST-USED-POINT* (max *LAST-USED-POINT* p0 p1 p2 p3))
     (make-3simplex sxtype tmlo tmhi p0 p1 p2 p3)))
 
 ;; this version is used for loading the simplex data from file

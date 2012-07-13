@@ -119,10 +119,12 @@ p0 p1 p2 already exists, the id of that simplex is returned"
 		      (make-2simplex t3type tmlo tmhi (nth 0 pts) (nth 1 pts) (nth 2 pts)))))
     sx3id))
 
-;; this version is used only during initialization. If periodic b.c. are specified, it adjusts the
-;; points on the final time slice, since the t=T slice is identified with t=0 slice.
+;; this version is used only during initialization. If periodic
+;; b.c. are specified, it adjusts the points on the final time slice,
+;; since the t=T slice is identified with t=0 slice.
 (defun make-3simplex-v3 (type tmlo tmhitmp p0tmp p1tmp p2tmp p3tmp)
-  (let ((t0type nil) (t1type nil) (t2type nil) (t3type nil) (sx3id (next-3simplex-id))
+  (let ((t0type nil) (t1type nil) (t2type nil)
+	(t3type nil) (sx3id (next-3simplex-id))
 	(p0 p0tmp) (p1 p1tmp) (p2 p2tmp) (p3 p3tmp) (tmhi tmhitmp))
     (when (and (string= BCTYPE "PERIODIC") (= NUM-T tmhitmp))
       (setf tmhi 0)

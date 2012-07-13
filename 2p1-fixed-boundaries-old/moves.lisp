@@ -36,14 +36,28 @@
 	   (13tmlo (3sx-tmlo sx13)) (13tmhi (3sx-tmhi sx13))
 	   (31tmlo (3sx-tmlo sx31)) (31tmhi (3sx-tmhi sx31))
 	   (newpt (next-pt))
-	   (newsxdata (list (list 1 13tmlo 13tmhi (list lopt newpt (first bigtr) (second bigtr)))
-			    (list 1 13tmlo 13tmhi (list lopt newpt (second bigtr) (third bigtr)))
-			    (list 1 13tmlo 13tmhi (list lopt newpt (third bigtr) (first bigtr)))
-			    (list 3 31tmlo 31tmhi (list (first bigtr) (second bigtr) newpt hipt))
-			    (list 3 31tmlo 31tmhi (list (second bigtr) (third bigtr) newpt hipt))
-			    (list 3 31tmlo 31tmhi (list (third bigtr) (first bigtr) newpt hipt)))))
+	   (newsxdata (list (list 1 13tmlo 13tmhi 
+				  (list lopt newpt (first bigtr) 
+					(second bigtr)))
+			    (list 1 13tmlo 13tmhi 
+				  (list lopt newpt (second bigtr) 
+					(third bigtr)))
+			    (list 1 13tmlo 13tmhi 
+				  (list lopt newpt (third bigtr) 
+					(first bigtr)))
+			    (list 3 31tmlo 31tmhi 
+				  (list (first bigtr) (second bigtr) 
+					newpt hipt))
+			    (list 3 31tmlo 31tmhi 
+				  (list (second bigtr) (third bigtr) 
+					newpt hipt))
+			    (list 3 31tmlo 31tmhi (list (third bigtr) 
+							(first bigtr) 
+							newpt hipt)))))
 
-      (return-from try-2->6 (list newsxdata nbors curr (list old-internal-triangle) (DF26 sxid) (DB26 sxid))))))
+      (return-from try-2->6 (list newsxdata nbors curr 
+				  (list old-internal-triangle) 
+				  (DF26 sxid) (DB26 sxid))))))
 
 (defun 6->2-subcomplex (sxid)
   "returns a list of the form ((13id1 13id2 13id3 31id3 31id2 31id1)...)"

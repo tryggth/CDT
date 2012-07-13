@@ -322,7 +322,11 @@
      ;; JM: For periodic boundary conditions, the last used point is
      ;; this. However, this relation doesn't hold if the boundaries
      ;; are arbitrary.
-     (set-last-used-pt (* NUM-T N0-PER-SLICE))
+     
+     ;; JM 2: I have set make-3simplex-v3 to keep track of
+     ;; *LAST-USED-POINT* thus it  we don't need this command
+     ;; anymore. Commenting it out, but leaving it for consistency reasons.
+     ;; (set-last-used-pt (* NUM-T N0-PER-SLICE))
 
      ;;periodicity gives a 1-to-1 correspondence between spatial
      ;;sheets and 3-d sandwiches, so all per-slice quantities are
@@ -396,7 +400,11 @@
 
      ;; JM: We need to count up the number of points we've used so far
      ;; so that we don't re-use or re-assign points.
-     (set-last-used-pt (count-points-in-spacetime))
+     
+     ;; JM 2: I have set make-3simplex-v3 to keep track of
+     ;; *LAST-USED-POINT* thus we don't need this command
+     ;; anymore. Commenting it out, but leaving it for consistency reasons.
+     ;; (set-last-used-pt (count-points-in-spacetime))
 
      ;;set the f-vector.  make sure to consider the arbitrary boundary sheets
      ;;of triangles, computing and adding their contributions separately

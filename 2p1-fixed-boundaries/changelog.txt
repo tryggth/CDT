@@ -110,3 +110,12 @@ July 12th, 2012 -- Discovered an error in initialization.lisp. The initialial
 
 July 13th, 2012 -- I reformatted all files so that each line 
      	   	   is only 80 characters wide. This is more legible for me.
+		-- I discovered that my version of David's code is 
+		   incapable of generating any spacetime except spacetimes 
+		   with tetrahedra as boundary conditions. David changed the
+		   make-3simplex function to update point counts as simplices
+		   are made. I missed this change during my grand update, and 
+		   it sat quietly hiding until yesterday when I discovered
+		   errors after trying to initialize non-tetrahedra.
+		   The problem has been solved now. make-3simplex-v3 now keeps
+		   track of point count.
