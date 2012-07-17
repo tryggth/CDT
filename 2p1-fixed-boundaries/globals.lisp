@@ -473,8 +473,8 @@
 					         ; angle around timelike
 					         ; edges of (2,2)-
 					         ; simplices
-	 (G (* (/ litL 12) v3-22)) ; volume term for (2,2)-simplices
-	 (H (* (/ litL 12) v3-31)) ; volume term for (3,1)-simplices
+	 (G (* -1 (/ litL 12) v3-22)) ; volume term for (2,2)-simplices
+	 (H (* -1 (/ litL 12) v3-31)) ; volume term for (3,1)-simplices
 	 ;; BOUNDARY
 	 (I (* k (/ pi *i*))) ; term for sum over spacelike edges
 	 (J (* -1 *2/i* theta-31-sl k)) ; term for sum over dihedral

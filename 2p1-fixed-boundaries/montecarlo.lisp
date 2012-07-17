@@ -90,10 +90,10 @@
 	 (old-action (action N1-SL N1-TL N3-TL-31 N3-TL-22 
 			     *N1-SL-TOP* *N3-22-TOP* *N3-31-TOP*
 			     *N1-SL-BOT* *N3-22-BOT* *N3-31-BOT*))
-	 (new-action (action (+ N1-SL d-n1-sl)
-			     (+ N1-TL d-n1-tl)
-			     (+ N3-TL-31 d-n3-tl-31)
-			     (+ N3-TL-22 d-n3-tl-22)
+	 (new-action (action (+ N1-SL       d-n1-sl)
+			     (+ N1-TL       d-n1-tl)
+			     (+ N3-TL-31    d-n3-tl-31)
+			     (+ N3-TL-22    d-n3-tl-22)
 			     (+ *N1-SL-TOP* d-n1-sl-top)
 			     (+ *N3-22-TOP* d-n3-22-top)
 			     (+ *N3-31-TOP* d-n3-31-top)
@@ -109,6 +109,12 @@
 	 ;; probability distribution out:
 	 (action-okay (zerop (imagpart delta-action))))
 
+    ;; DEBUGGING!
+    (format t "Change in V: ~A~%Change in action: ~A~%Change in damping: ~A~%Probability of acceptance: ~A~%" 
+	    d-n3 delta-action delta-damping (* (exp (realpart delta-action))
+						   (exp (- delta-damping))))
+
+
     ;; Raise an error message if the action is not okay.
     ;; (print delta-action) ; For debugging the action. 
     ;; (print (N3)) ; For debugging the action
@@ -122,6 +128,7 @@
 	   (print "i*action:")
 	   (print delta-action)
 	   (error "Action must be completely imaginary."))
+	
 	(< (random 1.0) (* (exp (realpart delta-action))
 			   (exp (- delta-damping)))))))
 

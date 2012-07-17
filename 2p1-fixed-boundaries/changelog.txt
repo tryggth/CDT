@@ -119,3 +119,9 @@ July 13th, 2012 -- I reformatted all files so that each line
 		   errors after trying to initialize non-tetrahedra.
 		   The problem has been solved now. make-3simplex-v3 now keeps
 		   track of point count.
+		-- Discovered that there is likely something wrong with my 
+		   action. Needs more thought.
+
+July 17th, 2012 -- I discovered an error in my analytical action. A sign 
+     	   	   is off in the volume terms (multiplied by little lambda). 
+		   Fixed.
