@@ -110,9 +110,9 @@
 	 (action-okay (zerop (imagpart delta-action))))
 
     ;; DEBUGGING!
-    (format t "Change in V: ~A~%Change in action: ~A~%Change in damping: ~A~%Probability of acceptance: ~A~%" 
-	    d-n3 delta-action delta-damping (* (exp (realpart delta-action))
-						   (exp (- delta-damping))))
+;;    (format t "Change in V: ~A~%Change in action: ~A~%Change in damping: ~A~%Probability of acceptance: ~A~%" 
+;;	    d-n3 delta-action delta-damping (* (exp (realpart delta-action))
+;;						   (exp (- delta-damping))))
 
 
     ;; Raise an error message if the action is not okay.
