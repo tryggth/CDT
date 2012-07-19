@@ -339,7 +339,9 @@
                    ; N3-TL-13 + N3-TL-31
 		   (* NUM-T (+ N3-TL-13-PER-SLICE N3-TL-31-PER-SLICE))
 		   (* NUM-T N3-TL-22-PER-SLICE))) ; N3-TL-22
-
+    
+    ;; Set the B-vector to 0 for all boundary values.
+    (set-b-vector 0 0 0 0 0 0)
 
     ((string= BCTYPE "OPEN")
 

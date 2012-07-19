@@ -480,12 +480,13 @@
 
     (if ret-coup ; if ret-coup, just return debugging info. Otherwise,
 		 ; return the action.
-	(list (* 2 K1SL) K1TL
-	      (+ K3SL-31 K3TL-31 KV31) (+ (* 2 K3SL-22) K3TL-22 KV22)
-	      K3SL-31 K3TL-31 KV31)
+;;	(list (* 2 K1SL) K1TL
+;;	      (+ K3SL-31 K3TL-31 KV31) (+ (* 2 K3SL-22) K3TL-22 KV22)
+;;	      K3SL-31 K3TL-31 KV31)
 ;;	(list theta-22-sl theta-31-sl theta-22-tl theta-31-tl
 ;;	      v3-22 v3-31 K1SL K1TL K3SL-22 K3TL-22 K3TL-31 KV22 KV31
 ;;	      B1SL B3SL-31 B3SL-22)
+	(list  (+ (* 2 K3SL-22) K3TL-22 KV22) (* 2 K3SL-22) K3TL-22 KV22)
 
 	(+ ;; BULK TERM
 	 ; we need to subtract the boundary simplices from the bulk
@@ -504,7 +505,7 @@
 	 ; There are no timelike bones in the boundary, so we don't
 	 ; have to subtract for angles around timelike bones.
 	 (* K3TL-31 num3-31) 
-	 (* K3SL-22 num3-22)
+	 (* K3TL-22 num3-22)
 	 ; volume terms
 	 (* KV22 num3-22)
 	 (* KV31 num3-31)
