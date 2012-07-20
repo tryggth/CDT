@@ -140,6 +140,19 @@
 (defparameter DF23 '(0 0 1 0 2 0 1))
 (defparameter DF32 '(0 0 -1 0 -2 0 -1))
 
+(defun f-vector ()
+  "Print the f-vector."
+  (format nil "[~A ~A ~A ~A ~A ~A ~A] : ~A ~%"
+	  N0
+	  N1-SL
+	  N1-TL
+	  N2-SL
+	  N2-TL
+	  N3-TL-31
+	  N3-TL-22
+	  (N3)))
+
+
 ;;; In addition to the f-vector, which keeps track of total information
 ;;; (not bulk information), we also have the b-vector, which keeps
 ;;; track of boundary information only. This is useful for
@@ -227,6 +240,15 @@
 				   ; 62-move. Would be the inverse of
 				   ; DB26 if there were any change.
 
+(defun b-vector()
+  "Print the b-vector."
+  (format t "[~A, ~A, ~A, ~A, ~A, ~A]~%"
+	  *N1-SL-TOP*
+	  *N3-22-TOP*
+	  *N3-31-TOP*
+	  *N1-SL-BOT*
+	  *N3-22-BOT*
+	  *N3-31-BOT*))
 
 (defparameter CURRENT-MOVE-IDENTIFIER "UNKNOWN")
 (defparameter CURRENT-MOVE-NUMBER 0)
@@ -289,7 +311,8 @@
        (* -1 ,*i* (sqrt (* -1 ,val)))
        (sqrt ,val)))
 
-(defvar action nil)
+;; Declare we'll use the action later.
+(defvar action)
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
 (defun generate-filename (&optional (start-sweep 1) 
@@ -740,11 +763,11 @@ to the state after (load \"cdt2p1.lisp\"). Use at your own risk."
 
 ;; For debugging. Use only to quickly test the simulation while in the
 ;; lisp REPL.
-(defun test-initialization nil
-  "A simple initialization command for use in debugging."
-  (initialize-t-slices-with-v-volume :num-time-slices 64
-				     :target-volume   80000
-				     :spatial-topology "s2"
-				     :boundary-conditions "open"
-				     :initial-spatial-geometry "tetra.txt"
-				     :final-spatial-geometry "tetra.txt"))
+;(defun test-initialization nil
+;  "A simple initialization command for use in debugging."
+;  (initialize-t-slices-with-v-volume :num-time-slices 64
+;				     :target-volume   80000
+;				     :spatial-topology "s2"
+;				     :boundary-conditions "open"
+;				     :initial-spatial-geometry "tetra.txt"
+;				     :final-spatial-geometry "tetra.txt"))

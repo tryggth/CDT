@@ -1,14 +1,5 @@
 ; cdt-2plus1-montecarlo.lisp
 
-;; translate a move type into an actual move
-(defun try-move (sxid mtype)
-  (ecase mtype
-    (0 (try-2->6 sxid))
-    (1 (try-2->3 sxid))
-    (2 (try-4->4 sxid))
-    (3 (try-3->2 sxid))
-    (4 (try-6->2 sxid))))
-
 (defun random-move (nsweeps)
   (loop :for sweepnum :from 1 :to nsweeps
      do

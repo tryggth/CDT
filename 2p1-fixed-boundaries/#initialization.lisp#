@@ -442,7 +442,7 @@
 		   
 )
 
-    (t (error "unrecognized boundary condition type"))))
+    (t (error "unre,cognized boundary condition type"))))
 
 
 (defun initialize-S2-triangulation (num-time-slices boundary-conditions 

@@ -531,3 +531,12 @@
 			       (second curr) (third curr) (fourth curr)))
 	       (when movedata 
 		 (return-from try-3->2 movedata))))))))
+
+;; translate a move type into an actual move
+(defun try-move (sxid mtype)
+  (ecase mtype
+    (0 (try-2->6 sxid))
+    (1 (try-2->3 sxid))
+    (2 (try-4->4 sxid))
+    (3 (try-3->2 sxid))
+    (4 (try-6->2 sxid))))

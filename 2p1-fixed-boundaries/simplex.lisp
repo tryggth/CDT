@@ -183,10 +183,12 @@
 ;; and let trait=#'(lambda (x) 0). The lambda function actually just needs to
 ;; return a non-nil value.
 (defun list-keys-with-trait (trait hashtable key-subindex)
-  (let ((keylist nil))
+  (let ((keylist nil)
+	(vallist nil))
     (flet ((discriminator (hkey hval)
 	     (when (funcall trait (nth key-subindex hkey))
-	       (push hkey keylist))))
+	       (push hkey keylist)
+	       (push hval vallist))))
       (maphash #'discriminator hashtable)
       keylist)))
 
@@ -194,28 +196,34 @@
 ;; list-keys-with-trait. Instead of listing the simplexes, however,
 ;; this one simply counts them, and returns a value.
 (defun count-keys-with-trait (trait hashtable key-subindex)
-  (let ((count 0))
+  (let ((count 0)
+	(vallist nil))
     (flet ((discriminator (hkey hval)
 	     (when (funcall trait (nth key-subindex hkey))
-	       (incf count 1))))
+	       (incf count 1)
+	       (push hval vallist))))
       (maphash #'discriminator hashtable)
       count)))
 
 ;; Similar to list-keys-with-trait but works for values instead
 (defun list-vals-with-trait (trait hashtable key-subindex)
-  (let ((keylist nil))
+  (let ((keylist nil)
+	(trashlist nil))
     (flet ((discriminator (hkey hval)
 	     (when (funcall trait (nth key-subindex hval))
-	       (push hval keylist))))
+	       (push hval keylist)
+	       (push hkey trashlist))))
       (maphash #'discriminator hashtable)
       keylist)))
 
 ;; Similar to count-keys-with-trait but works for values instead 
 (defun count-vals-with-trait (trait hashtable key-subindex)
-  (let ((count 0))
+  (let ((count 0)
+	(trashlist nil))
     (flet ((discriminator (hkey hval)
 	     (when (funcall trait (nth key-subindex hval))
-	       (incf count 1))))
+	       (incf count 1)
+	       (push hkey trashlist))))
       (maphash #'discriminator hashtable)
       count)))
 
@@ -558,10 +566,10 @@ time-slice."
 ;; matters. Since order matters for get-simplices-in-sandwich, this is
 ;; fine. Note: This function calls a parameter it never uses for
 ;; compatibility reasons. All we care about is t-low.
-
 (defun count-timelike-links-in-sandwich (t-low t-high)
   "Count time-like links in a sandwich. 
 t-high is for compatibility. We only care about t-low."
+  t-high
   (count-keys-with-trait #'(lambda (x) (= x t-low)) *TL1SIMPLEX->ID* 1))
 
 
@@ -662,6 +670,7 @@ t-high is for compatibility. We only care about t-low."
 
 (defun count-timelike-triangles-in-sandwich (t0 t1)
   "Count the number of timelike triangles in a sandwich."
+  t1
   (count-keys-with-trait #'(lambda (x) (= t0 x)) *TL2SIMPLEX->ID* 1))
 
 ;; count the number of timelike triangles in a particular sandwich

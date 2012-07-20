@@ -1,0 +1,9 @@
+;;;; parameter_tuning.lisp
+;;;; Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+
+;;;; Given a k, this program will solve for a value of litL (little
+;;;; lambda) in the Einstein-Hilbert action for 2+1-dimensional
+;;;; CDT. This should work for other actions as well, but program will
+;;;; need to be tweaked since the number of input terms in the action,
+;;;; and the min and maximum values of the coupling constants (and
+;;;; probabilities) may change.
