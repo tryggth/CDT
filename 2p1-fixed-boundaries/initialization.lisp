@@ -442,7 +442,7 @@
 		   
 )
 
-    (t (error "unrecognized boundary condition type"))))
+    (t (error "unre,cognized boundary condition type"))))
 
 
 (defun initialize-S2-triangulation (num-time-slices boundary-conditions 
@@ -684,21 +684,23 @@
   ;; JM: what follows are two methods to increase the volume up to the
   ;; desired size. The system has yet to thermalize, so algorithm
   ;; should be irrelevant. The first algorithm is written by David
-  ;; Kamensky. The second is written by Rajesh Kommu. Pick your
-  ;; poison.
+  ;; Kamensky. The second is written by Rajesh Kommu. Christian's
+  ;; algorithm works better with parameter_tuning.lisp
 
 
   ;;try volume-increasing moves on random simplices until the desired
   ;;volume is reached
   (while (< (N3) target-volume)
     ;the range of type-chooser affects 23 / 13 / 31 balance
-    (let* ((type-chooser (random 6)) 
-	   (movedata (try-move (random *LAST-USED-3SXID*) 
+    (let* ((type-chooser (random 6))
+	   (simplex-chooser (random *LAST-USED-3SXID*))
+	   (movedata (try-move simplex-chooser 
 			       (if (< type-chooser 1) 0 1))))
       ;; for debugging. Comment out for general use.
 ;;      (format t "type-chooser: ~%~$~%" type-chooser)
-;;      (format t "move data: ~%~S~%" movedata)        
+;;      (format t "move data: ~%~S~%" movedata)
       (when movedata (2plus1move movedata))))
+	
 
   ;; use moves to increase the number of simplices until the target
   ;; volume is reached  

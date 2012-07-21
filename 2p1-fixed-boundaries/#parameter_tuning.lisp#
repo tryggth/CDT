@@ -101,7 +101,7 @@ db."
 (defun p-accepted (action-exposed alpha k litL df db)
   "Given an action and coupling constants, generate the probability a given 
 move will be accepted. Information for the move is in the f and b vectors."
-  (min 1(exp (realpart (* *i* (delta-action action-exposed alpha k litL df db))))))
+  (min 1 (exp (realpart (* *i* (delta-action action-exposed alpha k litL df db))))))
 
 (defun test-move-probabilities (num-tries)
   "This function randomly attempts (but never applies) moves to the spacetime 

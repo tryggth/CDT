@@ -728,6 +728,20 @@ t-high is for compatibility. We only care about t-low."
 	(ti+1 1))
     (get-simplices-in-sandwich-of-type ti ti+1 31-simplices)))
 
+;; JM: The next function produces a list of all 3-simplex IDs
+;; currently in use. This function is SLOOOW, but useful for
+;; tuning and debugging.
+(defun list-all-3-simplices ()
+  "Lists all 3-simplex ids in the spacetime."
+  (let ((id-list nil)
+	(val-list nil))
+    (maphash #'(lambda (key val) (push key id-list) (push val val-list))
+	     *ID->3SIMPLEX*)
+    id-list))
+
+(defun count-all-3-simplices ()
+  "Counts all the 3-simplices in the spacetime. Very slow."
+  (length (list-all-3-simplices)))
 
 ;; in a given sandwich
 ;; (1,3) can be connected to a (2,2) and cannot be connected to a (3,1)
