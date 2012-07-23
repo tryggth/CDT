@@ -1,0 +1,45 @@
+;;;; tuning_utilities.lisp
+;;;; Jonah Miller (jonah.maxwell.miller@gmail.com)
+
+;;;; This script is designed to be used with map_phase_space.py. It
+;;;; helps the simulation take data on volume variation.
+
+(defun collect-volume-data (sweeps)
+  "Similar to the collect data functions in montecarlo.lisp, 
+but designed to test the phase space."
+  (let ((3-volumes nil))
+    (for (ns 0 sweeps)
+	 (sweep)
+	 (push (+ N3-TL-31 N3-TL-22) 3-volumes))
+    3-volumes))
+
+(defun mean (list-of-values)
+  "Calculate the mean of a list of values"
+  (/ (reduce #'+ list-of-values) (length list-of-values)))
+
+(defun standard-deviation (list-of-values)
+  "Calculate the standard deviation of a list of values"
+  (flet ((sqr (x) (* x x)))
+    (let* ((n (length list-of-values))
+	   (mean (mean list-of-values))
+	   (deviation-list (mapcar #'(lambda (x) (sqr (- x mean))) 
+				   list-of-values)))
+      (sqrt (/ (reduce #'+ deviation-list) (1- n))))))
+
+(defun get-delta (list-of-values)
+  "Calculate a crude derivative for a
+ list of values (as a function of list index."
+  (- (nth (1- (length list-of-values)) list-of-values) 
+     (first list-of-values)))
+
+(defun test-volume-variation (sweeps &optional (k-and-litl nil))
+  "Runs collect-volume-data and then does statistics on it, and prints it to 
+  the terminal."
+  (let* ((volumes (collect-volume-data sweeps))
+	 (avg (mean volumes))
+	 (std (standard-deviation volumes))
+	 (deltav (get-delta volumes)))
+    (if k-and-litl 
+	(format t "~A ~A ~A ~A ~A~%" *k* *litl* avg std deltav)
+	(format t "~A ~A ~A ~A ~A~%" *k0* *k3* avg std deltav))))
+	 
