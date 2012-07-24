@@ -66,13 +66,13 @@ default_file_name = "tuning"
 acceptable_range = target_volume * numpy.array([0.9,1.1])
 
 # Range for k3
-k3min = 0.75
-k3max = 0.76
+k3min = 0.6
+k3max = 1.6
 k3range = numpy.arange(k3min,k3max,0.001)
 
 # Range for k0
-k0min = 1.0
-k0max = 1.1
+k0min = 0.5
+k0max = 4.5
 k0range = numpy.arange(k0min,k0max,0.1)
 
 # The implimentation of lisp in use on a given computer. You need to
@@ -176,5 +176,5 @@ def main(k0range,k3range):
     
                 
 # Run the main program given input parameters
-#if __name__ == "__main__":
-#    main(k0range,k3range)
+if __name__ == "__main__":
+    main(k0range,k3range)

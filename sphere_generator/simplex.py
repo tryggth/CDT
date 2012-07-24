@@ -64,7 +64,7 @@ hash_tables_reference = {'vertex':vertices,
 ### Functions that act on all classes
 ###-------------------------------------------------------------------------
 def increment_id(class_name):
-    """Increment the staticvariable last_used_id for a class by 1. 
+    """Increment the static variable last_used_id for a class by 1. 
     Then return the new id for use."""
     # Accesses the class by using a string.
     object_map[class_name].last_used_id += 1

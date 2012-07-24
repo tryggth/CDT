@@ -55,7 +55,7 @@ def get_raw_time_slices(filename,t_low,t_high):
 
 
 ## Functions for output
-def generate_filename(simulation_data, side):
+def generate_filename(simulation_data,tslice, side):
     """
     Makes a file name. Format:
     T<time slices>-V<3-volume>-k<k0>-kkk<k3>-<side>.boundary
@@ -72,7 +72,7 @@ def generate_filename(simulation_data, side):
         k0 = simulation_data[-3]
         k3 = simulation_data[-2]
 
-    filename = 'T'+ts+'-V'+v3+'-k'+k0+'-kkk'+k3+'-'+side+'.boundary'
+    filename = 'T'+ts+'-V'+v3+'-k'+k0+'-kkk'+k3+'-tslice'+tslice+'-'+side+'.boundary'
 
     return filename
 
@@ -196,9 +196,9 @@ def main(filename, t_low, t_high):
     reindexed_time_slices = [reindex_points(i) for i in raw_t_slices]
 
     # Output
-    write_output(generate_filename(sim_data,'bottom'),
+    write_output(generate_filename(sim_data,str(t_low),'bottom'),
                  reindexed_time_slices[0]) # Bottom slice
-    write_output(generate_filename(sim_data,'top'),
+    write_output(generate_filename(sim_data,str(t_high),'top'),
                  reindexed_time_slices[1]) # Top slice
 
     print "Done! Good luck with your data. :)"
