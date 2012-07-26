@@ -187,8 +187,7 @@ def get_all_sl2simplices(spacetime):
     boundary_condition_type = spacetime[0][0]
 
     # Figure out the number of time slices based on the boundary
-    # condition type. The open boundary conditions algorithm generates
-    # one extra time slice.
+    # condition type. It's possible these could be different.
     if boundary_condition_type == open_bc:
         n_time_slices = int(spacetime[0][2]) + 1
     elif boundary_condition_type == periodic_bc:

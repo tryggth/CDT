@@ -125,3 +125,13 @@ July 13th, 2012 -- I reformatted all files so that each line
 July 17th, 2012 -- I discovered an error in my analytical action. A sign 
      	   	   is off in the volume terms (multiplied by little lambda). 
 		   Fixed.
+
+July 25th, 2012 -- I discovered an error in David's initialization
+     	   	   algorithm. David's algorithm replaces the initial
+     	   	   and final time slices created by a minimal
+     	   	   initialization. However, David's algorithm failed
+     	   	   to remove lower-dimensional subsimplices from the
+     	   	   time slices he replaced. This means
+     	   	   lower-dimensional objects were overcounted. The
+     	   	   final geoemetry also may have had some problems
+     	   	   with connection to earlier time-slices. All fixed.

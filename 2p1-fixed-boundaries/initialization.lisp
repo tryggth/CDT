@@ -347,16 +347,24 @@
      ;;the optional file parameters, defaulting to single tetrahedra
      ;;when no filenames are given
 
+     ;; JM: The initialial time slice is T=0, and we want to keep it
+     ;; that way, so we replace the geometry of the initial time
+     ;; slice.
      (when initial-spatial-geometry
        (let ((existing-triangles ()))
-	 ;; Remove any triangles that exist in the initial slice
+	 ;; Remove any triangles that exist in the initial slice and
+	 ;; make sure that the triangles they're connected to in the
+	 ;; next time slice are recorded.
 	 (dolist (3sxid (get-simplices-in-sandwich 0 1))
 	   (let* ((3sx  (get-3simplex 3sxid))
 		  (pts (3sx-points 3sx)))
 	     (when (= 1 (3sx-type 3sx))
 	       (push (list (second pts) (third pts) (fourth pts)) 
 		     existing-triangles)))
-	   (remhash 3sxid *ID->3SIMPLEX*))
+	   (remove-3simplex 3sxid))
+	 ;; Remove any subsimplices on the zeroth time slice
+	 (remove-sl2simplices (get-spacelike-triangles-at-time 0))
+	 (remove-sl1simplices (get-spacelike-links-at-time 0))
 	 ;; Make simplexes in the first slice based on the initial
 	 ;; spatial geometry.
 	 (map 'list 
@@ -372,17 +380,30 @@
 	 ;; Remove simplices in the final sandwich.  
 
 	 ;; JM: Something strange is going on here. David's code
-	 ;; deletes simplexes between the final time slice (indexed as
+	 ;; deleted simplexes between the final time slice (indexed as
 	 ;; NUM-T-1) and the first time slice (if we have periodic
 	 ;; boundary conditions) or no time slice at all since the
-	 ;; time slice indexed as NUM-T doesn't exist!
-	 (dolist (3sxid (get-simplices-in-sandwich (1- NUM-T) NUM-T))
+	 ;; time slice indexed as NUM-T doesn't exist in the periodic
+	 ;; case. I don't think David did this on purpose, and I
+	 ;; suspect that it was causing a strange disconnect between
+	 ;; the initial slice. I am changing this so it replaces time slice
+	 ;; NUM-T - 1.
+
+	 ;; Remove any triangles that exist in the initial slice and
+	 ;; make sure that the triangles they're connected to in the
+	 ;; next time slice are recorded.
+	 (dolist (3sxid (get-simplices-in-sandwich (- NUM-T 2) (1- NUM-T)))
 	   (let* ((3sx  (get-3simplex 3sxid))
 		  (pts (3sx-points 3sx)))
 	     (when (= 3 (3sx-type 3sx))
 	       (push (list (first pts) (second pts) (third pts))
 		     existing-triangles)))
-	   (remhash 3sxid *ID->3SIMPLEX*))
+	   (remove-3simplex 3sxid))
+	 ;; Remove any subsimplices on the zeroth time slice
+	 (remove-sl2simplices (get-spacelike-triangles-at-time (1- NUM-T)))
+	 (remove-sl1simplices (get-spacelike-links-at-time (1- NUM-T)))
+	 ;; Make simplexes in the first slice based on the initial
+	 ;; spatial geometry.	 
 	 (map 'list 
 	      #'(lambda (x) (make-3simplex-v3 (first x) (second x) (third x)
 					      (fourth x) (fifth x) (sixth x)
@@ -390,7 +411,7 @@
 	      (triangulate-between-slices existing-triangles 
 					     (load-triangles-from-file
 					      final-spatial-geometry)
-					     (1- NUM-T) NUM-T 
+					     (- NUM-T 2) (1- NUM-T)
 					     *LAST-USED-POINT*))))
 
      ;;connect simplices inside of slices
