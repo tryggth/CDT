@@ -76,10 +76,10 @@ but designed to test the phase space."
 (defun test-random-number-generator (func max iterations)
   "Tests random number generator for comparison to analytic solutions."
   (let ((numbers nil)
-	(mean-std nil))
+	(mean-std (list 0 0)))
     (for (i 0 iterations)
       (push (funcall func max) numbers))
-    (push (mean numbers) mean-std)
-    (push (standard-deviation numbers) mean-std)
+    (setf (first mean-std) (mean numbers))
+    (setf (second mean-std) (standard-deviation numbers))
     (format t "Mean: ~A~%Standard: ~A~%." (first mean-std) (second mean-std))
     mean-std))

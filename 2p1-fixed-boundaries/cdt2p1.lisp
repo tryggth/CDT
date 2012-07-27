@@ -1,5 +1,6 @@
 (load "../utilities.lisp")
 (load "globals.lisp")
+(load "generalized-hash-table-counting-functions.lisp")
 (load "simplex.lisp")
 (load "moves.lisp")
 (load "initialization.lisp")

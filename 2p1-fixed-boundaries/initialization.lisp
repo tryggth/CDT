@@ -365,6 +365,9 @@
 	 ;; Remove any subsimplices on the zeroth time slice
 	 (remove-sl2simplices (get-spacelike-triangles-at-time 0))
 	 (remove-sl1simplices (get-spacelike-links-at-time 0))
+	 ;; Remove any subsimplices in the first time sandwich
+	 (remove-tl2simplices (get-timelike-triangles-in-sandwich 0 1))
+	 (remove-tl1simplices (get-timelike-links-in-sandwich 0 1))
 	 ;; Make simplexes in the first slice based on the initial
 	 ;; spatial geometry.
 	 (map 'list 
@@ -399,9 +402,14 @@
 	       (push (list (first pts) (second pts) (third pts))
 		     existing-triangles)))
 	   (remove-3simplex 3sxid))
-	 ;; Remove any subsimplices on the zeroth time slice
+	 ;; Remove any subsimplices on the NUM-T time slice
 	 (remove-sl2simplices (get-spacelike-triangles-at-time NUM-T))
 	 (remove-sl1simplices (get-spacelike-links-at-time NUM-T))
+	 ;; Remove any subsimplices in the final time sandwich
+	 (remove-tl2simplices (get-timelike-triangles-in-sandwich
+			       (1- NUM-T) NUM-T))
+	 (remove-tl1simplices (get-timelike-links-in-sandwich
+			       (1- NUM-T) NUM-T))
 	 ;; Make simplexes in the first slice based on the initial
 	 ;; spatial geometry.	 
 	 (map 'list 
