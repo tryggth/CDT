@@ -350,3 +350,5 @@ Suffix is defined as the string following the LAST . in filename"
     (let ((templist (set-difference input-list (cons i nil))))
       (when (< (length templist) (1- (length input-list)))
 	(return i)))))
+
+

@@ -1,0 +1,142 @@
+\documentclass{article}
+
+\title{On The Einstein-Hilber Action with the Gibbons-Hawking Boundary Term in Causal Dynamical Triangulations}
+\author{Jonah M. Miller
+ \and 
+Joshua H. Cooperman}
+
+
+%packages
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathptmx}
+\usepackage{multicol}
+\usepackage{subfigure}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{latexsym}
+\usepackage{mathrsfs}
+
+\begin{document}
+
+\maketitle
+
+For a $(2+1)$-dimensional spacetime manifold $\mathcal{M}$ with
+boundary $\partial\mathcal{M}$, we must add to the Einstein-Hilbert
+action,
+\begin{equation}\label{EHaction}
+S_{EH}[\mathbf{g}]=\frac{1}{16\pi G}\int_{\mathcal{M}}\mathrm{d}^{3}x\,\sqrt{-g}\left(R-2\Lambda\right),
+\end{equation}
+the Gibbons-Hawking boundary term,
+\begin{equation}
+S_{GH}[\mathbf{\gamma}]=\frac{1}{8\pi G}\int_{\partial\mathcal{M}}\mathrm{d}^{2}y\sqrt{|\gamma|}K.
+\end{equation}
+Here, $\mathbf{\gamma}$ is the induced metric on the boundary
+$\partial\mathcal{M}$, and $K$ is the trace of the extrinsic curvature
+of the boundary $\partial\mathcal{M}$. Regge demonstrated that, for a
+triangulated spacetime manifold $\mathcal{T}$, the Einstein-Hilbert
+action assumes the form
+\begin{equation}\label{Reggeaction}
+S_{EH}^{(R)}[\mathcal{T}]=\frac{1}{8\pi G}\sum_{h\in\mathcal{T}}A_{h}\delta_{h}-\frac{\Lambda}{8\pi G}\sum_{s\in\mathcal{T}}V_{s}.
+\end{equation}
+Here, $h$ is a $1$-dimensional hinge having area $A_{h}$ and deficit
+angle $\delta_{h}$, and $V_{s}$ is the spacetime volume of a
+$3$-simplex $s$. Hartle and Sorkin demonstrated that, for a
+triangulated spacetime manifold $\mathcal{T}$ with boundary
+$\partial\mathcal{T}$, the Gibbons-Hawking boundary term assumes the
+form
+\begin{equation}
+S_{GH}^{(R)}[\partial\mathcal{T}]=\frac{1}{8\pi G}\sum_{h\in\partial\mathcal{T}}A_{h}\psi_{h}.
+\end{equation}
+Here, $h$ is a $1$-dimensional hinge on the boundary
+$\partial\mathcal{T}$ having area $A_{h}$, and $\psi_{h}$ is the angle
+between the two vectors normal to the two spacelike $2$-simplices
+intersecting at the hinge $h$.
+
+We wish to determine the form of the Regge-Einstein-Hilbert action
+supplemented by the Regge-Gibbons-Hawking boundary term in
+$(2+1)$-dimensional causal dynamical triangulations for two-sphere
+spatial topology and line interval temporal topology. Ambj\o rn
+\emph{et al} \cite{DynamicallyTriangulating} give the Regge-Einstein-Hilbert action in this case,
+finding that
+\begin{eqnarray}
+S_{EH}^{(R)}[\mathcal{T}_{c}]&=& k\left[\frac{2\pi}{i}N_1^{SL} - \frac{3}{i}k\theta_{SL}^{(3,1)}\left(N_3^{(3,1)} + N_3^{(1,3)}\right) - \frac{2}{i}\theta_{SL}^{(2,2)}N_3^{(2,2)}\right]\nonumber\\
+&+& k\sqrt{\alpha}\left[2\pi N_1^{TL} - 3\theta_{TL}^{(3,1)}(N_3^{(3,1)}+N_3^{(1,3)})-4\theta_{TL}^{(2,2)}N_3^{(2,2)}\right]\nonumber\\
+&-& \frac{\lambda}{12}\left[(N_3^{(3,1)}+N_3^{(1,3)})\sqrt{3\alpha+1} + N_3^{(2,2)}\sqrt{4\alpha+2}\right]\nonumber
+\end{eqnarray}
+Here, $N_{1}^{SL}$ is the number of spacelike $1$-simplices,
+$N_{1}^{TL}$ is the number of timelike $1$-simplices, $N_{3}^{(2,2)}$
+is the number of $(2,2)$ $3$-simplices, $N_{3}^{(1,3)}$ is the number
+of $(1,3)$ $3$-simplices, $N_{3}^{(3,1)}$ is the number of $(3,1)$
+$3$-simplices, $\theta_{SL}^{(2,2)}$ is the Lorentzian dihedral angle
+about a spacelike edge of a $(2,2)$ $3$-simplex, $\theta_{TL}^{(2,2)}$
+is the Lorentzian dihedral angle about a timelike edge of a $(2,2)$
+$3$-simplex, $\theta_{SL}^{(1,3)}$ is the Lorentzian dihedral angle
+about a spacelike edge of a $(1,3)$ $3$-simplex, $\theta_{TL}^{(1,3)}$
+is the Lorentzian dihedral angle about a timelike edge of a $(1,3)$
+$3$-simplex, $\theta_{SL}^{(3,1)}$ is the Lorentzian dihedral angle
+about a spacelike edge of a $(3,1)$ $3$-simplex, $\theta_{TL}^{(3,1)}$
+is the Lorentzian dihedral angle about a timelike edge of a $(3,1)$
+$3$-simplex, $V_{3}^{(2,2)}$ is the spacetime volume of a $(2,2)$
+$3$-simplex, $V_{3}^{(1,3)}$ is the spacetime volume of a $(1,3)$
+$3$-simplex, $V_{3}^{(3,1)}$ is the spacetime volume of a $(3,1)$
+$3$-simplex, and $\alpha$ is the ratio of the timelike to the
+spacelike squared edge length of a $3$-simplex.The first line comes
+from the summation over spacelike hinges, the second line comes from
+the summation over timelike hinges, and the third line comes from the
+summation over $3$-simplices. Note that we could rewrite the second
+term of the first line using the relation
+$4N_{1}^{SL}=3\left(N_{3}^{(1,3)}+N_{3}^{(3,1)}\right)$.
+
+If the Regge-Einstein-Hilbert action for $(2+1)$-dimensional causal
+dynamical triangulations (CDT) is to include a boundary term, it must
+be split into a bulk term and a boundary term. Hartle and Sorkin
+provide the framework for the Gibbons-Hawking-York boundary term
+\ref{BoundaryTerm}. However, first, we must ensure that the
+Regge-Einstein-Hilbert action does not take any boundary terms as
+input. We will rederive the Regge-Einstein-Hilbert action but making
+sure we don't count any part of the boundary. This is the \textit{bulk
+  action}.
+
+We now supplement the Regge-Einstein-Hilbert action for
+$(2+1)$-dimensional causal dynamical triangulations by the appropriate
+Regge-Gibbons-Hawking boundary term. Given the desired spacetime
+topology, the boundary $\partial\mathcal{T}_{c}$ consists of two
+disconnected components: an initial or past spatial two-sphere
+$\mathcal{S}_{i}^{2}$ and a final or future spatial two-sphere
+$\mathcal{S}_{f}^{2}$. Based on the demonstration of Hartle and
+Sorkin, we propose the prescription
+\begin{equation}
+S_{GH}^{(R)}[\partial\mathcal{T}_{c}]=\frac{1}{8\pi G}\sum_{h\in\mathcal{S}_{i}^{2}}\frac{1}{i}\left[\pi-2\theta_{SL}^{(3,1)}-\theta_{SL}^{(2,2)}N_{3\uparrow}^{(2,2)}(h)\right]+\frac{1}{8\pi G}\sum_{h\in\mathcal{S}_{f}^{2}}\frac{1}{i}\left[\pi-2\theta_{SL}^{(1,3)}-\theta_{SL}^{(2,2)}N_{3\downarrow}^{(2,2)}(h)\right].
+\end{equation}
+Here, $N_{3\uparrow}^{(2,2)}(h)$ is the number of future-directed $(2,2)$ $3$-simplices attached to the hinge $h$, and $N_{3\downarrow}^{(2,2)}(h)$ is the number of past-directed $(2,2)$ $3$-simplices attached to the hinge $h$. We justify this prescription as follows. In parallel transporting the vector normal to one component of the boundary $\partial\mathcal{T}_{c}$ between two spacelike $2$-simplices intersecting at the hinge $h$, the vector rotates through the angle 
+\begin{equation}
+\frac{1}{i}\left[2\theta_{SL}^{(3,1)}+\theta_{SL}^{(2,2)}N_{3}^{(2,2)}(h)\right].
+\end{equation}
+When this angle is $\frac{\pi}{i}$, the extrinsic curvature vanishes locally at the hinge $h$; this fact dictates the deficit angle-like form of our above prescription. The absence of a relative negative sign between the contributions of the two disconnected components of the boundary $\partial\mathcal{T}_{c}$ to the Regge-Gibbons-Hawking boundary term stems from the fact that the future-directed orientation of the vector normal to $\mathcal{S}_{i}^{2}$ and the past-directed orientation of the vector normal to $\mathcal{S}_{f}^{2}$ are accounted for in the past-directed and future-directed orientations of the $(2,2)$ $3$-simplices attached to the boundary. Performing the summations over the hinges on the boundary $\partial\mathcal{T}_{c}$, we may rewrite the Regge-Gibbons-Hawking boundary term as
+\begin{eqnarray}
+S_{GH}^{(R)}[\partial\mathcal{T}_{c}]&=&\frac{1}{8\pi G}\left[\frac{\pi}{i} N_{1}^{SL}(\mathcal{S}_{i}^{2})-\frac{2}{i}\theta_{SL}^{(3,1)}N_{1}^{SL}(\mathcal{S}_{i}^{2})-\frac{1}{i}\theta_{SL}^{(2,2)}N_{3\uparrow}^{(2,2)}(\mathcal{S}_{i}^{2})\right]\nonumber\\ &&+\frac{1}{8\pi G}\left[\frac{\pi}{i} N_{1}^{SL}(\mathcal{S}_{f}^{2})-\frac{2}{i}\theta_{SL}^{(3,1)}N_{1}^{SL}(\mathcal{S}_{f}^{2})-\frac{1}{i}\theta_{SL}^{(2,2)}N_{3\downarrow}^{(2,2)}(\mathcal{S}_{f}^{2})\right].
+\end{eqnarray}
+
+Before writing down the complete Regge action for $(2+1)$-dimensional causal dynamical triangulations with two-sphere spatial topology and line interval temporal topology, we must account for the presence of the boundary $\partial\mathcal{T}_{c}$ on the Regge-Einstein-Hilbert term. In particular, the spacelike hinges on the boundary $\partial\mathcal{T}_{c}$ no longer contribute to the Regge-Einstein-Hilbert term because full spacetime parallel transport about those hinges is no longer well defined. Accordingly, we modify the first line of the above prescription for the Regge-Einstein-Hilbert term to
+\begin{eqnarray}
+\frac{1}{8\pi G}\left[\frac{2\pi}{i}\left(N_{1}^{SL}-N_{1}^{SL}(\mathcal{S}_{i}^{2})-N_{1}^{SL}(\mathcal{S}_{f}^{2})\right)-\frac{1}{i}\theta_{SL}^{(2,2)}\left(2N_{3}^{(2,2)}-N_{3\uparrow}^{(2,2)}(\mathcal{S}_{i}^{2})-N_{3\downarrow}^{(2,2)}(\mathcal{S}_{f}^{2})\right)\right.\nonumber\\ \qquad\qquad\qquad \left.-\frac{1}{i}\theta_{SL}^{(1,3)}\left(4N_{1}^{SL}-2N_{1}^{SL}(\mathcal{S}_{i}^{2})-2N_{1}^{SL}(\mathcal{S}_{f}^{2})\right)\right].
+\end{eqnarray}
+The numerical factors appearing in the second and third terms of this expression require some explanation. In the second term $N_{3\uparrow}^{(2,2)}(\mathcal{S}_{i}^{2})$ and $N_{3\downarrow}^{(2,2)}(\mathcal{S}_{f}^{2})$ enter with the factor $1$ instead of $2$ because only one of the two spacelike edges of these $(2,2)$ $3$-simplices attaches to the boundary $\partial\mathcal{T}_{c}$. In the third term $N_{1}^{SL}(\mathcal{S}_{i}^{2})$ and $N_{1}^{SL}(\mathcal{S}_{f}^{2})$ enter with the factor $2$ instead of $4$ because only two $(1,3)$ or $(3,1)$ $3$-simplices attach to a hinge at the boundary $\partial\mathcal{T}_{c}$. The complete Regge action is thus
+\begin{eqnarray}
+S^{(R)}[\mathcal{T}_{c}]&=&\frac{1}{8\pi G}\left[\frac{2\pi}{i}\left(N_{1}^{SL}-N_{1}^{SL}(\mathcal{S}_{i}^{2})-N_{1}^{SL}(\mathcal{S}_{f}^{2})\right)-\frac{1}{i}\theta_{SL}^{(2,2)}\left(2N_{3}^{(2,2)}-N_{3\uparrow}^{(2,2)}(\mathcal{S}_{i}^{2})-N_{3\downarrow}^{(2,2)}(\mathcal{S}_{f}^{2})\right)\right.\nonumber\\ && \qquad\qquad\left.-\frac{1}{i}\theta_{SL}^{(1,3)}\left(4N_{1}^{SL}-2N_{1}^{SL}(\mathcal{S}_{i}^{2})-2N_{1}^{SL}(\mathcal{S}_{f}^{2})\right)+2\pi\sqrt{\alpha}N_{1}^{TL}-4\sqrt{\alpha}\theta_{TL}^{(2,2)}N_{3}^{(2,2)}\right.\nonumber\\ &&\left.\qquad\qquad-3\sqrt{\alpha}\theta_{TL}^{(1,3)}N_{3}^{(1,3)}-3\sqrt{\alpha}\theta_{TL}^{(3,1)}N_{3}^{(3,1)}\right]\nonumber\\ && +\frac{\Lambda}{8\pi G}\left[V_{3}^{(2,2)}N_{3}^{(2,2)}+V_{3}^{(1,3)}N_{3}^{(1,3)}+V_{3}^{(3,1)}N_{3}^{(3,1)}\right]\nonumber\\ && +\frac{1}{8\pi G}\left[\frac{\pi}{i} N_{1}^{SL}(\mathcal{S}_{i}^{2})-\frac{2}{i}\theta_{SL}^{(3,1)}N_{1}^{SL}(\mathcal{S}_{i}^{2})-\frac{1}{i}\theta_{SL}^{(2,2)}N_{3\uparrow}^{(2,2)}(\mathcal{S}_{i}^{2})\right]\nonumber\\ &&+\frac{1}{8\pi G}\left[\frac{\pi}{i} N_{1}^{SL}(\mathcal{S}_{f}^{2})-\frac{2}{i}\theta_{SL}^{(3,1)}N_{1}^{SL}(\mathcal{S}_{f}^{2})-\frac{1}{i}\theta_{SL}^{(2,2)}N_{3\downarrow}^{(2,2)}(\mathcal{S}_{f}^{2})\right].
+\end{eqnarray}
+
+We finally demonstrate that our prescription for the Regge-Gibbons-Hawking boundary term in $(2+1)$-dimensional causal dynamical triangulations is consistent with the form of the Regge-Einstein-Hilbert action determined by Ambj\o rn \emph{et al}. We make such a demonstration by verifying that our prescription for the Regge-Gibbons-Hawking boundary term reproduces the Regge-Einstein-Hilbert action when we compose two spacetime regions sharing a common boundary $\mathcal{S}_{c}^{2}$. Consider two triangulated spacetime manifolds $\mathcal{T}_{c}$ and $\mathcal{T}_{c}'$ both with two-sphere spatial topology and line interval temporal topology. The boundary $\partial\mathcal{T}_{c}$ consists of an initial two-sphere $\mathcal{S}_{i}^{2}$ and a final two-sphere $\mathcal{S}_{f}^{2}$, and the boundary $\partial\mathcal{T}_{c}'$ consists of an initial two-sphere $\mathcal{S'}_{i}^{2}$ and a final two-sphere $\mathcal{S'}_{f}^{2}$. To compose the two triangulated spacetime manifolds $\mathcal{T}_{c}$ and $\mathcal{T}_{c}'$, we first take the two-spheres $\mathcal{S}_{f}^{2}$ and $\mathcal{S'}_{i}^{2}$ to have the same intrinsic geometry and then we orient the two-spheres $\mathcal{S}_{f}^{2}$ and $\mathcal{S'}_{i}^{2}$ to have coincident normal vectors. We may thus identify these two two-spheres as $\mathcal{S}_{c}^{2}$. The Regge-Gibbons-Hawking boundary term contributions of $\mathcal{S}_{c}^{2}$ from the two triangulated spacetime manifolds $\mathcal{T}_{c}$ and $\mathcal{T}_{c}'$ are
+\begin{eqnarray}
+\frac{1}{8\pi G}\left[\frac{\pi}{i} N_{1}^{SL}(\mathcal{S}_{f}^{2})-\frac{2}{i}\theta_{SL}^{(3,1)}N_{1}^{SL}(\mathcal{S}_{f}^{2})-\frac{1}{i}\theta_{SL}^{(2,2)}N_{3\downarrow}^{(2,2)}(\mathcal{S}_{f}^{2})\right]\nonumber\\+\frac{1}{8\pi G}\left[\frac{\pi}{i} N_{1}^{SL}(\mathcal{S'}_{i}^{2})-\frac{2}{i}\theta_{SL}^{(3,1)}N_{1}^{SL}(\mathcal{S'}_{i}^{2})-\frac{1}{i}\theta_{SL}^{(2,2)}N_{3\uparrow}^{(2,2)}(\mathcal{S'}_{i}^{2})\right].
+\end{eqnarray}
+Together these two Regge-Gibbons-Hawking boundary terms combine to give the contribution to the Regge-Einstein-Hilbert action coming from the spacelike hinges on $\mathcal{S}_{c}^{2}$.
+
+%Bibliography
+\bibliography{CDT_boundaries}
+\bibliographystyle{unsrt}
+
+\end{document}

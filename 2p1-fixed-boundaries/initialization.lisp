@@ -392,7 +392,7 @@
 	 ;; Remove any triangles that exist in the initial slice and
 	 ;; make sure that the triangles they're connected to in the
 	 ;; next time slice are recorded.
-	 (dolist (3sxid (get-simplices-in-sandwich (- NUM-T 2) (1- NUM-T)))
+	 (dolist (3sxid (get-simplices-in-sandwich (1- NUM-T) NUM-T))
 	   (let* ((3sx  (get-3simplex 3sxid))
 		  (pts (3sx-points 3sx)))
 	     (when (= 3 (3sx-type 3sx))
@@ -400,8 +400,8 @@
 		     existing-triangles)))
 	   (remove-3simplex 3sxid))
 	 ;; Remove any subsimplices on the zeroth time slice
-	 (remove-sl2simplices (get-spacelike-triangles-at-time (1- NUM-T)))
-	 (remove-sl1simplices (get-spacelike-links-at-time (1- NUM-T)))
+	 (remove-sl2simplices (get-spacelike-triangles-at-time NUM-T))
+	 (remove-sl1simplices (get-spacelike-links-at-time NUM-T))
 	 ;; Make simplexes in the first slice based on the initial
 	 ;; spatial geometry.	 
 	 (map 'list 
@@ -411,7 +411,7 @@
 	      (triangulate-between-slices existing-triangles 
 					     (load-triangles-from-file
 					      final-spatial-geometry)
-					     (- NUM-T 2) (1- NUM-T)
+					     (1- NUM-T) NUM-T
 					     *LAST-USED-POINT*))))
 
      ;;connect simplices inside of slices
@@ -463,7 +463,7 @@
 		   
 )
 
-    (t (error "unre,cognized boundary condition type"))))
+    (t (error "unrecognized boundary condition type"))))
 
 
 (defun initialize-S2-triangulation (num-time-slices boundary-conditions 
@@ -477,7 +477,7 @@
   ;;set up the numbers of initial simplices according to the S2
   ;;initialization of the geometry
   (defparameter N0-PER-SLICE 4)
-  (defparameter N1-SL-PER-SLICE 6)
+  (defparameter N1-SnL-PER-SLICE 6)
   (defparameter N1-TL-PER-SLICE 12)
   (defparameter N2-SL-PER-SLICE 4)
   (defparameter N2-TL-PER-SLICE 24)
@@ -705,66 +705,64 @@
   ;; JM: what follows are two methods to increase the volume up to the
   ;; desired size. The system has yet to thermalize, so algorithm
   ;; should be irrelevant. The first algorithm is written by David
-  ;; Kamensky. The second is written by Rajesh Kommu. Christian's
-  ;; algorithm works better with parameter_tuning.lisp
-
+  ;; Kamensky. The second is written by Rajesh Kommu.
 
   ;;try volume-increasing moves on random simplices until the desired
   ;;volume is reached
-  (while (< (N3) target-volume)
+;;  (while (< (N3) target-volume)
     ;the range of type-chooser affects 23 / 13 / 31 balance
-    (let* ((type-chooser (random 6))
-	   (simplex-chooser (random *LAST-USED-3SXID*))
-	   (movedata (try-move simplex-chooser 
-			       (if (< type-chooser 1) 0 1))))
+;;    (let* ((type-chooser (random 6))
+;;	   (simplex-chooser (random *LAST-USED-3SXID*))
+;;	   (movedata (try-move simplex-chooser 
+;;			       (if (< type-chooser 1) 0 1))))
       ;; for debugging. Comment out for general use.
 ;;      (format t "type-chooser: ~%~$~%" type-chooser)
 ;;      (format t "move data: ~%~S~%" movedata)
-      (when movedata (2plus1move movedata))))
+;;      (when movedata (2plus1move movedata))))
 	
 
   ;; use moves to increase the number of simplices until the target
   ;; volume is reached  
-;;  (loop named tv
-;;     do
+  (loop named tv
+     do
        
      ;; This is for debugging. Comment it out in general.
 ;;       (let ((duplicates (list-vals-with-trait 
 ;;			  #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
 ;;	 (format t "Duplicate simplices: ~%~S" duplicates))
 
-;;       (dolist (id23 (get-simplices-of-type 2))
-;;	 (let ((movedata nil))
-;;	   (when (setf movedata (try-2->3 id23))
-;;	     (2plus1move movedata)))
-;;	 (if (> (N3) target-volume)
-;;	     (return-from tv)))
+       (dolist (id23 (get-simplices-of-type 2))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->3 id23))
+	     (2plus1move movedata)))
+	 (if (> (N3) target-volume)
+	     (return-from tv)))
        
      ;; (4,4) moves to mix things up
-;;       (dolist (id44 (get-simplices-of-type 1))
-;;	 (let ((movedata nil))
-;;	   (when (setf movedata (try-4->4 id44))
-;;	     (2plus1move movedata))))
+       (dolist (id44 (get-simplices-of-type 1))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->4 id44))
+	     (2plus1move movedata))))
        
-;;       (dolist (id26 (get-simplices-of-type 3))
-;; 	 (let ((movedata nil))
-;;	   (when (setf movedata (try-2->6 id26))
-;;	     (2plus1move movedata)))
-;;	 (if (> (N3) target-volume)
-;;	     (return-from tv)))
+       (dolist (id26 (get-simplices-of-type 3))
+ 	 (let ((movedata nil))
+	   (when (setf movedata (try-2->6 id26))
+	     (2plus1move movedata)))
+	 (if (> (N3) target-volume)
+	     (return-from tv)))
        
      ;; (4,4) moves to mix things up
-;;       (dolist (id44 (get-simplices-of-type 3))
-;;	 (let ((movedata nil))
-;;	   (when (setf movedata (try-4->4 id44))
-;;	     (2plus1move movedata))))
+       (dolist (id44 (get-simplices-of-type 3))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-4->4 id44))
+	     (2plus1move movedata))))
        
-;;       (dolist (id23 (get-simplices-of-type 2))
-;;	 (let ((movedata nil))
-;;	   (when (setf movedata (try-2->3 id23))
-;;	     (2plus1move movedata)))
-;;	 (if (> (N3) target-volume)
-;;	     (return-from tv))))
+       (dolist (id23 (get-simplices-of-type 2))
+	 (let ((movedata nil))
+	   (when (setf movedata (try-2->3 id23))
+	     (2plus1move movedata)))
+	 (if (> (N3) target-volume)
+	     (return-from tv))))
   
   
   (format t "final count = ~A~%" (count-simplices-of-all-types))

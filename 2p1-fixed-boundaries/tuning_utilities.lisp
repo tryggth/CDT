@@ -71,3 +71,15 @@ but designed to test the phase space."
 	   (std (nth 1 volume-data))
 	   (deltav (nth 2 volume-data)))
       (add-data-to-file outfile avg std deltav)))
+
+
+(defun test-random-number-generator (func max iterations)
+  "Tests random number generator for comparison to analytic solutions."
+  (let ((numbers nil)
+	(mean-std nil))
+    (for (i 0 iterations)
+      (push (funcall func max) numbers))
+    (push (mean numbers) mean-std)
+    (push (standard-deviation numbers) mean-std)
+    (format t "Mean: ~A~%Standard: ~A~%." (first mean-std) (second mean-std))
+    mean-std))

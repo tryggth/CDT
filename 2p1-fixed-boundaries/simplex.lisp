@@ -605,7 +605,7 @@ t-high is for compatibility. We only care about t-low."
   "Get the keys for spacelike triangles at a given time (since the 
    hash table matches the simplex to the IDs, we want the simplex, 
    not the id.)"
-  (list-keys-with-trait #'(lambda (x) (= x t0)) *SL2SIMPLEX->ID* 0))
+  (list-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL2SIMPLEX->ID* 0))
 
 
 ;;; JM: I have changed count-spacelike-triangles-at-time to take
@@ -639,7 +639,7 @@ t-high is for compatibility. We only care about t-low."
 (defun get-spacelike-links-at-time (t0)
   "Returns a list of spacelike links at a given time.
    This is the key to the hash table, not the value."
-  (list-keys-with-trait #'(lambda (x) (= x t0)) *SL1SIMPLEX->ID* 0))
+  (list-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL1SIMPLEX->ID* 0))
 
 
 ;;; JM: I have changed count-spacelike-links-at-time to take
