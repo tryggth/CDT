@@ -304,7 +304,7 @@
 (format t "initial count = ~A~%" (count-simplices-of-all-types))
 
 ;; Grow spacetime to the chosen volume
-(grow-spacetime *targ et-volume*)
+(grow-spacetime *target-volume*)
 
 ;; Set coupling constants
 (set-k0-k3-alpha 1.0 0.7577 -1)
