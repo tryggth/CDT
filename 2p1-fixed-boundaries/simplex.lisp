@@ -398,6 +398,7 @@ compared to those only in the bulk."
 	     *ID->3SIMPLEX*)
     count))
 
+
 ;; Function to count objects in a single time slice over the entire
 ;; spacetime. I know this could be written as a macro, but it works
 ;; passably as a function, so we'll do that. It's true that if the
@@ -411,11 +412,14 @@ compared to those only in the bulk."
 slices and returns the sum. If the spacetime. If a count-argument is
 given, this is passed to the counting-function as the second argument
 after time-slice."
-  (let ((count 0))
+  (let ((count 0)
+	(tmax (if (string= BCTYPE "PERIODIC")
+		  (1- NUM-T)
+		  NUM-T)))
     (if (not count-argument)
-	(loop for time-slice from 0 to NUM-T do
+	(loop for time-slice from 0 to tmax do
 	     (setf count (+ count (funcall counting-function time-slice))))
-	(loop for time-slice from 0 to NUM-T do
+	(loop for time-slice from 0 to tmax do
 	     (setf count (+ count (funcall 
 				   counting-function 
 				   time-slice 
@@ -559,7 +563,7 @@ t-high is for compatibility. We only care about t-low."
 ;;; own risk.
 (defun count-spacelike-triangles-at-time (t0)
   "Count spacelike triangles (2-simplices) on a given time-slice."
-  (count-keys-with-trait #'(lambda (x) (= x t0)) *SL2SIMPLEX->ID* 0))
+  (count-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL2SIMPLEX->ID* 0))
 
 ;;count the number of spacelike triangles at a certain time
 ;; Although this is deprecated, it should work anyways.
@@ -594,7 +598,7 @@ t-high is for compatibility. We only care about t-low."
 
 (defun count-spacelike-links-at-time (t0)
   "Count number of spacelike links on a given time slice."
-  (count-keys-with-trait #'(lambda (x) (= x t0)) *SL1SIMPLEX->ID* 0))
+  (count-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL1SIMPLEX->ID* 0))
     
 
 ;;count the number of spacelike links at a particular time, using the
