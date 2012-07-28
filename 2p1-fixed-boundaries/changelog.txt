@@ -135,3 +135,6 @@ July 25th, 2012 -- I discovered an error in David's initialization
      	   	   lower-dimensional objects were overcounted. The
      	   	   final geoemetry also may have had some problems
      	   	   with connection to earlier time-slices. All fixed.
+
+July 27th, 2012 -- I added error checking functions to ensure that the
+     	   	   spacetime doesn't violate topological relations.

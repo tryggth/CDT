@@ -476,8 +476,8 @@
 
 (defun initialize-S2-triangulation (num-time-slices boundary-conditions 
 				    &optional 
-				    initial-spatial-geometry
-				    final-spatial-geometry)
+				      initial-spatial-geometry
+				      final-spatial-geometry)
 
   (setf NUM-T   num-time-slices
         BCTYPE  (string-upcase boundary-conditions))
@@ -709,6 +709,12 @@
 ;;    (format t "Duplicate simplices: ~%~S~%" duplicates))
 
   (format t "initial count = ~A~%" (count-simplices-of-all-types))
+
+
+  ;; Check to see if various topological relations are satisfied
+  (assert (nullp (check-euler-characteristic))) ; Euler characteristic
+  (assert (nullp (check-triangle-edge-relation)))
+  (assert (<= (length (check-triangle-edge-relation)) 2))
 
   ;; JM: what follows are two methods to increase the volume up to the
   ;; desired size. The system has yet to thermalize, so algorithm

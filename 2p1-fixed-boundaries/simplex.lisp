@@ -589,30 +589,16 @@ t-high is for compatibility. We only care about t-low."
   (list-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL1SIMPLEX->ID* 0))
 
 
-;;; JM: I have changed count-spacelike-links-at-time to take
-;;; advantage of Rajesh's bug-fixed code, including the new
-;;; sub-simplex hash tables. Thus, the old
-;;; function is deprecated. It has been marked
-;;; as such, and I leave it only for completeness sake. Use at your
-;;; own risk.
+;;; JM: I have changed count-spacelike-links-at-time to take advantage
+;;; of Rajesh's bug-fixed code, including the new sub-simplex hash
+;;; tables. Thus, the old function is deprecated. It has been removed
+;;; becuase it relied on an outmoded version of euler-char, which has
+;;; been since removed.
 
 (defun count-spacelike-links-at-time (t0)
   "Count number of spacelike links on a given time slice."
   (count-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL1SIMPLEX->ID* 0))
-    
-
-;;count the number of spacelike links at a particular time, using the
-;;euler characteristic and the numbers of triangles and points
-;; DEPRECATED USE AT YOUR OWN RISK
-(defun count-spacelike-links-at-time-deprecated (t0)
-
-  (let* ((chi (euler-char))
-	 (n0  (count-points-at-time t0))
-	 (n2  (count-spacelike-triangles-at-time t0)))
-
-    ;;  (chi = n0 - n1 + n2)  =>  (n1 = n0 + n2 - chi)
-    (- (+ n0 n2) chi)))
-				    
+   
 
 ;; Count the total number of spacelike links in the spacetime.
 (defun count-spacelike-links-in-spacetime ()

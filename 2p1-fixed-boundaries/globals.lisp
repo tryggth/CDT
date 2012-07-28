@@ -22,15 +22,6 @@
   `(push ,sxid *RECYCLED-3SX-IDS*))
 
 
-;;macro to determine the euler characteristic of the spatial slices
-;;assumes that the only two available are s2 and t2
-(defmacro euler-char ()
-  `(if (string= STOPOLOGY "S2") 2 0)) 
-;; JM : In general, it might be better to actually calculate chi. It's
-;; not too hard. On the other hand, this might add up to be
-;; computationally expensive.
-
-
 
 ;;---------------------------------------------------------------------------
 ;; timelike subsimplices have the form (type tmlo (p0 p1 ...))
