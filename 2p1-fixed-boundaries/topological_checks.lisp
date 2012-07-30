@@ -65,6 +65,22 @@
 	 (edges (count-spacelike-links-at-time t0))
 	 (relationship (- sum-n3-31 (* 4/3 edges))))
     relationship))
+
+(defun timelike-face-tetrahedron-relation (time-slice)
+  "A topological relation relating the number of spacelike 2-simplices 
+   in a given sandwich to the number of 3-simplices in that sandwich.
+   The relation comes from the fact that each timelike face must be part of 
+   two 3-simplices. The relation is:
+   3 N3-TL-31 + 3 N3-TL-13 + 4 N3-TL-22 = 2 N2-TL
+   If the identities hold, this will return zero."
+  (let* ((t0 (bc-mod time-slice))
+	 (13s (count-simplices-in-sandwich-of-type t0 (1+ t0) 1))
+	 (31s (count-simplices-in-sandwich-of-type t0 (1+ t0) 3))
+	 (22s (count-simplices-in-sandwich-of-type t0 (1+ t0) 2))
+	 (timelike-faces (count-timelike-triangles-in-sandwich t0 (1+ t0)))
+	 (relationship 
+	  (+ (* 3 31s) (* 3 13s) (* 4 22s) (* -2 timelike-faces))))
+    relationship))
 ;;;;-------------------------------------------------------------------------
 
 
@@ -105,4 +121,11 @@
    zero (except at the boundary). If it is not, prints the proper time of
    the slice and the actual result of the relation."
   (check-topological-identity #'tetrahedron-edge-relation 0))
+
+(defun check-timelike-face-tetrahedron-relation ()
+  "Checks the timelike-face-tetrahedron-relation given above. If we have a
+   topologically acceptable spacetime, then the result should be zero and the
+   function returns nil. If it is not, prints the proper time of the lower 
+   time slice in the sandwich and the actual result of the relation."
+  (check-topological-identity #'timelike-face-tetrahedron-relation 0))
 ;;;;-------------------------------------------------------------------------

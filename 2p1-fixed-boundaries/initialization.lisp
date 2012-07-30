@@ -712,9 +712,11 @@
 
 
   ;; Check to see if various topological relations are satisfied
-  (assert (nullp (check-euler-characteristic))) ; Euler characteristic
-  (assert (nullp (check-triangle-edge-relation)))
-  (assert (<= (length (check-triangle-edge-relation)) 2))
+  (assert (not (first (check-euler-characteristic)))) 
+  (assert (not (first (check-triangle-edge-relation))))
+  (assert (<= (length (first (check-triangle-edge-relation))) 2))
+  (assert (not (first (check-timelike-face-tetrahedron-relation))))
+
 
   ;; JM: what follows are two methods to increase the volume up to the
   ;; desired size. The system has yet to thermalize, so algorithm
