@@ -16,13 +16,14 @@
 				   :spatial-topology "S2"
 				   :boundary-conditions "PERIODIC")
 
-; Tell the simulation that the boundary is NOT periodic.
-(setf BCTYPE "OPEN")
+; Tell the simulation that we are keeping track of the boundary,
+; despite the fact that the simulation is periodic.
+(setf *merge-faces* t)
 
 ; Set the B-vector accordingly
-(set-b-vector (count-spacelike-links-at-time 0)
-	      (count-simplices-in-sandwich-of-type (1- NUM-T) 0 2)
-	      (count-simplices-in-sandwich-of-type (1- NUM-T) 0 1)
+(set-b-vector (count-spacelike-links-at-time NUM-T)
+	      (count-simplices-in-sandwich-of-type (1- NUM-T) NUM-T 2)
+	      (count-simplices-in-sandwich-of-type (1- NUM-T) NUM-T 1)
 	      (count-spacelike-links-at-time 0)
 	      (count-simplices-in-sandwich-of-type 0 1 2)
 	      (count-simplices-in-sandwich-of-type 0 1 3))

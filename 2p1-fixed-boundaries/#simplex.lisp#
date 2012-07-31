@@ -18,11 +18,9 @@
 ;; depending on whether or not periodic boundary conditions are in
 ;; use.
 
-;; JM: I'm not convinced I should enable periodic boundary conditions
-;; at all for this program, since Rajesh's original code does periodic
-;; boundary conditions just fine. It might be better to make a wrapper
-;; for all of the simulation programs we have. I think this would make
-;; the simulation a little faster. I'll have to think about that.
+;; bc-mod allows for periodic boundary conditions. It also allows for
+;; us to include the boundary term of the action for periodic boundary
+;; conditions by setting *merge-faces* to be true.
 (defmacro bc-mod (num)
   `(if (or (string= BCTYPE "PERIODIC") *merge-faces*)
        (mod ,num NUM-T)

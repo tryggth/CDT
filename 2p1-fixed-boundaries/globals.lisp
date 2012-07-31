@@ -95,9 +95,13 @@
 ;;first, define macros to determine helpful things about
 ;;the position of a particular simplex
 (defmacro in-upper-sandwich (sxid) 
-  `(and (string= BCTYPE "OPEN") (= (3sx-tmhi (get-3simplex ,sxid)) NUM-T)))
+  `(and 
+    (or (string= BCTYPE "OPEN") *merge-faces*)
+    (= (3sx-tmhi (get-3simplex ,sxid)) (bc-mod NUM-T))))
 (defmacro in-lower-sandwich (sxid)
-  `(and (string= BCTYPE "OPEN") (= (3sx-tmlo (get-3simplex ,sxid)) 0)))
+  `(and 
+    (or (string= BCTYPE "OPEN") *merge-faces*)
+    (= (3sx-tmlo (get-3simplex ,sxid)) 0)))
 (defmacro in-either-boundary-sandwich (sxid)
   `(or (in-upper-sandwich ,sxid) (in-lower-sandwich ,sxid)))
 
@@ -106,9 +110,10 @@
 (defmacro has-face-on-boundary (sxid)
   `(let* ((sx (get-3simplex ,sxid))  
 	  (ty (3sx-type sx))
-	  (th (3sx-tmhi sx))
-	  (tl (3sx-tmlo sx)))
-     (and (string= BCTYPE "OPEN")
+	  (th (bc-mod (3sx-tmhi sx)))
+	  (tl (bc-mod (3sx-tmlo sx))))
+     (and (or (string= BCTYPE "OPEN") 
+	      *merge-faces*)
 	  (or (and (= ty 1)
 		   (or (= th 0) (= th NUM-T)))
 	      (and (= ty 3)
@@ -225,24 +230,21 @@
 	 (t                         (list 0  0 0 0  0 0))))
 
 ;; The following moves can't affect the boundary. However, I have
-;; given them the proper input data anyway
+;; given them the proper input data anyway, in case we want to test
+;; the action when the boundaries are identified.
 
 (defparameter DB44 '(0 0 0 0 0 0)) ; Change in b-vector due to a
 				   ; 44-move. 44 is its own inverse.
 
 (defmacro DB26 (sxid) ; Change in b-vector due to a 26-move.
-  `(cond ((and (in-upper-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list 3 0 2 0 0 0))
-	 ((and (in-lower-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list 0 0 0 3 0 2))
+  `(cond ((and (has-face-on-boundary ,sxid) *merge-faces*)
+	  (list 3 0 2 3 0 2))
 	 (t (list 0 0 0 0 0 0))))
 
 (defmacro DB62 (sxid) ; Change in b-vector due to a 62-move.
-  `(cond ((and (in-upper-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list -3 0 -2 0 0 0))
-	 ((and (in-lower-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list 0 0 0 -3 0 -2))
-	 (t (list 0 0 0  0 0  0))))
+  `(cond ((and (has-face-on-boundary, sxid) *merge-faces*)
+	  (list -3 0 -2 -3 0 -2))
+	 (t (list 0 0 0 0 0 0))))
 
 (defun b-vector()
   "Print the b-vector."
@@ -258,6 +260,8 @@
 (defparameter CURRENT-MOVE-NUMBER 0)
 (defparameter STOPOLOGY "unknown" "spatial slice topology --- S2 or T2")
 (defparameter BCTYPE "unknown" "boundary conditions --- PERIODIC or OPEN")
+(defparameter *merge-faces* nil "Whether or not a periodic simulation 
+                                 cares about the boundary.")
 (defparameter SAVE-EVERY-N-SWEEPS 10 "save every 10 sweeps by default")
 (defparameter NUM-T 666666 
   "number of time slices --- set to a non-zero value so (mod ts NUM-T) works")
