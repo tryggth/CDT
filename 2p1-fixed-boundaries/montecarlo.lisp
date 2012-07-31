@@ -43,11 +43,11 @@
 	 ;; boundary (see DB* parameters in "globals.lisp")
 	 (DB
 	  (ecase mtype
-	    (0 DB26)        ; 2->6 move
-	    (1 (DB23 sxid)) ; 2->3 move
-	    (2 DB44)        ; 4->4 move
-	    (3 (DB32 sxid)) ; 3->2 move
-	    (4 DB62)))      ; 6->2 move 
+	    (0 (DB26 sxid))   ; 2->6 move
+	    (1 (DB23 sxid))   ; 2->3 move
+	    (2 DB44)          ; 4->4 move
+	    (3 (DB32 sxid))   ; 3->2 move
+	    (4 (DB62 sxid)))) ; 6->2 move 
 	 
 	 ;; Determine the changes in different numbers of geometrical
 	 ;; objects If your action doesn't require all of these
@@ -126,37 +126,37 @@
 ;; JM: The old accept-move? function. Left for completeness. Doesn't
 ;; take into account the additional terms to the action. DEPRECATED
 ;; USE AT YOUR OWN RISK.
-(defun accept-move?-deprecated (mtype)
-  (let ((delta-action 0.0)
-	(delta-damping 0.0))
-    (cond ((= 0 mtype) ;; 2->6 move
-	   (setf delta-damping (- (damping (+ (N3) 4)) (damping (N3))))
-	   (setf delta-action 
-		 (- (action (+ N1-SL 3) (+ N1-TL 2) 
-			    (+ N3-TL-31 4) (+ N3-TL-22 0)) 
-		    (action N1-SL N1-TL N3-TL-31 N3-TL-22)))) 
-	  ((= 1 mtype) ;; 2->3 move
-	   (setf delta-damping (- (damping (+ (N3) 1)) (damping (N3))))
-	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL 1) 
-					 (+ N3-TL-31 0) (+ N3-TL-22 1)) 
-				 (action N1-SL N1-TL N3-TL-31 N3-TL-22))))
-	  ((= 2 mtype) ;; 4->4 move
-	   (setf delta-damping (- (damping (+ (N3) 0)) (damping (N3))))
-	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL 0) 
-					 (+ N3-TL-31 0) (+ N3-TL-22 0)) 
-				 (action N1-SL N1-TL N3-TL-31 N3-TL-22))))
-	  ((= 3 mtype) ;; 3->2 move
-	   (setf delta-damping (- (damping (+ (N3) -1)) (damping (N3))))
-	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL -1) 
-					 (+ N3-TL-31 0) (+ N3-TL-22 -1)) 
-				 (action N1-SL N1-TL N3-TL-31 N3-TL-22))))
-	  ((= 4 mtype) ;; 6->2 move
-	   (setf delta-damping (- (damping (+ (N3) -4)) (damping (N3))))
-	   (setf delta-action (- (action (+ N1-SL -3) (+ N1-TL -2) 
-					 (+ N3-TL-31 -4) (+ N3-TL-22 0)) 
-				 (action N1-SL N1-TL N3-TL-31 N3-TL-22)))))
-    (< (random 1.0) (* (exp (realpart (* *i* delta-action)))
-		       (exp (* -1.0 delta-damping))))))
+;(defun accept-move?-deprecated (mtype)
+;  (let ((delta-action 0.0)
+;	(delta-damping 0.0))
+;    (cond ((= 0 mtype) ;; 2->6 move
+;	   (setf delta-damping (- (damping (+ (N3) 4)) (damping (N3))))
+;	   (setf delta-action 
+;		 (- (action (+ N1-SL 3) (+ N1-TL 2) 
+;			    (+ N3-TL-31 4) (+ N3-TL-22 0)) 
+;		    (action N1-SL N1-TL N3-TL-31 N3-TL-22)))) 
+;	  ((= 1 mtype) ;; 2->3 move
+;	   (setf delta-damping (- (damping (+ (N3) 1)) (damping (N3))))
+;	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL 1) 
+;					 (+ N3-TL-31 0) (+ N3-TL-22 1)) 
+;				 (action N1-SL N1-TL N3-TL-31 N3-TL-22))))
+;	  ((= 2 mtype) ;; 4->4 move
+;	   (setf delta-damping (- (damping (+ (N3) 0)) (damping (N3))))
+;	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL 0) 
+;					 (+ N3-TL-31 0) (+ N3-TL-22 0)) 
+;				 (action N1-SL N1-TL N3-TL-31 N3-TL-22))))
+;	  ((= 3 mtype) ;; 3->2 move
+;	   (setf delta-damping (- (damping (+ (N3) -1)) (damping (N3))))
+;	   (setf delta-action (- (action (+ N1-SL 0) (+ N1-TL -1) 
+;					 (+ N3-TL-31 0) (+ N3-TL-22 -1)) 
+;				 (action N1-SL N1-TL N3-TL-31 N3-TL-22))))
+;	  ((= 4 mtype) ;; 6->2 move
+;	   (setf delta-damping (- (damping (+ (N3) -4)) (damping (N3))))
+;	   (setf delta-action (- (action (+ N1-SL -3) (+ N1-TL -2) 
+;					 (+ N3-TL-31 -4) (+ N3-TL-22 0)) 
+;				 (action N1-SL N1-TL N3-TL-31 N3-TL-22)))))
+ ;   (< (random 1.0) (* (exp (realpart (* *i* delta-action)))
+;		       (exp (* -1.0 delta-damping))))))
 
 
 ;; a sweep is defined as N-INIT number of attempted moves 

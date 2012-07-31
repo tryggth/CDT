@@ -100,9 +100,11 @@
   `(and (string= BCTYPE "OPEN") (= (3sx-tmlo (get-3simplex ,sxid)) 0)))
 (defmacro in-either-boundary-sandwich (sxid)
   `(or (in-upper-sandwich ,sxid) (in-lower-sandwich ,sxid)))
+
+;; Necessary if we want to unfix the boundaries, but still keep track
+;; of them.
 (defmacro has-face-on-boundary (sxid)
-  `(let* ((sx (get-3simplex ,sxid))  ;for fixed boundaries, this is
-				     ;unnecessary
+  `(let* ((sx (get-3simplex ,sxid))  
 	  (ty (3sx-type sx))
 	  (th (3sx-tmhi sx))
 	  (tl (3sx-tmlo sx)))
@@ -222,14 +224,25 @@
 	 ((in-lower-sandwich ,sxid) (list 0  0 0 0 -1 0))
 	 (t                         (list 0  0 0 0  0 0))))
 
-;; The following moves can't affect the boundary
+;; The following moves can't affect the boundary. However, I have
+;; given them the proper input data anyway
+
 (defparameter DB44 '(0 0 0 0 0 0)) ; Change in b-vector due to a
 				   ; 44-move. 44 is its own inverse.
-(defparameter DB26 '(0 0 0 0 0 0)) ; Change in b-vector due to a
-				   ; 26-move.
-(defparameter DB62 '(0 0 0 0 0 0)) ; Change in b-vector due to a
-				   ; 62-move. Would be the inverse of
-				   ; DB26 if there were any change.
+
+(defmacro DB26 (sxid) ; Change in b-vector due to a 26-move.
+  `(cond ((and (in-upper-sandwich ,sxid) (has-face-on-boundary ,sxid))
+	  (list 3 0 4 0 0 0))
+	 ((and (in-lower-sandwich ,sxid) (has-face-on-boundary ,sxid))
+	  (list 0 0 0 3 0 4))
+	 (t (list 0 0 0 0 0 0))))
+
+(defmacro DB62 (sxid) ; Change in b-vector due to a 62-move.
+  `(cond ((and (in-upper-sandwich ,sxid) (has-face-on-boundary ,sxid))
+	  (list -3 0 -4 0 0 0))
+	 ((and (in-lower-sandwich ,sxid) (has-face-on-boundary ,sxid))
+	  (list 0 0 0 -3 0 -4))
+	 (t (list 0 0 0  0 0  0))))
 
 (defun b-vector()
   "Print the b-vector."

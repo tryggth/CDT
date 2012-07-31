@@ -73,7 +73,7 @@
 	(list newsxdata nbors curr 
 	      nil oldSL2sxs
 	      nil nil
-	      DF26 DB26)))))
+	      DF26 (DB26 sxid))))))
 ;;------------------------------------------------------------------------[1]
 ;; 5
 ;;-------------- t+1
@@ -199,7 +199,7 @@
 	  (list newsxdata nbors subcx
 		oldTL2sxs oldSL2sxs
 		oldTL1sxs oldSL1sxs
-		DF62 DB62))))))
+		DF62 (DB62 sxid)))))))
 
 ;;------------------------------------------------------------------------[2]
 ;; 6

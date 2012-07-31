@@ -4,5 +4,6 @@
 (load "simplex.lisp")
 (load "topological_checks.lisp")
 (load "moves.lisp")
+(load "ascii_plotting_tools.lisp")
 (load "initialization.lisp")
 (load "montecarlo.lisp")

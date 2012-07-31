@@ -352,3 +352,14 @@ Suffix is defined as the string following the LAST . in filename"
 	(return i)))))
 
 
+;; Plots each element of a list y_i as a function of the index
+;; i. Produces an ascii plot. Normalizes 80 characters wide.
+(defun ascii-list-plot (vector-list plotname)
+  "Plots each element of a list y_i as a function of the index
+   i. Produces an ascii plot. Normalizes 80 characters wide."
+  (format t "~A~%" plotname)
+  (let ((max-value (reduce #'max vector-list)))
+    (loop for i from 0 to (1- (length vector-list)) by 1 do
+	 (loop repeat (round (* 77 (/ (nth i vector-list) max-value)))
+	    do (format t "*"))
+	 (format t "~A~%" (nth i vector-list)))))

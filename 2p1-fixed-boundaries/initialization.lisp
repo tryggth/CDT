@@ -784,5 +784,13 @@
   (format t "final count = ~A~%" (count-simplices-of-all-types))
   
   (format t "breakdown by location = ~a~%" (count-boundary-vs-bulk))
-  
+
+
+  (format t "~%Plot of 3-simplices as a function of proper time:~%")
+  (plot-3-simplices-of-time)
+
+  (format t "~%Plot of spacelike triangles as a function of proper time:~%")
+  (plot-spacelike-triangles-of-time)
+
+
   (setf N-INIT (N3)))
