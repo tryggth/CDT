@@ -8,7 +8,7 @@
 
 (load "cdt2p1.lisp")
 
-(setf NUM-SWEEPS 50000)
+(setf NUM-SWEEPS 10000)
 
 ; Initialize the spacetime with periodic boundary conditions
 (initialize-t-slices-with-v-volume :num-time-slices 64

@@ -8,10 +8,10 @@
 
 (load "cdt2p1.lisp")
 
-(setf NUM-SWEEPS 50000)
+(setf NUM-SWEEPS 10000)
 
 (with-open-file 
-    (infile "/home/jonah/CDT/2p1-fixed-boundaries/S2-OPEN-T064-V030851-1.0-0.7577-0.02--1-000000001-000050000-on-dewitt-started2012-07-27-17-04-43.time-inverted.3sx2p1")
+    (infile "~/CDT/2p1-fixed-boundaries/S2-OPEN-T064-V030851-1.0-0.7577-0.02--1-000000001-000050000-on-dewitt-started2012-07-27-17-04-43.time-inverted.3sx2p1")
   (load-spacetime-from-file infile))
 
 (generate-spacetime-and-movie-data)

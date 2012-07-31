@@ -232,16 +232,16 @@
 
 (defmacro DB26 (sxid) ; Change in b-vector due to a 26-move.
   `(cond ((and (in-upper-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list 3 0 4 0 0 0))
+	  (list 3 0 2 0 0 0))
 	 ((and (in-lower-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list 0 0 0 3 0 4))
+	  (list 0 0 0 3 0 2))
 	 (t (list 0 0 0 0 0 0))))
 
 (defmacro DB62 (sxid) ; Change in b-vector due to a 62-move.
   `(cond ((and (in-upper-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list -3 0 -4 0 0 0))
+	  (list -3 0 -2 0 0 0))
 	 ((and (in-lower-sandwich ,sxid) (has-face-on-boundary ,sxid))
-	  (list 0 0 0 -3 0 -4))
+	  (list 0 0 0 -3 0 -2))
 	 (t (list 0 0 0  0 0  0))))
 
 (defun b-vector()
