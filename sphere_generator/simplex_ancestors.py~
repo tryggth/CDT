@@ -1,0 +1,94 @@
+#!/usr/bin/env python2
+
+"""
+simplex_descendants.py
+
+Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+
+This file is part of the sphere_generator program which generates
+spheres of (as close as possible to) uniform curvature for a given
+surface area by monte carlo simulation.
+
+This module contains the the geometry and sphere parent
+classes. geometry contains functions that manipulate the dictionaries
+that contain triangles, edges, and vertices. The sphere parent classes
+contains information about the entire simulation for easy printing,
+etc.
+"""
+
+
+
+### Dependencies
+#-------------------------------------------------------------------------
+import numpy as np
+import scipy as sp
+#-------------------------------------------------------------------------
+
+
+
+####---------------------------------------------------------------------####
+#                               Classes                                     #
+####---------------------------------------------------------------------####
+# The Geometric object base class
+#-------------------------------------------------------------------------
+class geometry:
+    """
+    The ancestor class for the geometric objects below. Contains the
+    methods that act on all of them to control id recycling and
+    construction.
+    """
+    def __init__(self):
+        pass
+    
+    @classmethod
+    def increment_id(self):
+        """
+        Increment the static variable last_used_id by 1. Then return the
+        new id for use.
+        """
+        self.last_used_id += 1
+        return self.last_used_id
+    
+    @classmethod
+    def reclaim_id(self,object_id):
+        """
+        Take an input ID and add it to the list of recycled IDs.
+        Return the list of recycled ids. Because why not?
+        """
+        self.recycled_ids.add(object_id)
+        return self.recycled_ids
+
+    @classmethod
+    def recycle_id(self):
+        """
+        Looks for the minimum element of your recycled IDs. Returns it and
+        removes it from the set.
+        """
+        # Find the minimum element of recycled Ids.
+        minval = min(self.recycled_ids)
+        # Remove the minimum element from the set
+        self.recycled_ids.remove(minval)
+        # Return the returned element for reuse
+        return minval
+    
+    @classmethod
+    def make_id(self):
+        """
+        Generate an ID for use. First look in recycled IDs. If none
+        are available, make a brand new ID.
+        """
+        if len(self.recycled_ids) > 0:
+            new_id = self.recycle_id()
+        else:
+            new_id = self.increment_id()
+        return new_id
+    
+    @classmethod
+    def add(self,object_instance):
+        """
+        Adds an object of the same type as self to the dictionary
+        containing those objects.
+        """
+        self.instances[object_instance.id] = object_instance
+
+#-------------------------------------------------------------------------

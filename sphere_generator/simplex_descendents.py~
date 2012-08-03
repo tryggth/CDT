@@ -1,0 +1,332 @@
+#!/usr/bin/env python2
+
+"""
+geometries.py 
+
+Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+
+This file is part of the sphere_generator program which generates
+spheres of (as close as possible to) uniform curvature for a given
+surface area by monte carlo simulation.
+
+Data structures and classes are contained in this file. We need a
+class to contain information about triangle vertices, triangle edges,
+and triangles. Each one class instance will be stored in a dictionary
+with a value to access it given by an ID number, which we cycle
+through and recycle. There is a shared "static" attribute for each
+class to keep track of this.
+
+The actual dictionary data stracture, and functions that manipulate
+the dictionaries live in simplex_containers.py
+"""
+
+
+
+### Dependencies
+#-------------------------------------------------------------------------
+import numpy as np
+import scipy as sp
+#-------------------------------------------------------------------------
+
+
+
+####---------------------------------------------------------------------####
+#                               Classes                                     #
+####---------------------------------------------------------------------####
+# The Geometric object base class
+#-------------------------------------------------------------------------
+class geometry:
+    """
+    The ancestor class for the geometric objects below. Contains the
+    methods that act on all of them to control id recycling and
+    construction.
+    """
+    def __init__(self):
+        pass
+    
+    @classmethod
+    def increment_id(self):
+        """
+        Increment the static variable last_used_id by 1. Then return the
+        new id for use.
+        """
+        self.last_used_id += 1
+        return self.last_used_id
+    
+    @classmethod
+    def reclaim_id(self,object_id):
+        """
+        Take an input ID and add it to the list of recycled IDs.
+        Return the list of recycled ids. Because why not?
+        """
+        self.recycled_ids.add(object_id)
+        return self.recycled_ids
+
+    @classmethod
+    def recycle_id(self):
+        """
+        Looks for the minimum element of your recycled IDs. Returns it and
+        removes it from the set.
+        """
+        # Find the minimum element of recycled Ids.
+        minval = min(self.recycled_ids)
+        # Remove the minimum element from the set
+        self.recycled_ids.remove(minval)
+        # Return the returned element for reuse
+        return minval
+    
+    @classmethod
+    def make_id():
+        """
+        Generate an ID for use. First look in recycled IDs. If none
+        are available, make a brand new ID.
+        """
+        if len(self.recycled_ids) > 0:
+            new_id = self.recycle_id()
+        else:
+            new_id = self.increment_id()
+        return new_id
+
+#-------------------------------------------------------------------------
+
+
+# The points class
+#-------------------------------------------------------------------------
+class vertex(geometry):
+    """
+    A class for keeping track of points.
+    
+    nnnAttributes: 
+    -- last_used_id = the last used point ID. global/static. 
+                      Shared by all class instances
+    -- recycled_ids = A list of used IDs, which, after deletion, become 
+                      available. Global/static. Shared by all class instances.
+    -- triangles    = A list of triangles that contain this vertex. Used to 
+                      calculate curvature. Defined by the init function
+    -- curvature() = a function that calculates the local curvature
+                     of the manifold at a vertex.
+    -- edges() = A function that calculates the edges that contain the
+                 vertex. Uses triangle properties. (NOT YET IMPLIMENTED)
+    -- increment_id() = A function that increments last_used_id
+    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
+                                 list.
+    -- recycle_id() = A function that returns the least element of 
+                     recycled_ids and deletes it from the list.
+    -- make_id() = A function that generates a new id for a vertex.
+                   First looks in recycled IDs. If there are non
+                   available, uses increment ID.
+    -- id = The identifying number of the simplex. Useful. 
+
+    To initialize: v = vertex()
+    """               
+    
+    # Static/global variables
+    last_used_id = 0  # Last used point ID.
+    recycled_ids = set([]) # List of unused point IDS <= last_used_id
+    instances = {} # Contains all instances of the class
+
+        
+
+    # Initialization function
+    def __init__(self, triangle_list = [],new_id=0):
+        """
+        Initialize a vertex. You can give the vertex a list of
+        triangles you know are connected to it to add them to the list
+        of triangles. However, by default, this list is empty.
+        """
+        # ID number
+        if new_id == 0:
+            self.id = self.make_id()
+        else:
+            self.id = new_id
+        # Local triangle list
+        self.triangles = set(triangle_list)
+    
+    # Other functions
+    def curvature(self):
+        """Curvature is directly proportional to the deficit angle
+        2*pi - area_of_triangle * sum(triangles attached to vertex)."""
+        return 2 * (2 * np.pi - triangle.angle * len(self.triangles))
+
+    def connect_surrounding_triangles(self):
+        """
+        For each triangle around the point, check their
+        intersections to find which triangles share an edge.
+        Only works properly once simplex_countainers.py is imported.
+        """
+        for id1 in self.triangles:
+            for id2 in self.triangles:
+                triangles[id1].connect_to_triangle(triangles[id2])
+        
+#-------------------------------------------------------------------------
+
+
+# The edge class
+#-------------------------------------------------------------------------
+class edge(geometry):
+    """
+    A class for keeping track of triangle edges
+    
+    Attributes: 
+    -- last_used_id = the last used point ID. global/static. 
+                      Shared by all class instances
+    -- recycled_ids = A list of used IDs, which, after deletion, become 
+                      available. Global/static. Shared by all class instances.
+    -- vertices     = A list of point IDs for edge endpoints.
+    -- bisect       = Bisects the edge and returns two pairs of points, each 
+                      defining a new edge.
+    -- increment_id() = A function that increments last_used_id
+    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
+                                 list.
+    -- recycle_id() = A function that returns the least element of 
+                               recycled_ids and deletes it from the list.
+    -- make_id() = A function that generates a new id for a vertex.
+                            First looks in recycled IDs. If there are non
+                            available, uses increment ID.
+    -- points = a function that returns the points the edge contains
+    -- id = The identifying number of the simplex. Useful. 
+
+    Example of call: e = edge(vertex_pair)
+    where vertex_pair = [vertex1, vertex2]
+    """
+
+    # Static/global variables
+    last_used_id = 0 # Last used edge ID.
+    recycled_ids = set([]) # List of unused edge IDS <= last_used_id
+    instances = {} # Contains all instances of the class
+
+    # Constant value length
+    length = 1
+
+    # Functions
+    def bisect(self):
+        """
+        If the edge length of the triangle is equilateral, cuts it in
+        two and generates two edges with a point between them. Returns
+        the edges and the new point ID generated.
+        """
+        if len(self.vertices) != 2:
+            print "Your edge doesn't have the right number of points!"
+            return
+        newpoint = vertex.make_id()
+        new_edges = [set([newpoint,point]) for point in self.vertices]
+        return [new_edges,newpoint]
+
+    def check_topology(self):
+        """
+        Check to ensure that the number of endpoints is correct.
+        """
+        assert len(self.vertices) == 2 or len(self.vertices) == 0
+
+    # Initialization function
+    def __init__(self,vertex_pair):
+        """
+        Initialize an edge. Takes a vertex pair (list) as input.  If
+        you attempt to initialize an edge with the wrong number of
+        endpoints, an edge with no endpoints is generated and an error
+        message is given.
+        """
+        # Edge id
+        self.id = self.make_id()
+
+        # Points contained in edge (IDS)
+        if len(vertex_pair) != 2:
+            print "Your edge doesn't have the right number of points!"
+            print "Generating edge with no endpoints."
+            self.vertices = set([])
+        else:
+            self.vertices = set(vertex_pair)
+#-------------------------------------------------------------------------
+
+
+# The triangle class
+#-------------------------------------------------------------------------
+class triangle(geometry):
+    """
+    A class for keeping track of triangle edges
+    
+    Attributes: 
+    -- last_used_id = the last used point ID. global/static. 
+                      Shared by all class instances
+    -- recycled_ids = A list of used IDs, which, after deletion, become 
+                      available. Global/static. Shared by all class instances.
+    -- points       = A list of points contained by the triangle
+    -- increment_id() = A function that increments last_used_id
+    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
+                                 list.
+    -- recycle_id() = A function that returns the least element of 
+                               recycled_ids and deletes it from the list.
+    -- make_id() = A function that generates a new id for a vertex.
+                            First looks in recycled IDs. If there are non
+                            available, uses increment ID.
+    -- edges() = A list of edges contained by the triangle
+    -- id = The identifying number of the simplex. Useful. 
+
+    
+    Example of call: t = triangle(point_list)
+    where point_list = [p1,p2,p3]
+    """
+
+    # Static/global variables
+    last_used_id = 0 # Last used triangle ID.
+    recycled_ids = set([]) # List of unused vertex IDS <= last_used_id
+    instances = {} # Contains all instances of the class
+
+    # Geometric quantities
+    area = np.sqrt(3) * edge.length**2 / 4 # surface area
+    angle = np.pi/3 # Angle between edges
+
+    # Functions
+    def check_topology(self):
+        """
+        Ensure that the triangle has the correct numbers of
+        vertices
+        edges
+        neighbors.
+        """
+        assert len(self.vertices) == 0 or len(self.vertices) == 3
+        assert len(self.edges) == 0 or len(self.edges) == 3
+        assert 0 <= len(self.neighbors) <= 3
+
+    def connect_to_triangle(self,other_triangle):
+        """
+        Looks at another triangle and checks to see if it shares an edge
+        (or equivalently two points) with self.
+        """
+        # Do the triangles have an intersection?
+        intersection = self.points & other_triangle.points
+        # If the triangles share exactly 2 points, acknowledge their
+        # neighborliness.
+        if len(list(intersection)) == 2:
+            self.neighbors.add(other_triangle.id)
+            other_triangle.neighbors.add(self.id)
+        self.check_topology()
+        other_triangle.check_topology()
+        
+    # Initialization function
+    def __init__(self,point_list=[],edge_list=[],neighbor_list=[]):
+        "Initialize a triangle"
+        # Id
+        self.id = self.make_id()
+        # Vertexes of the triangle (IDS)
+        if len(point_list) != 0 and len(point_list) != 3:
+            print "Your triangle has the wrong number of points!"
+            print "Creating an empty point list."
+            self.vertices = set([])
+        else:
+            self.points = set(point_list) 
+        # Edges of the triangle (IDS)
+        if len(edge_list) != 0 and len(edge_list) != 3:
+            print "Your triangle has the wrong number of edges!"
+            print "Creating an empty list."
+            self.edges = set([])   
+        else:
+            self.edges = set(edge_list)
+        # The triangles this triangle is connected to.
+        if len(neighbor_list) != 0 and len(neighbor_list) != 3:
+            print "Your triangle has the wrong number of neighbors!"
+            print "Creating an empty list."
+            self.neighbors = set([])
+        self.neighbors = set(neighbor_list) 
+#-------------------------------------------------------------------------
+
