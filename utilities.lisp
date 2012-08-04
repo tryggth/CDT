@@ -13,8 +13,17 @@
 (defmacro filter (func lst)
   "Returns a sublist of lst where func(elemnt) returns true for each
 element in the new sublist."
-  `(mapcan (lambda (y) (when (,func y) (list y))) ,lst)
-)
+  `(mapcan (lambda (y) (when (,func y) (list y))) ,lst))
+
+(defmacro make-ratio (list1 list2)
+  "Returns a list: (list1_1/list2_1,list1_2/list2_2,...)."
+  `(mapcar #'/ ,list1 ,list2))
+
+(defmacro make-percent (list1 list2)
+  "Each element in list1 is (make-percant list1 list2)% of each
+   element in list2. Returns a list."
+  `(flet ((percent (x) (* 100 (float x))))
+    (mapcar #'percent (make-ratio ,list1 ,list2))))
 
 (defmacro random-element (lst)
   "returns a random element from lst"
@@ -363,3 +372,10 @@ Suffix is defined as the string following the LAST . in filename"
 	 (loop repeat (round (* 77 (/ (nth i vector-list) max-value)))
 	    do (format t "*"))
 	 (format t "~A~%" (nth i vector-list)))))
+
+;; Formats a list to the desired stream without the parentheses.
+(defun format-list (iostream outlist)
+  "Formats a list to the desired stream without the parentheses."
+  (loop for i from 0 to (- (length outlist) 2) do
+       (format iostream "~A " (nth i outlist)))
+  (format iostream "~A" (nth (1- (length outlist)) outlist)))

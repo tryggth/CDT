@@ -22,7 +22,7 @@
 
 (defun count-spacelike-triangles-of-time nil
   "Counts the number of spacelike triangles in time-slice tm
-   as a function of tm. Returns a list. Index is tm."
+   as a function of tm. Returns a list. Index is time."
   (let ((simplex-count nil)
 	(t-max (if (string= BCTYPE "OPEN") NUM-T (1- NUM-T))))
     (loop for i from 0 to t-max do
