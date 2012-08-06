@@ -46,34 +46,45 @@
 				  
 (defun try-2->6 (sxid)
 ;;  (setf CURRENT-MOVE-IDENTIFIER "try-2->6")
-  (dolist (curr (2->6-subcomplex sxid))
-    (let* ((sx13 (get-3simplex (first curr)))
-	   (sx31 (get-3simplex (second curr)))
-	   (nbors (set-difference 
-		   (union (3sx-sx3ids sx13) (3sx-sx3ids sx31)) 
-		   curr))
-	   (lopt (nth-point sx13 0))
-	   (hipt (nth-point sx31 3))
-	   (bigtr (3sx-lopts sx31))
-	   (13tmlo (3sx-tmlo sx13)) 
-	   (13tmhi (3sx-tmhi sx13))
-	   (31tmlo (3sx-tmlo sx31)) 
-	   (31tmhi (3sx-tmhi sx31))
-	   (newpt (next-pt))
-	   (oldSL2sxs `((,31tmlo ,bigtr)))
-	   (newsxdata 
-	    `((1 ,13tmlo ,13tmhi (,lopt ,newpt ,@(circular-subseq bigtr 0 2)))
-	      (1 ,13tmlo ,13tmhi (,lopt ,newpt ,@(circular-subseq bigtr 1 2)))
-	      (1 ,13tmlo ,13tmhi (,lopt ,newpt ,@(circular-subseq bigtr 2 2)))
-	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 0 2) ,newpt ,hipt))
-	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 1 2) ,newpt ,hipt))
-	      (3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 2 2) 
-				    ,newpt ,hipt)))))
-      (return-from try-2->6 
-	(list newsxdata nbors curr 
-	      nil oldSL2sxs
-	      nil nil
-	      DF26 (DB26 sxid))))))
+  (let ((movedata nil))
+    (dolist (curr (2->6-subcomplex sxid))
+      (let* ((sx13 (get-3simplex (first curr)))
+	     (sx31 (get-3simplex (second curr)))
+	     (nbors (set-difference 
+		     (union (3sx-sx3ids sx13) (3sx-sx3ids sx31)) 
+		     curr))
+	     (lopt (nth-point sx13 0))
+	     (hipt (nth-point sx31 3))
+	     (bigtr (3sx-lopts sx31))
+	     (13tmlo (3sx-tmlo sx13)) 
+	     (13tmhi (3sx-tmhi sx13))
+	     (31tmlo (3sx-tmlo sx31)) 
+	     (31tmhi (3sx-tmhi sx31))
+	     (newpt (next-pt))
+	     (oldSL2sxs `((,31tmlo ,bigtr)))
+	     (newsxdata 
+	      `((1 ,13tmlo ,13tmhi (,lopt ,newpt 
+					  ,@(circular-subseq bigtr 0 2)))
+		(1 ,13tmlo ,13tmhi (,lopt ,newpt 
+					  ,@(circular-subseq bigtr 1 2)))
+		(1 ,13tmlo ,13tmhi (,lopt ,newpt 
+					  ,@(circular-subseq bigtr 2 2)))
+		(3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 0 2) 
+				      ,newpt ,hipt))
+		(3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 1 2) 
+				      ,newpt ,hipt))
+		(3 ,31tmlo ,31tmhi (,@(circular-subseq bigtr 2 2) 
+				      ,newpt ,hipt))))
+	     (mdatum (list newsxdata nbors curr 
+			   nil oldSL2sxs
+			   nil nil
+			   DF26 (DB26 sxid))))
+	(when newsxdata
+	  (push mdatum movedata))))
+    (if movedata
+      (random-element movedata)
+      nil)))
+	
 ;;------------------------------------------------------------------------[1]
 ;; 5
 ;;-------------- t+1
@@ -147,59 +158,63 @@
 	    
 (defun try-6->2 (sxid)
   ;;  (setf CURRENT-MOVE-IDENTIFIER "try-8->2")
-  (dolist (subcx (6->2-subcomplex sxid))
-    (let* ((1id1 (first subcx)) 
-	   (1id2 (second subcx)) 
-	   (1id3 (third subcx)) 
-	   (3id3 (fourth subcx)) 
-	   (3id2 (fifth subcx)) 
-	   (3id1 (sixth subcx)) 
-	   (1sx1 (get-3simplex 1id1)) 
-	   (1sx2 (get-3simplex 1id2)) 
-	   (1sx3 (get-3simplex 1id3)) 
-	   (3sx1 (get-3simplex 3id1)) 
-	   (3sx2 (get-3simplex 3id2))
-	   (3sx3 (get-3simplex 3id3)) 
-	   (13tmlo (3sx-tmlo 1sx1)) 
-	   (13tmhi (3sx-tmhi 1sx1))
-	   (31tmlo (3sx-tmlo 3sx1)) 
-	   (31tmhi (3sx-tmhi 3sx1))
-	   (nbors (set-difference 
-		   (unions (3sx-sx3ids 1sx1) (3sx-sx3ids 1sx2) 
-			   (3sx-sx3ids 1sx3) (3sx-sx3ids 3sx1) 
-			   (3sx-sx3ids 3sx2) (3sx-sx3ids 3sx3))
-		   (list 0 1id1 1id2 1id3 3id1 3id2 3id3)))
-	   (pt1 (3sx-lopts 1sx1)) ; (1)
-	   (pt5 (3sx-hipts 3sx1)) ; (5)
-	   (pt6 (intersections (3sx-hipts 1sx1) (3sx-hipts 1sx2)
-			       (3sx-hipts 1sx3))) ; (6)
-	   (pts234 (set-difference (unions (3sx-hipts 1sx1) (3sx-hipts 1sx2)
-					   (3sx-hipts 1sx3))
-				   pt6)) ; (2 3 4)
-	   (oldSL2sxs `((,13tmhi (,@pt6 ,@(circular-subseq pts234 0 2)))
-			(,13tmhi (,@pt6 ,@(circular-subseq pts234 1 2)))
-			(,13tmhi (,@pt6 ,@(circular-subseq pts234 2 2)))))
-	   (oldTL2sxs `((1 ,13tmlo (,@pt1 ,(first pts234) ,@pt6))
-			(1 ,13tmlo (,@pt1 ,(second pts234) ,@pt6))
-			(1 ,13tmlo (,@pt1 ,(third pts234) ,@pt6))
-			(2 ,31tmlo (,(first pts234) ,@pt6 ,@pt5))
-			(2 ,31tmlo (,(second pts234) ,@pt6 ,@pt5))
-			(2 ,31tmlo (,(third pts234) ,@pt6 ,@pt5))))
-	   (oldSL1sxs `((,13tmhi (,(first pts234) ,@pt6))
-			(,13tmhi (,(second pts234) ,@pt6))
-			(,13tmhi (,(third pts234) ,@pt6))))
-	   (oldTL1sxs `((1 ,13tmlo (,@pt1 ,@pt6))
-			(1 ,31tmlo (,@pt6 ,@pt5))))
-	   (newsxdata nil))
-      (unless (gethash `(,13tmhi ,pts234) *SL2SIMPLEX->ID*)
-	(setf newsxdata 
-	      `((1 ,13tmlo ,13tmhi (,@pt1 ,@pts234))
-		(3 ,31tmlo ,31tmhi (,@pts234 ,@pt5))))
-	(return-from try-6->2 
-	  (list newsxdata nbors subcx
-		oldTL2sxs oldSL2sxs
-		oldTL1sxs oldSL1sxs
-		DF62 (DB62 sxid)))))))
+  (let ((mdatalist nil))
+    (dolist (subcx (6->2-subcomplex sxid))
+      (let* ((1id1 (first subcx)) 
+	     (1id2 (second subcx)) 
+	     (1id3 (third subcx)) 
+	     (3id3 (fourth subcx)) 
+	     (3id2 (fifth subcx)) 
+	     (3id1 (sixth subcx)) 
+	     (1sx1 (get-3simplex 1id1)) 
+	     (1sx2 (get-3simplex 1id2)) 
+	     (1sx3 (get-3simplex 1id3)) 
+	     (3sx1 (get-3simplex 3id1)) 
+	     (3sx2 (get-3simplex 3id2))
+	     (3sx3 (get-3simplex 3id3)) 
+	     (13tmlo (3sx-tmlo 1sx1)) 
+	     (13tmhi (3sx-tmhi 1sx1))
+	     (31tmlo (3sx-tmlo 3sx1)) 
+	     (31tmhi (3sx-tmhi 3sx1))
+	     (nbors (set-difference 
+		     (unions (3sx-sx3ids 1sx1) (3sx-sx3ids 1sx2) 
+			     (3sx-sx3ids 1sx3) (3sx-sx3ids 3sx1) 
+			     (3sx-sx3ids 3sx2) (3sx-sx3ids 3sx3))
+		     (list 0 1id1 1id2 1id3 3id1 3id2 3id3)))
+	     (pt1 (3sx-lopts 1sx1)) ; (1)
+	     (pt5 (3sx-hipts 3sx1)) ; (5)
+	     (pt6 (intersections (3sx-hipts 1sx1) (3sx-hipts 1sx2)
+				 (3sx-hipts 1sx3))) ; (6)
+	     (pts234 (set-difference (unions (3sx-hipts 1sx1) (3sx-hipts 1sx2)
+					     (3sx-hipts 1sx3))
+				     pt6)) ; (2 3 4)
+	     (oldSL2sxs `((,13tmhi (,@pt6 ,@(circular-subseq pts234 0 2)))
+			  (,13tmhi (,@pt6 ,@(circular-subseq pts234 1 2)))
+			  (,13tmhi (,@pt6 ,@(circular-subseq pts234 2 2)))))
+	     (oldTL2sxs `((1 ,13tmlo (,@pt1 ,(first pts234) ,@pt6))
+			  (1 ,13tmlo (,@pt1 ,(second pts234) ,@pt6))
+			  (1 ,13tmlo (,@pt1 ,(third pts234) ,@pt6))
+			  (2 ,31tmlo (,(first pts234) ,@pt6 ,@pt5))
+			  (2 ,31tmlo (,(second pts234) ,@pt6 ,@pt5))
+			  (2 ,31tmlo (,(third pts234) ,@pt6 ,@pt5))))
+	     (oldSL1sxs `((,13tmhi (,(first pts234) ,@pt6))
+			  (,13tmhi (,(second pts234) ,@pt6))
+			  (,13tmhi (,(third pts234) ,@pt6))))
+	     (oldTL1sxs `((1 ,13tmlo (,@pt1 ,@pt6))
+			  (1 ,31tmlo (,@pt6 ,@pt5))))
+	     (newsxdata nil))
+	(unless (gethash `(,13tmhi ,pts234) *SL2SIMPLEX->ID*)
+	  (setf newsxdata 
+		`((1 ,13tmlo ,13tmhi (,@pt1 ,@pts234))
+		  (3 ,31tmlo ,31tmhi (,@pts234 ,@pt5))))
+	(push (list newsxdata nbors subcx
+		    oldTL2sxs oldSL2sxs
+		    oldTL1sxs oldSL1sxs
+		    DF62 (DB62 sxid))
+	      mdatalist))))
+    (if mdatalist
+	(random-element mdatalist)
+	nil)))
 
 ;;------------------------------------------------------------------------[2]
 ;; 6
@@ -252,44 +267,49 @@
 
 (defun try-4->4 (sxid)
 ;;  (setf CURRENT-MOVE-IDENTIFIER "try-4->4")
-  (dolist (subcx (4->4-subcomplex sxid))
-    (let* ((1id1 (first subcx)) 
-	   (1id2 (second subcx)) 
-	   (3id2 (third subcx)) 
-	   (3id1 (fourth subcx)) 
-	   (1sx1 (get-3simplex 1id1)) 
-	   (1sx2 (get-3simplex 1id2)) 
-	   (3sx1 (get-3simplex 3id1)) 
-	   (3sx2 (get-3simplex 3id2))
-	   (13tmlo (3sx-tmlo 1sx1)) 
-	   (13tmhi (3sx-tmhi 1sx1))
-	   (31tmlo (3sx-tmlo 3sx1)) 
-	   (31tmhi (3sx-tmhi 3sx1))
-	   (nbors (set-difference 
-		   (unions (3sx-sx3ids 1sx1) (3sx-sx3ids 1sx2) 
-			   (3sx-sx3ids 3sx1) (3sx-sx3ids 3sx2))
-		   (list 0 1id1 1id2 3id1 3id2)))
-	   (pt1 (3sx-lopts 1sx1)) ; (1)
-	   (pt6 (3sx-hipts 3sx1)) ; (6)
-	   (pts25 (set-exclusive-or (3sx-hipts 1sx1) (3sx-hipts 1sx2)));(2 5)
-	   (pts34 (intersection (3sx-lopts 3sx1) (3sx-lopts 3sx2)));(3 4)
-	   (oldTL2sxs `((1 ,13tmlo (,@pt1 ,@pts34))
-			(2 ,31tmlo (,@pts34 ,@pt6))))
-	   (oldSL2sxs `((,13tmhi (,(first pts25) ,@pts34))
-			(,31tmlo (,@pts34 ,(second pts25)))))
-	   (oldSL1sxs `((,13tmhi ,pts34)))
-	   (newsxdata nil))
-      (unless (gethash `(,31tmlo ,pts25) *SL1SIMPLEX->ID*)
-	(setf newsxdata 
-	      `((1 ,13tmlo ,13tmhi (,@pt1 ,@pts25 ,(first pts34)))
-		(1 ,13tmlo ,13tmhi (,@pt1 ,@pts25 ,(second pts34)))
-		(3 ,31tmlo ,31tmhi (,@pts25 ,(first pts34) ,@pt6))
-		(3 ,31tmlo ,31tmhi (,@pts25 ,(second pts34) ,@pt6))))
-	(return-from try-4->4 
-	  (list newsxdata nbors subcx 
-		oldTL2sxs oldSL2sxs
-		nil oldSL1sxs
-		DF44 DB44))))))
+  (let ((mdatalist nil))
+    (dolist (subcx (4->4-subcomplex sxid))
+      (let* ((1id1 (first subcx)) 
+	     (1id2 (second subcx)) 
+	     (3id2 (third subcx)) 
+	     (3id1 (fourth subcx)) 
+	     (1sx1 (get-3simplex 1id1)) 
+	     (1sx2 (get-3simplex 1id2)) 
+	     (3sx1 (get-3simplex 3id1)) 
+	     (3sx2 (get-3simplex 3id2))
+	     (13tmlo (3sx-tmlo 1sx1)) 
+	     (13tmhi (3sx-tmhi 1sx1))
+	     (31tmlo (3sx-tmlo 3sx1)) 
+	     (31tmhi (3sx-tmhi 3sx1))
+	     (nbors (set-difference 
+		     (unions (3sx-sx3ids 1sx1) (3sx-sx3ids 1sx2) 
+			     (3sx-sx3ids 3sx1) (3sx-sx3ids 3sx2))
+		     (list 0 1id1 1id2 3id1 3id2)))
+	     (pt1 (3sx-lopts 1sx1)) ; (1)
+	     (pt6 (3sx-hipts 3sx1)) ; (6)
+	     (pts25 (set-exclusive-or 
+		     (3sx-hipts 1sx1) (3sx-hipts 1sx2)));(2 5)
+	     (pts34 (intersection (3sx-lopts 3sx1) (3sx-lopts 3sx2)));(3 4)
+	     (oldTL2sxs `((1 ,13tmlo (,@pt1 ,@pts34))
+			  (2 ,31tmlo (,@pts34 ,@pt6))))
+	     (oldSL2sxs `((,13tmhi (,(first pts25) ,@pts34))
+			  (,31tmlo (,@pts34 ,(second pts25)))))
+	     (oldSL1sxs `((,13tmhi ,pts34)))
+	     (newsxdata nil))
+	(unless (gethash `(,31tmlo ,pts25) *SL1SIMPLEX->ID*)
+	  (setf newsxdata 
+		`((1 ,13tmlo ,13tmhi (,@pt1 ,@pts25 ,(first pts34)))
+		  (1 ,13tmlo ,13tmhi (,@pt1 ,@pts25 ,(second pts34)))
+		  (3 ,31tmlo ,31tmhi (,@pts25 ,(first pts34) ,@pt6))
+		  (3 ,31tmlo ,31tmhi (,@pts25 ,(second pts34) ,@pt6))))
+	  (push (list newsxdata nbors subcx 
+		      oldTL2sxs oldSL2sxs
+		      nil oldSL1sxs
+		      DF44 DB44)
+		mdatalist))))
+    (if mdatalist
+	(random-element mdatalist)
+	nil)))
 ;;------------------------------------------------------------------------[3]
 ;; 2 3 4
 ;;-------------- t+1
@@ -386,19 +406,23 @@
 
 (defun try-2->3 (sxid)
   (let ((subcmplx (2->3-subcomplex sxid))
-	(movedata nil))
+	(movedata nil)
+	(mdatalist nil))
     (unless (null subcmplx)
       (dolist (curr subcmplx)
 	(cond ((= 1 (first curr))
 	       (setf movedata (2->3-move-internal-12 
 			       (second curr) (third curr)))
 	       (when movedata
-		 (return-from try-2->3 movedata)))
+		 (push movedata mdatalist)))
 	      ((= 3 (first curr))
 	       (setf movedata (2->3-move-internal-32 
 			       (second curr) (third curr)))
 	       (when movedata
-		 (return-from try-2->3 movedata))))))))
+		 (push movedata mdatalist))))))
+    (if mdatalist
+	(random-element mdatalist)
+	nil)))
 ;;------------------------------------------------------------------------[4]
 ;; 2 3 4
 ;;-------------- t+1
@@ -518,19 +542,23 @@
 
 (defun try-3->2 (sxid)
   (let ((subcmplx (3->2-subcomplex sxid))
-	(movedata nil))
+	(movedata nil)
+	(mdatalist nil))
     (unless (null subcmplx)
       (dolist (curr subcmplx)
 	(cond ((= 1 (first curr))
 	       (setf movedata (3->2-move-internal-122 
 			       (second curr) (third curr) (fourth curr)))
 	       (when movedata
-		 (return-from try-3->2 movedata)))
+		 (push movedata mdatalist)))
 	      ((= 3 (first curr))
 	       (setf movedata (3->2-move-internal-322 
 			       (second curr) (third curr) (fourth curr)))
 	       (when movedata 
-		 (return-from try-3->2 movedata))))))))
+		 (push movedata mdatalist)))))
+      (if mdatalist
+	  (random-element mdatalist)
+	  nil))))
 
 ;; translate a move type into an actual move
 (defun try-move (sxid mtype)

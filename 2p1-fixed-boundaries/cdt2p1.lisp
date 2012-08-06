@@ -7,3 +7,4 @@
 (load "ascii_plotting_tools.lisp")
 (load "initialization.lisp")
 (load "montecarlo.lisp")
+(load "output.lisp")

@@ -17,7 +17,9 @@
 ;; If you want to plot what you get, you also need
 ;; ascii_plotting_tools.lisp
 
-;; If you want to make movies, you also need montecarlo.lisp
+;; If you want to make movies, you also need montecarlo.lisp (the
+;; program will raise errors at compile time if you do not include
+;; montecarlo.lisp, but this won't cause any actual errors).
 
 ;;;; Constants
 ;;;;-------------------------------------------------------------------------
@@ -185,6 +187,14 @@
     (loop for move in *move-functions* do
 	 (push (make-new-move-percent-file move start-sweep) filenames))
     (reverse filenames)))
+
+(defun append-to-all-move-percent-files (filename-list)
+  "Like append-move-percent above, but does so for an entire list of
+   moves and for all moves in *move-functions*. Relies on the ordering
+   of the filename-list, so it will probably only work properly if it
+   takes the output of make-all-new-move-percent-files as input."
+  (for (i 0 (1- (length *move-functions*)))
+    (append-move-percent (nth i filename-list) (nth i *move-functions*))))
 ;;;;-------------------------------------------------------------------------
 
 
@@ -195,7 +205,22 @@
 ;;;; These functions work like output functions, but they work over an
 ;;;; entire monte-carlo data-taking/thermalization simulation.
 
-;(defun generate-spacetime-move-and-count-data (&optional (start-sweep 1))
-;  (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))
-;	 (datafilestr (concatenate 'string
+(defun generate-spacetime-movie-and-count-data (&optional (start-sweep 1))
+  "identical to generate-spacetime-and-movie-data, except also
+   generates movie data containing move information."
+  (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))
+	 (datafilename (generate-filename start-sweep))
+	 (move-file-names (make-all-new-move-percent-files start-sweep)))
+    ;; open and close the file, for :append to work properly
+    ;; record the initial data only if start-sweep = 1
+    (make-movie-file datafilename start-sweep)
+
+    ;; Sweep
+    (for (ns start-sweep end-sweep)
+      (sweep)
+      (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
+	(make-spacetime-file datafilename)
+	(make-progress-file datafilename start-sweep ns end-sweep)
+	(append-to-movie-file datafilename)
+	(append-to-all-move-percent-files move-file-names)))))
 ;;;;-------------------------------------------------------------------------
