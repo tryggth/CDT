@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 """
-simplex_descendants.py
+state_manipulation.py
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -16,14 +16,15 @@ state of the simulation. Name spaces are cool.
 """
 
 
-
 ### Dependencies
 #-------------------------------------------------------------------------
 import numpy as np
 import scipy as sp
-# Class data strucbures we need
+# Class data structures we need
 from simplex_ancestors import *   
 from simplex_descendants import *
+import utilities as ut
+import error_checking
 #-------------------------------------------------------------------------
 
 
@@ -82,7 +83,8 @@ class sphere:
         sphere. 
         """
         # Make a list of all local curvatures
-        local_curvatures = [point.curvature() for point in vertex.instances.values()]
+        local_curvatures = [point.curvature() for \
+                                point in vertex.instances.values()]
         # Get the standard deviation
         return np.std(local_curvatures)
           
@@ -165,10 +167,98 @@ def bisect_edge(edge_id):
 ### Functions that make simplices and sub-simplices together. The
 ### workhorses of state manipulation.
 ### -------------------------------------------------------------------------
-def build_triangle(point_list):
+def build_sub_edges_of_triangle(point_list_or_triangle_object):
+    """
+    Takes either a triangle class instance or a set of three
+    points as input and makes the edges that a triangle defined this
+    way would contain. Checks for redundancies.
+    """
+    if type(point_list_or_triangle_object) == list:
+        vertices = set(point_list_or_triangle_object)
+    elif type(point_list_or_triangle_object) == tuple:
+        vertices = set(point_list_or_triangle_object)
+    elif type(point_list_or_triangle_object) == set:
+        vertices = point_list_or_triangle_object
+    elif isinstance(point_list_or_triangle_object,triangle):
+        vertices = set(point_list_or_triangle_object.vertices)
+    else: # This is a way to give more verbose error messages
+        print "ERROR: You have passed the function"
+        print "'build_sub_edges_of_triangle'"
+        print "an object that is not a list, a set, a tuple," + \
+            "or a triangle class instance."
+        print "The object was: {}".format(point_list_or_triangle_object)
+        assert isinstance(point_list_or_triangle_object,triangle) \
+            or type(point_list_or_triangle_object) == list \
+            or type(point_list_or_triangle_object) == tuple \
+            or type(point_list_or_triangle_object) == set
+    # A triangle should only have 3 vertices
+    assert error_checking.check_length(vertices,3,'triangle',
+                                       'build_sub_edges_of_triangle')
+
+    # Now calculate the points the subsimplices contain
+    ordered_pairs = ut.k_combinations(vertices,2)
+    
+    # The ids of our subsimplices. This will be a return value.
+    edge_ids = set([]) 
+    
+    # For each edge, check to see if it exists. If it does not, make it.
+    for pair in ordered_pairs:
+        duplicates = edge.find_duplicates(pair)
+        # If there are no duplicates, then we need to make this edge
+        if len(duplicates) == 0: 
+            # And tell our triangle it exists
+            new_edge = edge(pair)
+            edge_ids.add(new_edge.id)
+            # And add it to the edge instances hash table
+            edge.add(new_edge)
+        # If there is exactly one duplicate, then we simply add its id
+        # to the triangle's edge ID list
+        elif len(duplicates) == 1:
+            edge_ids.add(duplicates[0])
+        else:  # If there is more than one duplicate, something went
+               # very wrong.
+            error_checking.too_many_duplicates('edge',pair,duplicates,1,
+                                               'build_sub_edges_of_triangle')
+    
+    # There should be exactly 3 edge ids.
+    assert error_checking.check_length(edge_ids,3,'edge_ids',
+                                       'build_sub_edges_of_triangle')
+    return edge_ids
+
+
+def build_triangle_and_edges(point_list):
     """
     Builds a triangle by creating the triangle object (if it doesn't
-    already exist) and all subsimplices---vertices and edges---if they
-    don't already exist. Checks for redundancies.
+    already exist) and all subsimplices---just edges---if they don't
+    already exist. Checks for redundancies. If the triangle already
+    exists, returns its id.
     """
+ 
+    # Typecast to eliminate duplicates
+    vertices = set(point_list)
+
+    # Build the edges contained by the triangle and return their ids.
+    # build_sub_edges_of_triangle runs some error checking too.
+    edge_ids = build_sub_edges_of_triangle(vertices)
+
+    # Check to see if the triangle we want to build already exists
+    duplicates = triangle.find_duplicates(vertices,edge_ids)
+
+    # If there is one duplicate, work with it. If there is more than
+    # one, raise an error. If there are no duplicates, make that
+    # triangle!
+    if len(duplicates) == 0:
+        t = triangle(vertices,edge_ids) # Make the triangle
+        triangle_id = t.id # Ensure we have the id for the triangle
+        triangle.add(t) # Add the triangle to its hash table
+    elif len(duplicates) == 1:
+        triangle_id = duplicates[0] # The id for our triangle
+    else: # If the length of duplicates is not 0 or 1, something went
+          # very wrong.
+        assert error_checking.too_many_duplicates('triangle',vertices,
+                                                  duplicates,1,
+                                           'build_triangle_and_edges')
+        
+    return triangle_id
 ### -------------------------------------------------------------------------
+

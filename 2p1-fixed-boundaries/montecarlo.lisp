@@ -1,5 +1,12 @@
 ; cdt-2plus1-montecarlo.lisp
 
+;; Module for cdt in 2+1 dimensions. Runs the actual monte carlo sweeps.
+
+;; Authors:
+;; -------- Rajesh Kommu
+;; -------- David Kemansky
+;; -------- Jonah Miller (jonah.maxwell.miller@gmail.com)
+
 (defun random-move (nsweeps)
   (loop :for sweepnum :from 1 :to nsweeps
      do

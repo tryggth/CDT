@@ -83,7 +83,7 @@ class vertex(geometry):
     last_used_id = 0  # Last used point ID.
     recycled_ids = set([]) # List of unused point IDS <= last_used_id
     instances = {} # Contains all instances of the class
-
+    
     # Duplicate checking
     @classmethod
     def find_duplicates(self,triangle_list):
@@ -98,6 +98,22 @@ class vertex(geometry):
                 duplicates.append(v.id)
         return duplicates
 
+    @classmethod
+    def is_redundant_id(self,vertex_id):
+        """
+        Checks to see if a vertex_id is currently in use or not. If
+        the vertex is currently in use, return True. If the vertex is
+        currently in recycled IDs, return the string
+        'recycled'. Otherwise, returns False.
+        """
+        v = vertex_id # For compactness
+        if v <= self.last_used_id and v not in self.recycled_ids:
+            return True
+        elif v <= self.last_used_id and v in self.recycled_ids:
+            return 'recycled'
+        else:
+            return False
+            
 
     # Initialization function
     def __init__(self, triangle_list = [],new_id=0):
@@ -234,12 +250,13 @@ class edge(geometry):
         new_edges = [set([newpoint,point]) for point in self.vertices]
         return [new_edges,newpoint]
 
-    def check_topology(self):
+    def check_topology(self,return_value=False):
         """
         Check to ensure that the number of endpoints is correct.
         """
         assert len(self.vertices) == 2 or len(self.vertices) == 0
-        print "Topology is okay."
+        if return_value:
+            print "Topology is okay."
 
     def set_vertices(self,new_vertices):
         "Takes an input list or set and resets self's vertices/endpoints."
@@ -347,7 +364,7 @@ class triangle(geometry):
     angle = np.pi/3 # Angle between edges
 
     # Functions
-    def check_topology(self):
+    def check_topology(self,return_value=False):
         """
         Ensure that the triangle has the correct numbers of
         vertices
@@ -357,7 +374,8 @@ class triangle(geometry):
         assert len(self.vertices) == 0 or len(self.vertices) == 3
         assert len(self.edges) == 0 or len(self.edges) == 3
         assert 0 <= len(self.neighbors) <= 3
-        print "Topology is okay."
+        if return_value:
+            print "Topology is okay."
 
     def connect_to_triangle(self,other_triangle):
         """

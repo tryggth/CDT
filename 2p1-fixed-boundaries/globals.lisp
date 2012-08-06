@@ -1,6 +1,11 @@
 ;; cdt-2+1-globals.lisp --- all the parameters that might need to be accessed 
 ;; from multiple files
 
+;; Authors:
+;; ------- Rajesh Kommu
+;; ------- David Kamensky
+;; ------- Jonah Miller (jonah.maxwell.miller@gmail.com)
+
 (setf *random-state* (make-random-state t))
 
 (defparameter *LAST-USED-3SXID* 0)

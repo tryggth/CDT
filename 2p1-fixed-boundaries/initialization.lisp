@@ -1,7 +1,11 @@
-
 ;............................................................................
 ; cdt-2plus1-initialization.lisp
 ;............................................................................
+
+;; Authors:
+;; ------- Rajesh Kommu
+;; ------- David Kamensky
+;; ------- Jonah Miller (jonah.maxwell.miller@gmail.com)
 
 ;;function to find neighbors of a given triangle in a list of
 ;;triangles (triangles are stored as 3-tuples of vertices)
@@ -678,67 +682,25 @@
 			      final-spatial-geometry))
             
 
+;; JM: what follows are two methods to increase the volume up to the
+;; desired size. The system has yet to thermalize, so algorithm
+;; should be irrelevant. The first algorithm is written by David
+;; Kamensky. The second is written by Rajesh Kommu.
 
-(defun initialize-T-slices-with-V-volume (&key 
-					  num-time-slices
-					  target-volume
-					  spatial-topology
-					  boundary-conditions
-					  initial-spatial-geometry
-					  final-spatial-geometry)
-
-  ;;set global variables according to parameters
-  (setf STOPOLOGY  (string-upcase spatial-topology))
-
-  ;;perform initialization based on type of spatial topology
-  (cond 
-    ((string= STOPOLOGY "S2")
-     (initialize-S2-triangulation num-time-slices boundary-conditions 
-				  initial-spatial-geometry
-				  final-spatial-geometry))
-    ((string= STOPOLOGY "T2") 
-     (initialize-T2-triangulation num-time-slices boundary-conditions
-				  initial-spatial-geometry
-				  final-spatial-geometry))
-    (t (error "unrecognized spatial topology")))
-  
-  ;; For debugging. Comment out for general use.
-;;  (let ((duplicates 
-;;	 (list-vals-with-trait 
-;;	  #'contains-an-identical-pair *ID->3SIMPLEX* 3)))
-;;    (format t "Duplicate simplices: ~%~S~%" duplicates))
-
-  (format t "initial count = ~A~%" (count-simplices-of-all-types))
-
-
-  ;; Check to see if various topological relations are satisfied
-  (assert (not (first (check-euler-characteristic)))) 
-  (assert (not (first (check-triangle-edge-relation))))
-  (assert (<= (length (first (check-triangle-edge-relation))) 2))
-  (assert (not (first (check-timelike-face-tetrahedron-relation))))
-
-
-  ;; JM: what follows are two methods to increase the volume up to the
-  ;; desired size. The system has yet to thermalize, so algorithm
-  ;; should be irrelevant. The first algorithm is written by David
-  ;; Kamensky. The second is written by Rajesh Kommu.
-
-  ;;try volume-increasing moves on random simplices until the desired
-  ;;volume is reached
-;;  (while (< (N3) target-volume)
-    ;the range of type-chooser affects 23 / 13 / 31 balance
-;;    (let* ((type-chooser (random 6))
-;;	   (simplex-chooser (random *LAST-USED-3SXID*))
-;;	   (movedata (try-move simplex-chooser 
-;;			       (if (< type-chooser 1) 0 1))))
-      ;; for debugging. Comment out for general use.
-;;      (format t "type-chooser: ~%~$~%" type-chooser)
-;;      (format t "move data: ~%~S~%" movedata)
-;;      (when movedata (2plus1move movedata))))
+(defun increase-volume-v1 (target-volume)
+  "try volume-increasing moves on random simplices until the desired
+   volume is reached."
+  (while (< (N3) target-volume)
+    ; the range of type-chooser affects 23 / 13 / 31 balance
+    (let* ((type-chooser (random 6))
+	   (simplex-chooser (random *LAST-USED-3SXID*))
+	   (movedata (try-move simplex-chooser 
+			       (if (< type-chooser 1) 0 1))))
+      (when movedata (2plus1move movedata)))))
 	
-
-  ;; use moves to increase the number of simplices until the target
-  ;; volume is reached  
+(defun increase-volume-v2 (target-volume)
+  "Use moves to increase the number of simplices until the target
+   volume is reached."
   (loop named tv
      do
        
@@ -778,19 +740,38 @@
 	   (when (setf movedata (try-2->3 id23))
 	     (2plus1move movedata)))
 	 (if (> (N3) target-volume)
-	     (return-from tv))))
-  
+	     (return-from tv)))))
+
+
+(defun initialize-T-slices-with-V-volume (&key 
+					  num-time-slices
+					  target-volume
+					  spatial-topology
+					  boundary-conditions
+					  initial-spatial-geometry
+					  final-spatial-geometry)
+
+  ;;set global variables according to parameters
+  (setf STOPOLOGY  (string-upcase spatial-topology))
+
+  ;;perform initialization based on type of spatial topology
+  (cond 
+    ((string= STOPOLOGY "S2")
+     (initialize-S2-triangulation num-time-slices boundary-conditions 
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    ((string= STOPOLOGY "T2") 
+     (initialize-T2-triangulation num-time-slices boundary-conditions
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    (t (error "unrecognized spatial topology")))
   
   (format t "final count = ~A~%" (count-simplices-of-all-types))
-  
   (format t "breakdown by location = ~a~%" (count-boundary-vs-bulk))
-
-
+  (increase-volume-v2 target-volume)
   (format t "~%Plot of 3-simplices as a function of proper time:~%")
   (plot-3-simplices-of-time)
-
   (format t "~%Plot of spacelike triangles as a function of proper time:~%")
   (plot-spacelike-triangles-of-time)
-
 
   (setf N-INIT (N3)))

@@ -1,6 +1,22 @@
+;;;;-----------------------------Moves-----------------------------------;;;;
+;; moves.lisp
+
+;;; This module contains the monte carlo moves for the 2+1-dimensional
+;;; CDT simulations. Each move function returns movedata if the move
+;;; is possible or nil if it is not. The moves are aided by subcomplex
+;;; functions which construct the total set of simplices that need to
+;;; be changed.
+
+
 ;; try-a->b methods returns the following list, IFF the move can be
 ;; successfully made (new3sxids nbors old3sxids oldTL2sxs oldSL2sxs
 ;; oldTL1sxs oldSL1sx fvector)
+
+;; Authors:
+;; ------- Rajesh Kommu
+;; ------- David Kamensky
+;; ------- Jonah Miller (jonah.maxwell.miller@gmail.com)
+
 
 (defun 2plus1move (sxdata)
   (let ((new3sxids (make-3simplices-in-bulk (first sxdata))))

@@ -205,7 +205,7 @@
     
     ;; open and close the file, for :append to work properly
     ;; record the initial data only if start-sweep = 1
-    (make-movie-file filename start-sweep)
+\    (make-movie-file filename start-sweep)
     
     ;; Sweep
     (for (ns start-sweep end-sweep)

@@ -1,3 +1,13 @@
+;; cdt2p1.lisp 
+
+;; A wrapper for all modules of the 2+1-dimensional CDT
+;; code. Call this first. Always.
+
+;; Authors:
+;; ------- Rajesh Kommu
+;; ------- David Kamensky
+;; ------- Jonah Miller (jonah.maxwell.miller@gmail.com)
+
 (load "../utilities.lisp")
 (load "globals.lisp")
 (load "generalized-hash-table-counting-functions.lisp")

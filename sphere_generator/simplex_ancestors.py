@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 """
-simplex_descendants.py
+simplex_ancestors.py
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 

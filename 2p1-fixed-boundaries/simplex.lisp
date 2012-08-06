@@ -6,6 +6,13 @@
 ;;;; structures of the simulation. It also contains important
 ;;;; parameters and functions for fixed boundary conditions.
 
+;; Authors:
+;; ------- Rajesh Kommu
+;; ------- David Kamensky
+;; ------- Jonah Miller (jonah.maxwell.miller@gmail.com)
+
+;;;;---------------------------------------------------------------------
+
 ;; Sets the optimization parameters for compilation.
 ;; JM: I'm not sure why this is here. I'll leave it for now.
 (declaim (optimize (speed 3)
