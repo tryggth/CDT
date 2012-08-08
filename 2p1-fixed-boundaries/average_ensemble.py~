@@ -1,0 +1,30 @@
+#!/usr/bin/env python2
+
+# average_ensemble.py
+# Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+# Date: August 8, 2012
+
+# This program loads a spacetime ensemble from a file, looks at
+# 2-volume as a function of proper time, produces an average, and fits
+# to a function
+
+# Modules
+#-------------------------------------------------------------------------
+import numpy as np # For array control
+import scipy as sp
+import matplotlib as mpl # For data visualization
+import matplotlib.pyplot as plt
+
+# Written by me for spacetime data
+import visualize_spacetime as vs
+#-------------------------------------------------------------------------
+
+def extract_2_volume_ensemble(filename_list):
+    """
+    Reads in each *.3sx2p1 file in filename_list and produces a list
+    of lists of 2-volume information as a function of proper time.
+
+    Returns a vector. The first element contains header data, which is
+    assumed to be the same for all elements of the ensemble.
+    """
+    
