@@ -1,8 +1,0 @@
-;;;; 120625_test_first_run.lisp
-;;;; Author: Jonah Miller (jonah.miller@colorado.edu)
-;;;;
-
-;;;; This is a script to test the behaviour of David Kemansky's code
-;;;; now that I know the code works.
-
-;; 

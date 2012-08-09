@@ -1,6 +1,0 @@
-(defun list-keys-with-trait (trait hashtable key-subindex)
-  (let ((keylist nil))
-    (letf ((discriminator (hkey hval)
-			  (when (funcall trait (nth key-subindex hkey))
-			    (push hkey keylist))))
-      (maphash #'discriminator hashtable))))

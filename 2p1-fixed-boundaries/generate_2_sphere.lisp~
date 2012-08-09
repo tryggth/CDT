@@ -1,7 +1,0 @@
-;;;; generate_2_sphere.lisp
-;;;; Jonah Miller (jonah.miller@colorado.edu)
-;;;; Date: July 5, 2012
-
-;;;; This is a lisp program that should generate an approximation of a
-;;;; sphere using equilateral triangles. It then generates a list of
-;;;; triples to give as input to 2p1-fixed-boundaries.

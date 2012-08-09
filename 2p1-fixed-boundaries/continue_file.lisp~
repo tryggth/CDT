@@ -1,8 +1,0 @@
-(load "cdt2p1.lisp")
-
-(setf NUM-SWEEPS 12000)
-
-(with-open-file (infile "/home/jmiller/CDT_data/S2-PERIODIC-T064-V030851-1.0-0.75772-0.02--1-000000001-000012000-on-dewitt-started2012-08-01-16-46-43/S2-PERIODIC-T064-V030851-1.0-0.75772-0.02--1-000000001-000012000-on-dewitt-started2012-08-01-16-46-43.3sx2p1")
-  (load-spacetime-from-file infile))
-
-(generate-spacetime-and-movie-data)

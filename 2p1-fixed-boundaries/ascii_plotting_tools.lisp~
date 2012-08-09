@@ -1,7 +1,0 @@
-;;;; ascii_plotting_tools.lisp
-;;;; Author: Jonah Miller
-;;;; Date: July 30th, 2012
-
-;;;; The goal of this module for 2p1-fixed-boundaries is to allow for
-;;;; very quick and dirty plots of a spacetime during repl
-;;;; sessions. However, this basic code might be useful other places.
