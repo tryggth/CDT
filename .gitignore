@@ -54,3 +54,9 @@ _ReSharper*/
 *.diff.lisp
 *.diff
 *.boundary
+*.prg2p1
+*.3sx2p1
+*.mov2p1
+*#
+*~
+*.pyc
