@@ -101,7 +101,7 @@ def extract_2_volume_ensemble(filename_list):
     del spacetimes
 
     # Average the N3s instead of summing them
-    N3 = N3/len(N3)
+    N3 = N3/len(filename_list)
 
     # Extract volumes as a function of time
     volumes = [vs.make_v_of_t(s) for s in sl2simplices]
@@ -243,3 +243,4 @@ if __name__ == "__main__":
     popt,N3,num_slices = plot_and_fit(sys.argv[1:])
     print_popt(popt,N3,num_slices)
 
+        
