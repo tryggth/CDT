@@ -16,6 +16,8 @@ import matplotlib as mpl # For data visualization
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 
+import sys
+
 # Written by me for spacetime data
 import visualize_spacetime as vs
 #-------------------------------------------------------------------------
@@ -23,29 +25,45 @@ import visualize_spacetime as vs
 
 # Constants
 #-------------------------------------------------------------------------
-def de_sitter_form(x,s,A,C,N3,num_slices):
+def de_sitter_form_testing(x,s,A,C,N3,num_slices):
     """
     The functional form for de Sitter Space. x is position, s, A, C
     are all fit parameters. N3 is the total number of 3-simplices in
     the spacetime. num_slices is the number of time slices in the spacetime.
     """
     # A normalized cosine. used for clarity.
-    n_cos = lambda y: np.cos(y/(s * N3**(1/3)))
+    n_cos = lambda y: np.cos(y/(s * N3**(1/3.)))
 
     # The full width/half-max of the spacetime
-    fwhm = np.arccos(np.sqrt((np.pi * A/2)*(s * N3**(1/3)/N3)))
+    fwhm = np.arccos(np.sqrt((np.pi * A/2.)*(s * N3**(1/3.)/N3)))
+        
+    # The conditional functions
+    # for -num_slices/2.0 <= (x - C) < -s * N3**(1/3.) * fwhm 
+    # or 
+    # s * N3**(1/3.) * fwhm < (x-C) <= num_slices/2.0
+    stem = lambda x: float(A)
+    # for -s * N3**(1/3.) * fwhm <= (x - C) <= s * N3**(1/3.) * fwhm
+    bulk = lambda x: (2/np.pi) * (N3/(s * N3**(1/3.))) * n_cos(x-C)**2
 
-    # The piecewise function we will return.
-    if -num_slices/2.0 <= (x - C) < -s * N3**(1/3.) * fwhm:
-        return A
-    elif -s * N3**(1/3.) * fwhm <= (x - C) <= s * N3**(1/3.) * fwhm:
-        return (2/np.pi) * (N3/(s * N3**(1/3))) * n_cos(x-C)**2
-    elif s * N3**(1/3.) * fwhm < (x-C) <= num_slices/2.0:
-        return A
+    # List of conditions for the piecewise function
+    conds = [(-num_slices/2.0 <= (x-C))&((x-C) < -s * N3**(1/3.) * fwhm),
+             (-s * N3**(1/3.) * fwhm <= (x-C))&((x-C) <= s * N3**(1/3.) * fwhm),
+             (s * N3**(1/3.) * fwhm < (x-C))&((x-C) <= num_slices/2.0)]
 
-    # In case something goes very wrong
-    else:
-        return A
+    # List of return functions for the piecewise function
+    returnfuncs = [stem,bulk,stem]
+
+    return np.piecewise(x,conds,returnfuncs)
+"""
+#     
+if -num_slices/2.0 <= (x - C) < -s * N3**(1/3.) * fwhm:
+return A
+elif -s * N3**(1/3.) * fwhm <= (x - C) <= s * N3**(1/3.) * fwhm:
+return (2/np.pi) * (N3/(s * N3**(1/3))) * n_cos(x-C)**2
+elif s * N3**(1/3.) * fwhm < (x-C) <= num_slices/2.0:
+return A
+
+"""
         
 #-------------------------------------------------------------------------
 
@@ -61,23 +79,37 @@ def extract_2_volume_ensemble(filename_list):
     Returns a vector. The first element contains header data, which is
     assumed to be the same for all elements of the ensemble.
     """
-    # Extract the spacetimes
-    spacetimes = [vs.read_3simplices_from_data_file(f) for f in filename_list]
+    # Do the first spacetime seperately to extract header data
+    first_spacetime = vs.read_3simplices_from_data_file(filename_list[0])
+    header_data = first_spacetime[0]
+    spacetimes = [first_spacetime[1]]
+
+    # We need to calculate the average of N3-31 and N3-13 for all spacetimes
+    N3 = eval(header_data[11])/2
+
+    # Extract the remaining spacetimes
+    for f in filename_list[1:]:
+        temp = vs.read_3simplices_from_data_file(f)
+        spacetimes.append(temp[1])
+        N3 += eval(temp[0][11])/2
 
     # Extract the 2-simplex information 
-    sl2simplices = [vs.get_all_sl2simplices(s) for s in spacetimes]
+    sl2simplices = [vs.get_all_sl2simplices([header_data,s]) \
+                        for s in spacetimes]
+
+    # Run garbage collection
+    del spacetimes
+
+    # Average the N3s instead of summing them
+    N3 = N3/len(N3)
 
     # Extract volumes as a function of time
-    volumes = [make_v_of_t(s) for s in sl2simplices]
-
-    # Extract header data so we can delete old lists
-    header_data = spacetimes[0][0]
+    volumes = [vs.make_v_of_t(s) for s in sl2simplices]
 
     # Delete the old lists
-    del spacetimes
     del sl2simplices
 
-    return [header_data,volumes]
+    return [header_data,volumes,N3]
 
 
 def statistical_average(volumes):
@@ -86,6 +118,7 @@ def statistical_average(volumes):
     producing mean and standard deviation at each point. Returns a vector:
     [means, standard_deviations]
     """
+    volumes = np.array(volumes).transpose()
     means = []
     stds = []
     for v_list in volumes:
@@ -94,20 +127,119 @@ def statistical_average(volumes):
 
     return [means,stds]
 
-def fit_to_data(mean_volume_data,N3,num_slices):
+
+def fit_to_data(mean_volume_data,N3,guesses=[1,0,25]):
     """
     Takes mean volume data and attempts to fit to de Sitter
     spacetime. time_slices is the number of time slices, and N3 is the
     3-volume of the system.
     """
-    # Cut down on de_sitter_form so that N3 and num_slices are taken
-    # into account
-    func = lambda x,s,A,C: de_sitter_form(x,s,A,C,N3,num_slices)
+
+    # Total number of slices
+    num_slices = len(mean_volume_data)
+
+
+    def de_sitter_form(x,s,A,C):
+        """
+        The functional form for de Sitter Space. x is position, s, A, C
+        are all fit parameters. N3 is the total number of 3-simplices in
+        the spacetime. num_slices is the number of time slices in the spacetime.
+        """
+        # A normalized cosine. used for clarity.
+        n_cos = lambda y: np.cos(y/(s * N3**(1/3.)))
+
+        # The full width/half-max of the spacetime
+        fwhm = np.arccos(np.sqrt((np.pi * A/2.)*(s * N3**(1/3.)/N3)))
+        
+        # The conditional functions
+        # for -num_slices/2.0 <= (x - C) < -s * N3**(1/3.) * fwhm 
+        # or 
+        # s * N3**(1/3.) * fwhm < (x-C) <= num_slices/2.0
+        stem = lambda x: float(A)
+        # for -s * N3**(1/3.) * fwhm <= (x - C) <= s * N3**(1/3.) * fwhm
+        bulk = lambda x: (2/np.pi) * (N3/(s * N3**(1/3.))) * n_cos(x-C)**2
+
+        # List of conditions for the piecewise function
+        """conds = [(-num_slices/2.0 <= (x-C)) & \
+                     ((x-C) < -s * N3**(1/3.) * fwhm),
+                 (-s * N3**(1/3.) * fwhm <= (x-C)) & \
+                     ((x-C) <= s * N3**(1/3.) * fwhm),
+                 (s * N3**(1/3.) * fwhm < (x-C)) & \
+                     ((x-C) <= num_slices/2.0)]"""
+
+        cond =   (-s * N3**(1/3.) * fwhm <= (x-C)) & \
+                     ((x-C) <= s * N3**(1/3.) * fwhm)
+
+        # List of return functions for the piecewise function
+        #returnfuncs = [stem,bulk,stem]
+        returnfuncs = [bulk,stem]
+
+        #return np.piecewise(x,conds,returnfuncs)
+        return np.piecewise(x,cond,returnfuncs)
+
 
     # Define the x-axis (time slices)
-    x = range(num_slices)
+    xdata = np.array(range(num_slices),dtype=float)
+    ydata = np.array(mean_volume_data,dtype=float)
+#    err = np.array(std_deviation_data,dtype=float)
 
     # Fit!
-    return opt.curve_fit(de_sitter_form,x,mean_volume_data)
+    return opt.curve_fit(de_sitter_form,xdata,ydata,guesses)
 
+def plot_and_fit(filename_list):
+    "Read all the elements in the filename list and plot the results."
+
+    # Header data contains relevant information about the insemble,
+    # volumes is a list of 2-volumes, for all the spacetimes, and N3 =
+    # (N3-31+N3-13)/2.
+    header_data,volumes,N3 = extract_2_volume_ensemble(filename_list)
+
+    # Get the mean and standard deviation of the volume list, delete
+    # the list of volumes to save memory.
+    means,stds = statistical_average(volumes)
+    del volumes
+
+    # Fit to data
+    # popt = optimized parameters, pcov = covariance
+    popt,pcov = fit_to_data(means,N3)
+
+    # Make a curve 
+    num_slices = float(len(means)) # The number of spacetime slices
+    xdata = np.arange(0.0,num_slices,1.0) # x-axis
+    fit = de_sitter_form_testing(xdata,popt[0],popt[1],popt[2],N3,num_slices)
+
+    # Make a plot
+    lines = [plt.errorbar(xdata,means,yerr=stds,fmt='ro',label='Monte Carlo'),
+             plt.plot(xdata,fit,'b-',label='Fit')]
+
+    # Make a legend
+    plt.legend()
+
+    # Set axes
+    plt.xlabel('Proper Time')
+    plt.ylabel('Spatial Extent')
+
+    # Calculate and set title
+    # suptitle is easy
+    plt.suptitle('de Sitter Monte Carlo Fit, Fixed Boundaries')
+
+    # subtitle uses header information
+    raw_name = "#slices = {}. Volume = {}. k0 = {}. k3 = {}."
+    name=raw_name.format(header_data[2],header_data[3],
+                         header_data[-3],header_data[-2])
+    plt.title(name)
+
+    plt.show()
+
+    return [popt,N3,num_slices]
+
+def print_popt(popt,N3,num_slices):
+    "Prints the optimized parameters nicely."
+    output = "N3 = {}. num_slices = {}.\ns = {}\nA = {}\nC = {}."
+    print output.format(N3,num_slices,popt[0],popt[1],popt[2])
+#-------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    popt,N3,num_slices = plot_and_fit(sys.argv[1:])
+    print_popt(popt,N3,num_slices)
 
