@@ -138,3 +138,23 @@ July 25th, 2012 -- I discovered an error in David's initialization
 
 July 27th, 2012 -- I added error checking functions to ensure that the
      	   	   spacetime doesn't violate topological relations.
+
+August 01, 2012 -- I added the move_tracking.lisp module, which is
+       	   	   capable of watching movies of move choices as a
+       	   	   function of propert time and sweep.
+
+August 06, 2012 -- Rajesh and I Josh discovered that the bulk of all
+       	   	   spacetimes moved backwards in proper time as moves
+       	   	   increased. The problem was in the way that the
+       	   	   simulation selected complices to attempt moves
+       	   	   on. After a move and simplex are chosen, the
+       	   	   simulation calculates a number of complices around
+       	   	   that simplex needed to perform the move. The move
+       	   	   only needs one complex, so Rajesh was just picking
+       	   	   the first one. This was cuasing a systematic bias
+       	   	   such that volume-increasing moves chose complices
+       	   	   that had bulk mostly lower in proper time while
+       	   	   volume decreasing moves chose complices mostly in
+       	   	   higher proper time. Randomizing the selection here
+       	   	   fixed the problem.
+
