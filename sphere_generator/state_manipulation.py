@@ -53,10 +53,10 @@ def delete_all_geometries():
 ### Functions that manipulate objects at a higher level. These are
 ### basically syntactic sugar.
 #-------------------------------------------------------------------------
-def bisect_edge(edge_id):
+def bisect_edge_using_id(edge_id):
     """
     Uses the edge.bisect() function to bisect an edge and update the
-    hash tables properly. Takes an edge ID.
+    hash tables properly. Takes an edge id.
     """
     # Bisect the edge and generate two pairs of points, each
     # representing one of the two new edges.
@@ -66,17 +66,33 @@ def bisect_edge(edge_id):
     edge.delete(edge_id)
 
     # Add the new point to the hash table
-    vertex.instances[newpoint] = vertex([],newpoint)
+    new_vertex = vertex([],newpoint)
+    vertex.add(new_vertex)
     
     # Add the new edges to the edges hash table. We want to return the
     # new idge IDs (because why not), so a temporary list is generated
     # for this purpose.
-    new_ids = []
+    new_edge_instances = set([])
     for endpoint_pair in new_edges:
         e = edge(endpoint_pair)
-        edge.instances[e.id] = e
-        new_ids.append(e.id)
-    return new_ids
+        edge.add(e)
+        new_edge_instances.add(e)
+    return [new_edge_instances,new_vertex]
+
+def bisect_edge(edge_id_or_instance):
+    """
+    Uses the edge.bisect() function to bisect an edge and update the
+    hash tables properly. Takes an edge id or instance.
+    """
+    if type(edge_id_or_instance) == int \
+            and edge_id_or_instance in edge.instances.keys():
+        edge_id = edge_id_or_instance
+    elif isinstance(edge_id_or_instance,edge):
+        edge_id = edge_id_or_instance.get_id()
+    else:
+        raise TypeError("bisect_edge accepts only edge ids "+
+                        "or edge instances.")
+    return bisect_edge_using_id(edge_id)
 # -------------------------------------------------------------------------
 
 
@@ -177,5 +193,68 @@ def build_triangle_and_edges(point_list):
                                            'build_triangle_and_edges')
         
     return triangle_id
+
+def remove_triangle(triangle_id_or_instance):
+    """
+    Delets a triangle from the corresponding hash table. Moreover,
+    removes it from its' neighbors list of neighbors.
+    """
+    # Interpret input
+    if type(triangle_id_or_instance) == int:
+        triangle_id = triangle_id_or_instance
+        triangle_instance = triangle.instances[triangle_id]
+    elif isinstance(triangle_id_or_instance,triangle):
+        triangle_instance = triangle_id_or_instance
+        triangle_id = triangle_instance.get_id()
+    else:
+        raise ValueError("We need a triangle instance or an ID here!")
+
+    # Delete the triangle's id from neighbors
+    for n in triangle_instance.get_neighbors():
+        n.remove_neighbor(triangle_id)
+
+    # Delete the triangle itself
+    triangle.delete(triangle_id)
+
+def remove_edge(edge_id_or_instance,triangle_list=False):
+    """
+    Deletes an edge from the corresponding hash table. If a triangle
+    list was given, removes the id from each triangle's edge id
+    list.
+    """
+
+    # Interpret input
+    if type(edge_id_or_instance) == int:
+        edge_id = edge_id_or_instance
+        edge_instance = edge.instances[edge_id]
+    elif isinstance(edge_id_or_instance,edge):
+        edge_instance = edge_id_or_instance
+        edge_id = edge_instance.get_id()
+    else:
+        raise ValueError("We need an edge instance or an ID here!")
+
+    # If triangle list given, delete the edge id from triangle.edges
+    if triangle_list:
+        if type(triangle_list) == int:
+            triangle.instances[triangle_list].edges.remove(edge_id)
+        elif type(triangle_list) == list:
+            if isinstance(triangle_list[0],triangle):
+                for t in triangle_list:
+                    t.edges.remove(edge_id)
+            else:
+                for i in triangle_list:
+                    triangle.instances[i].edges.remove(edge_id)
+        elif type(triangle_list) == tuple or type(triangle_list) == set:
+            if isinstance(list(triangle_list)[0],triangle):
+                for t in triangle_list:
+                    t.edges.remove(edge_id)
+            else:
+                for i in triangle_list:
+                    triangle.instances[i].edges.remove(edge_id)
+        else:
+            raise TypeError("You did not pass a list of triangle ids.")
+        
+    # In any case, delete the edge.
+    edge.delete(edge_instance)
 ### -------------------------------------------------------------------------
 

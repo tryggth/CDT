@@ -162,5 +162,26 @@ class geometry:
     def count_instances(self):
         "Counts the number of instances of object of type self."
         return len(list(self.instances))
+
+    def get_id(self):
+        "Gets the object id."
+        return self.id
+
+    @classmethod
+    def parse_input(self,id_or_instance):
+        """
+        Enables a function to take an id or an instance as
+        input. Always returns a class instance rather than an
+        id. Takes in either an id or an instance as input and returns
+        the corresponding class instance.
+        """
+        if type(id_or_instance) == int \
+                and id_or_instance in self.instances.keys():
+            other = self.instances[id_or_instance]
+        elif self.isinstance(id_or_instance):
+            other = id_or_instance
+        else:
+            raise TypeError("I need a geometry subclass instance or ID.")
+        return other
 #-------------------------------------------------------------------------
 

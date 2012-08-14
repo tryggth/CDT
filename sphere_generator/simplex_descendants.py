@@ -27,6 +27,7 @@ module.
 #-------------------------------------------------------------------------
 import numpy as np
 import scipy as sp
+import utilities as ut
 from simplex_ancestors import * # Required for parent classes
 #-------------------------------------------------------------------------
 
@@ -114,6 +115,10 @@ class vertex(geometry):
         else:
             return False
             
+    @classmethod
+    def isinstance(self,object_instance):
+        "Tests if an object_instnace is an instance of the vertex class."
+        return isinstance(object_instance,vertex)
 
     # Initialization function
     def __init__(self, triangle_list = [],new_id=0):
@@ -150,6 +155,14 @@ class vertex(geometry):
             if self.id in e.vertices:
                 containing_edges.add(e.id)
         return containing_edges
+
+    def get_triangles(self):
+        "Returns the objects, not the ids."
+        return [triangle.instances[t] for t in self.triangles]
+
+    def get_triangle_ids(self):
+        "Returns the ids, not the objects."
+        return self.triangles
 
     def find_triangles(self):
         """
@@ -188,6 +201,26 @@ class vertex(geometry):
         for id1 in self.triangles:
             for id2 in self.triangles:
                 triangle.instances[id1].connect_to_triangle(triangle.instances[id2])
+
+    def triangles_shared_with(self,other_instance_or_id):
+        """
+        Tests to see whether self is a vertex of one of the same
+        triangles as other. Other can be a vertex instance or a vertex
+        ID. If triangles exist, returns them. Otherwise, returns false.
+        """
+        # Parse input 
+        other = self.parse_input(other_instance_or_id)
+        # The triangles shared with self:
+        shared_triangles = ut.set_intersection([set(self.get_triangles()),
+                                                set(other.get_triangles())])
+        return shared_triangles
+        
+    def shares_a_triangle_with(self,other_instance_or_id):
+        """
+        Tests to see whether self is a vertex of one of the same
+        triangles as other. Returns a boolean value.
+        """
+        return bool(self.triangles_shared_with(other_instance_or_id))
 #-------------------------------------------------------------------------
 
 
@@ -237,6 +270,11 @@ class edge(geometry):
     length = 1
 
     # Functions
+    @classmethod
+    def isinstance(self,object_instance):
+        "Tests if an object_instnace is an instance of the edge class."
+        return isinstance(object_instance,edge)
+
     def bisect(self):
         """
         If the edge length of the triangle is equilateral, cuts it in
@@ -267,6 +305,14 @@ class edge(geometry):
             print "Error! Wrong number of vertices! Nothing changed."
             return self.vertices
 
+    def get_vertices(self):
+        "Returns the instances, not the ids."
+        return [vertex.instances[v] for v in self.vertices]
+
+    def get_vertex_ids(self):
+        "Returns the ids."
+        return self.vertices
+
     # Duplicate checking
     @classmethod
     def find_duplicates(self,vertex_list):
@@ -280,7 +326,6 @@ class edge(geometry):
             if e.vertices == set(vertex_list):
                 duplicates.append(e.id)
         return duplicates
-
 
     # Initialization function
     def __init__(self,vertex_pair=[]):
@@ -364,6 +409,11 @@ class triangle(geometry):
     angle = np.pi/3 # Angle between edges
 
     # Functions
+    @classmethod
+    def isinstance(self,object_instance):
+        "Tests if an object_instnace is an instance of the vertex class."
+        return isinstance(object_instance,triangle)
+
     def check_topology(self,return_value=False):
         """
         Ensure that the triangle has the correct numbers of
@@ -376,6 +426,16 @@ class triangle(geometry):
         assert 0 <= len(self.neighbors) <= 3
         if return_value:
             print "Topology is okay."
+
+    def check_edge_validity(self):
+        """
+        Checks to make sure that the number of endpoints of edges is
+        the same as the number of vertices.
+        """
+        edges = self.get_edges()
+        endpoints = [e.get_vertex_ids() for e in edges]
+        endpoint_union = ut.set_union([e.get_vertex_ids() for e in edges])
+        assert endpoint_union == self.get_vertex_ids()
 
     def connect_to_triangle(self,other_triangle):
         """
@@ -392,6 +452,14 @@ class triangle(geometry):
         self.check_topology()
         other_triangle.check_topology()
         
+    def remove_neighbor(self,other_triangle):
+       """
+       other_triangle is in self.neighbors, remove it from the
+       neighbor list. Accepts ids only.
+       """
+       if other_triangle in self.neighbors:
+           self.neighbors.remove(other_triangle)
+
     # Duplicate checking
     @classmethod
     def find_duplicates(self,vertex_list=False,
@@ -412,6 +480,31 @@ class triangle(geometry):
                 if t.neighbors == set(neighbor_list):
                     duplicates.add(t.id)
         return duplicates
+
+    def get_vertices(self):
+        "Returns the instances, not the ids."
+        return [vertex.instances[v] for v in self.vertices]
+
+    def get_vertex_ids(self):
+        "Returns the ids."
+        return self.vertices
+
+    def get_edges(self):
+        "Returns the instances, not the ids."
+        return [edge.instances[e] for e in self.edges]
+
+    def get_edge_ids(self):
+        "Returns the ids."
+        return self.edges
+
+    def get_neighbors(self):
+        "Returns the instances, not the ids."
+        return [triangle.instances[t] for t in self.neighbors]
+
+    def get_neighbor_ids(self):
+        "Returns the ids."
+        return self.neighbors
+
 
     # Initialization function
     def __init__(self,point_list=[],edge_list=[],neighbor_list=[]):

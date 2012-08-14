@@ -18,6 +18,7 @@ generation program that are simply useful little tricks.
 #-------------------------------------------------------------------------
 import itertools # For combinations
 import math # For factorials
+import numpy as np
 #-------------------------------------------------------------------------
 
 
@@ -68,3 +69,41 @@ def k_combinations(big_set,k=2):
 #-------------------------------------------------------------------------
 
 
+# Set stuff
+#-------------------------------------------------------------------------
+def set_union(list_of_sets):
+    "Calculates the union of an arbitrary number of sets. Syntactic sugar."
+    union = set([])
+    for s in list_of_sets:
+        union |= s
+    return union
+
+def set_intersection(list_of_sets):
+    """
+    Calculates the intersection of an arbitrary number of
+    sets. Syntactic sugar.
+    """
+    intersection = set(list_of_sets[0])
+    for s in list_of_sets:
+        intersection &= s
+    return intersection
+
+def only_element(S):
+    """
+    If set S contains only 1 element, return that element. Otherwise,
+    raise an error.
+    """
+    assert len(S) == 1
+    return list(S)[0]
+#-------------------------------------------------------------------------
+
+
+# Miscellaneous
+#-------------------------------------------------------------------------
+def round_to_zero(x):
+    "If |x| is sufficiently small, round it to zero. Otherwise, return x."
+    sufficiently_small = 1E-5
+    if np.abs(x) <= sufficiently_small:
+        return 0
+    else:
+        return x

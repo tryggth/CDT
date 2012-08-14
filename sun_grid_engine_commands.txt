@@ -1,0 +1,15 @@
+To call a job:
+write a script similar to runlisp.sh. 
+Basically just copy past the job name you want.
+
+Then call 
+qsub /path/to/script.sh
+
+To stop the job:
+qdel /path/to/script.sh
+
+To get status on all jobs:
+qstat -u '*'
+
+To get status on your job:
+qstat

@@ -87,6 +87,27 @@ class sphere:
         # Get the standard deviation
         return np.std(local_curvatures)
           
+    def get_vertices(self):
+        "Returns a string each vertex in the sphere. Output could be long."
+        outstring = ''
+        for v in sd.vertex.instances.values():
+            outstring += str(v) + '\n'
+        return outstring
+
+    def get_edges(self):
+        "Returns a string each edge in the sphere. Output could be long."
+        outstring = ''
+        for e in sd.edge.instances.values():
+            outstring += str(e) + '\n'
+        return outstring
+
+    def get_triangles(self):
+        "Returns a string each triangle in the sphere. Output could be long."
+        outstring = ''
+        for t in sd.triangle.instances.values():
+            outstring += str(t) + '\n'
+        return outstring
+        
     def __str__(self):
         "The state of the system at a given time."
         outstring = """Sphere Current state:
@@ -159,12 +180,14 @@ class move_data:
     deviation.  
     """
 
-    def __init__(self,i_vertex_list):
+    def __init__(self,i_vertex_list,cmpx,move_type):
         """
         Set the imaginary vertices. Take a list of imaginary vertices
         as input.
         """
         self.imaginary_vertices = i_vertex_list
+        self.complex = cmpx
+        self.move_type = move_type
 
     def __len__(self):
         "Just returns the number of imaginary vertices in the move data."
@@ -172,8 +195,10 @@ class move_data:
 
     def __str__(self):
         "Prints info on the imaginary vertices and calculation results."
+        outstring = 'Move type: {}\n'.format(self.move_type)
+
         # Initialize string
-        outstring = 'Volume Increasing Vertices:\n'
+        outstring += 'Volume Increasing Vertices:\n'
         
         # Vertices for volume increasing and volume decreasing
         v_increasing = [v for v in self.imaginary_vertices \
@@ -187,9 +212,15 @@ class move_data:
             outstring += "Curvature: {}.\n".format(v.curvature())
         
         outstring += "\nExpected Mean: {}\n".format(self.predicted_mean_curvature())
-        outstring += "Expeced std dev: {}\n".format(self.predicted_curvature_std_dev())
+        outstring += "Expected std dev: {}\n".format(self.predicted_curvature_std_dev())
     
         return outstring
+
+    def get_move_type(self):
+        return self.move_type
+
+    def get_complex(self):
+        return self.complex
 
     def predicted_mean_curvature(self):
         """
@@ -198,13 +229,12 @@ class move_data:
         adding curvature from volume increasing simplices. Divide by
         the "expected" number of vertices.
         """
-        curvature_total = 0 # Initialize curvature total
         # Initialize total number of vertices
         total_vertices = sd.vertex.count_instances()
 
         # Get total from real vertices
-        for vertex in sd.vertex.instances.values():
-            curvature_total += vertex.curvature()
+        curvature_total = sum([v.curvature() \
+                                   for v in sd.vertex.instances.values()])
 
         # Get total from imaginary vertices
         for imaginary_vertex in self.imaginary_vertices:
@@ -226,6 +256,9 @@ class move_data:
         complicated than predicted_mean_curvature, but the idea is the
         same.
         """
+        # A finite acceptable negative number to account for
+        # discritization error.
+        acceptable_min = -0.01
 
         # Need the mean to calculate the standard deviation
         sample_mean = self.predicted_mean_curvature()
@@ -250,13 +283,85 @@ class move_data:
                 total_dev -= dev(imaginary_vertex.curvature())
             # If we have fewer than 0 vertices something went VERY WRONG.
             assert total_vertices >= 0
-            # If the standard deviation is less than zero, the move is
-            # not topologically acceptable.
-            if total_dev < 0:
-                return False
+
+        # Try to account for rounding error
+        total_dev = ut.round_to_zero(total_dev)
+
+        # If the standard deviation is less than zero, the move is
+        # not topologically acceptable.
+        if total_dev < 0:
+            return False
+
 
         # Now, calculate the standard deviation as the square root of
         # the average of the deviations:
         ave_dev = total_dev / total_vertices
-        return np.sqrt(ave_dev)
+        return np.sqrt(np.abs(ave_dev))
+# ---------------------------------------------------------------------------
+
+
+# Functions that look at local properties:
+# ---------------------------------------------------------------------------
+def find_opposite_vertices(triangle_set):
+    """ 
+    A function that looks for a pair of vertices in a set of triangles
+    that don't share a triangle. Returns all such vertex pairs. Takes
+    ids or instances as input. But only takes collections.
+    """
+    # Parse input
+    triangle_objects = set([sd.triangle.parse_input(t) for t in triangle_set])
+    # Extract vertices
+    vertices = ut.set_union([set(t.get_vertices()) for t in triangle_objects])
+    # Finds pairs of vertices that don't share a triangle
+    opposite_vertices = [set([v1,v2]) for v1 in vertices \
+                             for v2 in vertices \
+                             if not v1.shares_a_triangle_with(v2)]
+    # We need to remove duplicates from the list of opposite vertices
+    for vertex_pair in opposite_vertices:
+        if vertex_pair not in filtered_vertices:
+            filtered_vertices.append(vertex_pair)
+
+    return filtered_vertices
+
+def shared_triangles_in_complex(vertex1,vertex2,triangle_complex):
+    """
+    Meant for internal use with
+    find_opposite_vertices_in_complex. Given a pair of vertices,
+    finds if they are both vertices of the same triangle in a
+    complex. The complex must be a collection of objects or ids.
+    """
+    # Parse input
+    triangles = set([sd.triangle.parse_input(t) for t in triangle_complex])
+    v1 = sd.vertex.parse_input(vertex1)
+    v2 = sd.vertex.parse_input(vertex2)
+    
+    # Shared triangles for the vertex pair that intersect with the complex
+    shared_triangles = set(v1.triangles_shared_with(v2)) & triangles
+    
+    return shared_triangles
+
+def shares_triangles_in_complex(vertex1,vertex2,triangle_complex):
+    "Like shared_triangles_in_complex, but returns a boolean."
+    return bool(shared_triangles_in_complex(vertex1,vertex2,triangle_complex))
+
+def find_opposite_vertices_in_complex(triangle_complex):
+    """
+    Similar to find_opposite_vertices, but looks vertices that don't
+    share a triangle contained in the triangle complex.
+    """
+    # Parse input
+    triangle_objects = set([sd.triangle.parse_input(t) \
+                                for t in triangle_complex])
+    # Extract vertices
+    vertices = ut.set_union([set(t.get_vertices()) for t in triangle_objects])
+    # Vertices that don't share triangles are:
+    shared = [set([v1,v2]) for v1 in vertices for v2 in vertices\
+                  if not shares_triangles_in_complex(v1,v2,triangle_objects)]
+    # Filter out duplicates
+    filtered = []
+    for vertex_pair in shared:
+        if vertex_pair not in filtered:
+            filtered.append(vertex_pair)
+
+    return filtered
 # ---------------------------------------------------------------------------
