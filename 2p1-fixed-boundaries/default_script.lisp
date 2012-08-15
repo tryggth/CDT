@@ -1,5 +1,5 @@
 ;;;; default_script.lisp
-;;;; Jonah Miller (jonah.miller@colorado.edu)
+;;;; Jonah Miller (jonah.maxwell.miller@gmail.com)
 ;;;; Date: July 12, 2012
 
 ;;;; This is a script to test the behaviour of my bug fix and update

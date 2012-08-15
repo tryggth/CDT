@@ -1,0 +1,85 @@
+Program and Module List
+
+Authors: Jonah Miller (jonah.maxwell.miller@gmail.com)
+	 Rajesh Kommu
+	 Christian Anderson
+	 David Kamensky
+
+
+PYTHON PROGRAMS
+average_ensemble.py -- function call: 
+		           ./average_ensemble.py /path/to/ensemble/*.3sx2p1
+
+                       takes average number of space-like triangles per time 
+		       slice and plots. Fits this to the equation for de Sitter
+		       space with a stalk. Error bars are standard deviation
+		       of spactial extent, NOT error of fit.
+
+
+
+visualize_spacetime.py -- function call: 
+		       ./visualize_spacetime.py /path/to/spacetime/file.3sx2p1
+
+		       makes a plot of the spatial extent of a single spacetime
+		       as a function of proper time. Dependency of 
+		       average_ensemble.py
+
+
+
+invert_time.py -- function_call:
+			./invert_time.py /path/to/spacetime/file.3sx2p1
+
+			Takes a *.3sx2p1 file and reverses the time coordinate.
+			so that a (1,3) simplex with t_low = 0 and t_high = 1
+			becomes a (3,1) simplex with t_low = 63 and t_high = 64.
+			Useful mostly for debugging.
+
+
+
+make_boundary_conditions.py -- function call:
+		    ./make_boundary_conditions.py t_low t_high filename.3sx2p1
+
+		    Takes a *.3sx2p1 file and a pair of indices as input. It 
+		    generates a pair of text files that can be used by the 
+		    fixed boundary code as input for fixed boundaries using the
+		    time slices at the chosen indices t_low and t_high 
+		    in the simulation that generated filename as the boundaries.
+
+
+
+map_phase_space_parallelized.py -- function call: 
+			map_phase_space_parallelized.py >> logfilename.log
+			
+			Runs a simulation over a range of k0 and k3
+			values.  The goal is to find at which values
+			of k0 and k3 the simulation is stable. Uses a
+			module written in lisp for the simulation to
+			facilitate taking data on volume change and
+			sending it to an output file. The output file
+			can be analyzed with k3_of_k0.py and
+			visualized with plot_phasemap.py, which are
+			described below.
+
+			This approach is different from the one taken
+			by Christian in the HL code, where the
+			probability of a move being topologically
+			acceptable is approximately the same from
+			simulation to simulation. Christian solves for
+			the coupling constant values that give stable
+			volume, whereas I just do a guess and check
+			method. The reason is that with fixed
+			boundaries, the probability ratios change
+			depending on the boundary conditions. Brute
+			force was the only completely general method I
+			could think of.
+
+			To make the mapping algorithm faster, each
+			simulation with set k0 and k3 can be run on a
+			seperate CPU. The program takes care of this
+			automatically.
+
+			To change simulation parameters, open up te
+			file. It should be easy to change which
+			boundary files are used, the number of time
+			slices, and the target volume. Just change the
+			variables in the code.

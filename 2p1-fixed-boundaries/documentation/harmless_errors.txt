@@ -1,0 +1,35 @@
+Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+Date: July 13, 2012
+
+The Following Errors Are Harmless
+
+(load "/home/jonah/CDT/2p1-fixed-boundaries/cdt2p1.lisp")
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/initialization.lisp
+; in: DEFUN TRIANGULATE-31-COMPLEX
+;     (TRIANGULATE-13-COMPLEX POINT FACE TMHI TMLO)
+; 
+; caught STYLE-WARNING:
+;   undefined function: TRIANGULATE-13-COMPLEX
+; 
+; compilation unit finished
+;   Undefined function:
+;     TRIANGULATE-13-COMPLEX
+;   caught 1 STYLE-WARNING condition
+
+
+; file: /home/jonah/Storage/programming/CDT/2p1-fixed-boundaries/montecarlo.lisp
+; in: DEFUN ACCEPT-MOVE?
+;     (ACTION (+ N1-SL D-N1-SL) (+ N1-TL D-N1-TL) (+ N3-TL-31 D-N3-TL-31)
+;      (+ N3-TL-22 D-N3-TL-22) (+ *N1-SL-TOP* D-N1-SL-TOP)
+;      (+ *N3-22-TOP* D-N3-22-TOP) (+ *N3-31-TOP* D-N3-31-TOP)
+;      (+ *N1-SL-BOT* D-N1-SL-BOT) (+ *N3-22-BOT* D-N3-22-BOT)
+;      (+ *N3-31-BOT* D-N3-31-BOT))
+; 
+; caught STYLE-WARNING:
+;   undefined function: ACTION
+; 
+; compilation unit finished
+;   Undefined function:
+;     ACTION
+;   caught 1 STYLE-WARNING condition

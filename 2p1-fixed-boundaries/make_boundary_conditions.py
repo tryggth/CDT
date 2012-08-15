@@ -9,7 +9,7 @@ cdt2p1-fixed-boundaries code to generate a spacetime using the chosen
 time slices of a previous simulation as the boundaries.
 
 Example program call:
-./make_boundary_conditions.py t_low t_hight filename.3sx2p1
+./make_boundary_conditions.py t_low t_high filename.3sx2p1
 
 t_low is the time slice number in the spacetime for t=0
 boundary. Doesn't have to be the low time slice number in the input
