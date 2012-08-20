@@ -105,7 +105,10 @@ def make_scripts(k0range,k3range,outfilename):
     for k0 in k0range:
         for k3 in k3range:
             scriptname = make_script_name(k0,k3)
-            script = initialization_script + data_taking_script.format(k0,k3,thermalization_sweeps,ofname,data_sweeps)
+            script = initialization_script \
+                + data_taking_script.format(k0,k3,
+                                            thermalization_sweeps,
+                                            ofname,data_sweeps)
             with open(scriptname,'w') as f:
                 f.write(script)
             scriptnames.append(scriptname)

@@ -19,19 +19,6 @@ but designed to test the phase space."
 	 (push (+ N3-TL-31 N3-TL-22) 3-volumes))
     3-volumes))
 
-(defun mean (list-of-values)
-  "Calculate the mean of a list of values"
-  (float (/ (reduce #'+ list-of-values) (length list-of-values))))
-
-(defun standard-deviation (list-of-values)
-  "Calculate the standard deviation of a list of values"
-  (flet ((sqr (x) (* x x)))
-    (let* ((n (length list-of-values))
-	   (mean (mean list-of-values))
-	   (deviation-list (mapcar #'(lambda (x) (sqr (- x mean))) 
-				   list-of-values)))
-      (sqrt (/ (reduce #'+ deviation-list) (1- n))))))
-
 (defun get-delta (list-of-values)
   "Calculate a crude derivative for a
  list of values (as a function of list index."

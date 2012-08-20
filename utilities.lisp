@@ -379,3 +379,16 @@ Suffix is defined as the string following the LAST . in filename"
   (loop for i from 0 to (- (length outlist) 2) do
        (format iostream "~A " (nth i outlist)))
   (format iostream "~A" (nth (1- (length outlist)) outlist)))
+
+(defun mean (list-of-values)
+  "Calculate the mean of a list of values"
+  (float (/ (reduce #'+ list-of-values) (length list-of-values))))
+
+(defun standard-deviation (list-of-values)
+  "Calculate the standard deviation of a list of values"
+  (flet ((sqr (x) (* x x)))
+    (let* ((n (length list-of-values))
+	   (mean (mean list-of-values))
+	   (deviation-list (mapcar #'(lambda (x) (sqr (- x mean))) 
+				   list-of-values)))
+      (sqrt (/ (reduce #'+ deviation-list) (1- n))))))
