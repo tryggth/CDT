@@ -11,6 +11,7 @@ extract_action.py, and others.
 # Import statements, if any
 #-----------------------------------------------------------------------------
 import multiprocessing
+import subprocess
 #-----------------------------------------------------------------------------
 
 
@@ -29,11 +30,11 @@ def make_slices(big_scriptlist):
         list_of_scriptlists.append(big_scriptlist[i:i+num_cores])
     return list_of_scriptlists
 
-def check_processes(process_list)
+def check_processes(process_list):
     """
     Takes an input list of running processes. When they all finish, return true.
     """
-    running = 1: # 0 when the subprocesses are all done
+    running = 1 # 0 when the subprocesses are all done
     while running:
         for proc in process_list:
             proc.poll()
@@ -42,14 +43,16 @@ def check_processes(process_list)
                                    "number " +
                                    "{}".format(process_list.index(proc)) +
                                    " failed.")
-        running = bool(sum([proc.returncode for proc in process_list]))
+        running = bool(sum([int(proc.returncode) for proc in process_list]))
     return True
 
-def start_processes(filenames,program_calls):
+def start_processes(program_calls):
     """
-    Calls program_call to measure the spacetime action for each
-    file in filenames. Returns a list of process objects that can be checked on.
+    Calls program_call to measure the spacetime action for each call
+    in program_calls. Returns a list of process objects that can be
+    checked on.
     """
-    processes = [Popen(c, stdout=PIPE) for c in program_calls]
+    processes = [subprocess.Popen(c,stdout=subprocess.PIPE) \
+                     for c in program_calls]
     return processes
 #-----------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-#1/usr/bin/env python
+#!/usr/bin/env python2
 
 """
 extract_action.py
@@ -36,11 +36,11 @@ cdt_primary = 'cdt2p1.lisp'
 # The action-output module for cdt
 cdt_action = 'action_output.lisp'
 # The command we pass to sbcl:
-sbcl_command = """(measure-spacetime-action {})"""
+sbcl_command = '(measure-spacetime-action "{}")'
 # The shell subprocess call we use, missing the sbcl command, since it
 # changes. The actual sbcl command will be appended.
 prog_call = ["nice","sbcl","--dynamic-space-size","2000",
-             ,"--load",cdt_home+cdt_primary,"--load",cdt_home+cdt_action,
+             "--load",cdt_primary,"--load",cdt_action,
              "--eval"]
 #-----------------------------------------------------------------------------
 
@@ -62,8 +62,9 @@ def run_sbcl(filenames,prog_call,command):
     # num_cores of filenames.
     partitioned_filenames = ppt.make_slices(filenames)
     for f_list in partitioned_filenames:
-        program_calls =  [prog_call.append(command.format(f)) for f in f_list]
+        program_calls =  [prog_call+[command.format(f)] for f in f_list]
         processes = ppt.start_processes(program_calls)
+        time.sleep(5)
         ppt.check_processes(processes)
         outputs += [eval(proc.stdout.read()) for proc in processes]
 
@@ -95,17 +96,24 @@ def main(filenames):
     standard deviation of the un-normalized probability of a
     spacetime. The return is to stdout.
     """
-    print "Generating the average and standard deviation"
-    print "of the un-normalized probability of the spacetime ensemble."
-    print "Please wait.\n...\n...\n"
     # Generate the data, num_cores at a time.
     sbcl_data = run_sbcl(filenames,prog_call,sbcl_command)
     # Generate an output string 
     outstring = make_output(sbcl_data,filenames[0])
-    print outstring    
+    return outstring
 #-----------------------------------------------------------------------------
 
 
 # Main loop
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    print "Generating the average and standard deviation"
+    print "of the un-normalized probability of the spacetime ensemble."
+    print "Please wait.\n...\n...\n"
+
+    pwd = os.getcwd() # Get the current directory of the file 
+    fnames = [pwd+'/'+f for f in sys.argv[1:]] # Generate a list of
+                                               # full filepaths
+    os.chdir(cdt_home) # Change directories to the CDT directory
+    outstring = main(fnames) # Do the data analysis
+    os.chdir(pwd) # Go back to original directory
+    print outstring # Return output

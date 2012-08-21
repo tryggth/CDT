@@ -10,15 +10,16 @@
 (defun current-action-wick-rotated nil
   "Returns the current value of the action for a given spacetime.
    Because it is Wick-rotated, it is completely complex."
-  (let ((N3 (+ N3-TL-31 N3-TL-22)))
-    (action N1-SL N1-TL N3-TL-31 N3-TL-22
-	    *N1-SL-TOP* *N3-22-TOP* *N3-31-TOP*
-	    *N1-SL-BOT* *N3-22-BOT* *N3-31-BOT*)))
+  (action N1-SL N1-TL N3-TL-31 N3-TL-22
+	  *N1-SL-TOP* *N3-22-TOP* *N3-31-TOP*
+	  *N1-SL-BOT* *N3-22-BOT* *N3-31-BOT*))
 
 (defun current-euclidean-action nil
   "Returns the current value of the Euclidean action, which is completely real 
    and negative."
-  (* *i* (current-action-wick-rotated)))
+  (let ((euclidean-action (* *i* (current-action-wick-rotated))))
+    (assert (zerop (imagpart euclidean-action)))
+    (realpart euclidean-action)))
 
 (defun current-un-normalized-probability nil
   "Returns the the un-normalized probability of the current spacetime. 
@@ -32,3 +33,20 @@
   (with-open-file (f filename)
     (load-spacetime-from-file f))
   (output-action t))
+
+(defun mean-and-std-dev-probability-amplitude (filename-list stream)
+  "Runs measure-spacetime-action on every file in filename-list and prints 
+   the mean and standard deviation."
+  (let ((probability-amplitudes nil)
+	(mean nil)
+	(std nil))
+    (loop for file in filename-list do
+	 (reset-spacetime-fast)
+	 (with-open-file (f file)
+	   (load-spacetime-from-file f))
+	 (push (* -1 (current-euclidean-action)) probability-amplitudes))
+    (setf mean (mean probability-amplitudes))
+    (setf std  (standard-deviation probability-amplitudes))
+    (format stream "Mean: ~E Std: ~E~%" mean std)
+    (values mean std)))
+	 
