@@ -1,4 +1,4 @@
->(declaim (optimize (speed 3)
+(declaim (optimize (speed 3)
 		   (compilation-speed 0)
 		   (debug 0)
 		   (safety 0)))
