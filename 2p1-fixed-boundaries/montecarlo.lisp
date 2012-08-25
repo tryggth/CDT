@@ -171,6 +171,7 @@
 ;; JM: Because accept-move? now requires sxid as an input, sweep is a
 ;; slightly different function than it was before.
 (defun sweep ()
+  "N3 iterations of the Metropolis-Hastings algorithm."
   (let ((num-attempted 0))
     (while (< num-attempted N-INIT)
       (let* ((sxid (random *LAST-USED-3SXID*))

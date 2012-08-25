@@ -10,6 +10,9 @@
 
 (load "../utilities.lisp")
 (load "globals.lisp")
+(load "tracking_vectors.lisp")
+(load "action.lisp")
+(load "reset_spacetime.lisp")
 (load "generalized-hash-table-counting-functions.lisp")
 (load "simplex.lisp")
 (load "topological_checks.lisp")

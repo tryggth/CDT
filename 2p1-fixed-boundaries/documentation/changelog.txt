@@ -158,3 +158,8 @@ August 06, 2012 -- Rajesh and I Josh discovered that the bulk of all
        	   	   higher proper time. Randomizing the selection here
        	   	   fixed the problem.
 
+August 25, 2012 -- Cleaned up the code by moving some files
+       	   	   around. Split globals.lisp into globals.lisp,
+       	   	   tracking_vectors.lisp, action.lisp, and
+       	   	   reset_spacetime.lisp. I also cleaned up
+       	   	   montecarlo.lisp and added the output.lisp module.

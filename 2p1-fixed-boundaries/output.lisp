@@ -18,6 +18,26 @@
 
 
 
+;;;; Functions that make file names:
+;;;;-------------------------------------------------------------------------
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
+(defun generate-filename (&optional (start-sweep 1) 
+			    (end-sweep (+ start-sweep NUM-SWEEPS -1)))
+  (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-on-~A-started~A" 
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* start-sweep 
+	  end-sweep (hostname) (cdt-now-str)))
+
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-hostname-starttime-currenttime
+(defun generate-filename-v2 (&optional (ssweep 1) (csweep 0) 
+			       (esweep (+ ssweep NUM-SWEEPS -1)))
+  (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-on-~A-start~A-curr~A" 
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
+	  ssweep csweep esweep 
+	  (hostname) SIM-START-TIME (cdt-now-str)))
+
+;;;;-------------------------------------------------------------------------
+
+
 ;;;; Functions which print data to a specified iostream.
 ;;;;-------------------------------------------------------------------------
 (defun print-movie-data (iostream)
