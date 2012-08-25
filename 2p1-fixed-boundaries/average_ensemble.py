@@ -233,7 +233,7 @@ def plot_and_fit(filename_list):
 
     # Calculate norm of the residuals: ||f(x,popt) - data||. The
     # smaller the number, the better the fit.
-    rnorm = np.linalg.norm(fit - means)
+    rnorm = np.linalg.norm(fit - means) / float(np.max(means))
 
     return [popt,N3,num_slices,rnorm]
 
