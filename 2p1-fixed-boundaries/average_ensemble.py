@@ -231,16 +231,22 @@ def plot_and_fit(filename_list):
 
     plt.show()
 
-    return [popt,N3,num_slices]
+    # Calculate norm of the residuals: ||f(x,popt) - data||. The
+    # smaller the number, the better the fit.
+    rnorm = np.linalg.norm(fit - means)
+
+    return [popt,N3,num_slices,rnorm]
 
 def print_popt(popt,N3,num_slices):
     "Prints the optimized parameters nicely."
     output = "N3 = {}. num_slices = {}.\ns = {}\nA = {}\nC = {}."
     print output.format(N3,num_slices,popt[0],popt[1],popt[2])
+
 #-------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    popt,N3,num_slices = plot_and_fit(sys.argv[1:])
+    popt,N3,num_slices,rnorm = plot_and_fit(sys.argv[1:])
+    print "Norm of the residuals: {}.".format(rnorm)
     print_popt(popt,N3,num_slices)
 
         
