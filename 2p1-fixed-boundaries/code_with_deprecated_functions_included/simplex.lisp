@@ -346,8 +346,21 @@
 	     *ID->3SIMPLEX*)
     (list 1count 2count 3count (+ 1count 2count 3count))))
 
-;; JM: This function could be improved using the generalized counting
-;; functions
+;;; JM : The next few count functions were written by David Kamensky
+;;; for deprecated code and I don't know if they work. They are
+;;; required for initializing the simulation and setting the b-vector
+;;; initially, so it is important that they work correctly. Rajesh's
+;;; updated code with more data structures should make these functions
+;;; much easier. Assuming the hash table format is the same, they
+;;; should work fine, but use at your own risk.
+
+
+;;; TODO: It seems that many of these count functions only work in the
+;;; fixed boundary case. Fix this using David Kamensky's bc-mod macro.
+
+
+;; JM : I think this one will still work, because it only cares about
+;; 3-simplexes.
 (defun count-boundary-vs-bulk ()
   "Counts the number of 3-simplexes with edges on the boundary
 compared to those only in the bulk."
@@ -493,6 +506,13 @@ time-slice."
 			*TL1SIMPLEX->ID* 1))
 
 
+;;; JM: I have changed count-timelike-links-in-sandwich to take
+;;; advantage of Rajesh's bug-fixed code, including the new
+;;; sub-simplex hash tables. Thus, the old
+;;; count-timelike-links-in-sandwich is deprecated. It has been marked
+;;; as such, and I leave it only for completeness sake. Use at your
+;;; own risk.
+
 ;; Function to count the number of timelike links in a sandwich Since
 ;; we have a list of timelike links waiting for us in a hash table, we
 ;; simply count up the ones with the low element tmlo=t0. Order
@@ -507,6 +527,28 @@ t-high is for compatibility. We only care about t-low."
 			 *TL1SIMPLEX->ID* 1))
 
 
+;; Function to count the number of timelike links in a sandwich
+;; DEPRECATED: USE AT YOUR OWN RISK
+(defun count-timelike-links-in-sandwich-deprecated (t0 t1)
+ 
+  ;;approach: get all of the simplices in the sandwich, then repeatedly
+  ;;perform set unions with the links from each simplex
+  
+  (let ((list-of-links () ))
+    (dolist (sxid (get-simplices-in-sandwich t0 t1))
+      (let* ((sx (get-3simplex sxid))
+	     (lopts (3sx-lopts sx))
+	     (hipts (3sx-hipts sx))
+	     (sx-tl-links (let ((retval ()))
+			    (dolist (lopt lopts)
+			      (dolist (hipt hipts)
+				(push (list lopt hipt) retval)))
+			    retval)))
+	(setf list-of-links (union list-of-links sx-tl-links 
+				   :test #'(lambda (x y) 
+					     (not (set-difference x y)))))))
+    (length list-of-links)))
+
 ;; Count the number of time-like links in the entire spacetime. Needs
 ;; to be careful of indices to avoid double-counting
 (defun count-timelike-links-in-spacetime ()
@@ -519,10 +561,28 @@ t-high is for compatibility. We only care about t-low."
    not the id.)"
   (list-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL2SIMPLEX->ID* 0))
 
+
+;;; JM: I have changed count-spacelike-triangles-at-time to take
+;;; advantage of Rajesh's bug-fixed code, including the new
+;;; sub-simplex hash tables. Thus, the old
+;;; function is deprecated. It has been marked
+;;; as such, and I leave it only for completeness sake. Use at your
+;;; own risk.
 (defun count-spacelike-triangles-at-time (t0)
   "Count spacelike triangles (2-simplices) on a given time-slice."
   (count-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL2SIMPLEX->ID* 0))
 
+;;count the number of spacelike triangles at a certain time
+;; Although this is deprecated, it should work anyways.
+(defun count-spacelike-triangles-at-time-deprecated (t0)
+
+  ;;must treat one end as a special case; choosing to treat
+  ;;time 0 specially. number of triangles is just related to the
+  ;;number of type 1/3 simplices in nieghboring sandwiches
+
+  (if (= t0 0)
+      (count-simplices-in-sandwich-of-type 0 1 3)
+      (count-simplices-in-sandwich-of-type (1- t0) t0 1)))
 
 ;; Count the number of spacelike triangles at all times
 (defun count-spacelike-triangles-in-spacetime ()
@@ -535,6 +595,12 @@ t-high is for compatibility. We only care about t-low."
    This is the key to the hash table, not the value."
   (list-keys-with-trait #'(lambda (x) (= x (bc-mod t0))) *SL1SIMPLEX->ID* 0))
 
+
+;;; JM: I have changed count-spacelike-links-at-time to take advantage
+;;; of Rajesh's bug-fixed code, including the new sub-simplex hash
+;;; tables. Thus, the old function is deprecated. It has been removed
+;;; becuase it relied on an outmoded version of euler-char, which has
+;;; been since removed.
 
 (defun count-spacelike-links-at-time (t0)
   "Count number of spacelike links on a given time slice."
@@ -552,10 +618,51 @@ t-high is for compatibility. We only care about t-low."
   t-high
   (list-keys-with-trait #'(lambda (x) (= x t-low)) *TL2SIMPLEX->ID* 1))
 
+;;; JM: I have modified count-timelike-triangles-in-sandwich to take
+;;; advantage of Rajesh's new and improved data structures. The first
+;;; function is mine. The second one is deprecated, left in for
+;;; completeness only. Use at your own risk.
+
+;;; TODO: It seems that these count functions only work in the fixed
+;;; boundary case. Fix this using David Kamensky's bc-mod macro.
+
 (defun count-timelike-triangles-in-sandwich (t0 t1)
   "Count the number of timelike triangles in a sandwich."
   t1
   (count-keys-with-trait #'(lambda (x) (= t0 x)) *TL2SIMPLEX->ID* 1))
+
+;; count the number of timelike triangles in a particular sandwich
+;; DEPRECATED USE AT YOUR OWN RISK
+(defun count-timelike-triangles-in-sandwich-deprecated (t0 t1)
+  
+  ;;similar approach to counting timelike links, except sets of three points
+  ;;are collected and counted
+
+  (let ((list-of-triangles () ))
+    (dolist (sxid (get-simplices-in-sandwich t0 t1))
+      (let* ((sx (get-3simplex sxid))
+	     (ty (3sx-type sx))
+	     (pts (3sx-points sx))
+
+	     (sx-tl-triangles
+	      (case ty
+		(1 (list (list (first pts)  (second pts) (third pts))
+			 (list (first pts)  (second pts) (fourth pts))
+			 (list (first pts)  (third pts)  (fourth pts))))
+		(2 (list (list (first pts)  (third pts)  (fourth pts))
+			 (list (second pts) (third pts)  (fourth pts))
+			 (list (first pts)  (second pts) (third pts))
+			 (list (first pts)  (second pts) (fourth pts))))
+		(3 (list (list (fourth pts) (first pts)  (second pts))
+			 (list (fourth pts) (first pts)  (third pts))
+			 (list (fourth pts) (second pts) (third pts)))))))
+
+	(setf list-of-triangles (union list-of-triangles sx-tl-triangles
+				       :test #'(lambda (x y) 
+						 (not 
+						  (set-difference x y)))))))
+    (length list-of-triangles)))
+
 
 (defun count-timelike-triangles-in-spacetime ()
   "Count the total number of spacelike triangles in the entire spacetime."

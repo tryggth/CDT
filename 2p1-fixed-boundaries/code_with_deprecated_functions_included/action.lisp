@@ -174,3 +174,34 @@ for use in the simulation."
      (make-action *alpha* *k* *litL*)
      (initialize-move-markers)))
 
+;; JM: Deprecated. I've replaced this with the functions
+;; above. However, for completeness and for debugging, I've left the
+;; original function in here. A warning: IT DOES NOT CONSTRUCT AN
+;; ACTION WITH THE BOUNDARY CONDITION TERM INCLUDED.
+(defun set-k0-k3-alpha-deprecated (kay0 kay3 alpha)
+  (setf *k0* kay0 *k3* kay3 *alpha* alpha)
+  (initialize-move-markers)
+  (let* ((k (/ *k0* (* 2 *a* pi)))
+	 (litL (* (- *k3* (* 2 *a* pi k 3KAPPAMINUS1)) 
+		  (/ 6ROOT2 (* *a* *a* *a*))))
+	 (2alpha+1 (+ (* 2 *alpha*) 1))
+	 (4alpha+1 (+ (* 4 *alpha*) 1))
+	 (4alpha+2 (+ (* 4 *alpha*) 2))
+	 (3alpha+1 (+ (* 3 *alpha*) 1))
+	 (arcsin-1 (asin (/ (* *-i* (wrsqrt (* 8 2alpha+1))) 4alpha+1)))
+	 (arccos-1 (acos (/ *-i* (wrsqrt (* 3 4alpha+1)))))
+	 (arccos-2 (acos (/ -1 4alpha+1)))
+	 (arccos-3 (acos (/ 2alpha+1 4alpha+1)))
+	 (k1SL (* *2pi/i* k))
+	 (k1TL (* 2 pi k (wrsqrt *alpha*)))
+	 (k3TL31 (+ (* k *3/i* arccos-1) 
+		    (* 3 k (wrsqrt *alpha*) arccos-3)
+		    (* (/ litL 12) (wrsqrt 3alpha+1))))
+	 (k3TL22 (+ (* k *2/i* arcsin-1)
+		    (* 4 k (wrsqrt *alpha*) arccos-2)
+		    (* (/ litL 12) (wrsqrt 4alpha+2)))))
+    (setf (symbol-function 'action)
+	  #'(lambda (n1SL n1TL n3TL31 n3TL22)
+	      (- (+ (* k1SL n1SL) (* k1TL n1TL)) 
+		 (+ (* k3TL31 n3TL31) (* k3TL22 n3TL22)))))))
+

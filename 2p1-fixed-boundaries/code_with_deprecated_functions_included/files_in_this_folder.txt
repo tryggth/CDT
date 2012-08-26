@@ -1,0 +1,14 @@
+files_in_this_folder.txt
+Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+
+When updated the fixed boundaries CDT code, I changed a number of
+functions substantially. However, for completeness sake, I left the
+old function in the code and gave it a name like
+"function-name-deprecated." I have since cleaned up the code. However,
+in this folder are the files that contain the messy code with the
+deprecated functions in it.
+
+Note that I missed doing this for a couple of things. Most notably,
+the original output functions are lost to time. However, the originals
+are the same as are in Rajesh's 2p1 code with periodic boundary
+conditions. You can find them there.
