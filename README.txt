@@ -1,10 +1,12 @@
 Tools and code for Causal Dynamical Triangulations
 
+Github location: https://github.com/ucdavis/CDT
+
 * dataviz.nb - Mathematica file to convert CDT output files into nice movies
 * SurfaceOfResolution.m - Mathematica Algorithms for dataviz.nb
 * gr.nb - Symbolically compute the Einstein tensor
-* 2p1-fixed-boundaries-old - modified by David Kamensky to support open/fixed boundary conditions. Inherets bugs from older code.
-* 2p1-fixed-boundaries - Updated version of 2p1 to incorporate David Kamensky's modifications. Merger performed by Jonah Miller.
+* 2p1-fixed-boundaries-old - modified by David Kamensky to support open/fixed boundary conditions. Inherets bugs from older code. (LISP)
+* 2p1-fixed-boundaries - Updated version of 2p1 to incorporate David Kamensky's modifications. Merger performed by Jonah Miller. (LISP)
 * 2p1 - 2+1 spacetime code (LISP)
 * 3p1 - 3+1 spacetime code (LISP)
 * HL - Horava-Lifshitz code (LISP)

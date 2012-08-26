@@ -1,0 +1,171 @@
+\message{ !name(users_guide.tex)}\documentclass{article}
+
+\author{Jonah Miller}
+\title{2+1-dimensional Fixed Boundaries CDT: Users Guide}
+
+\usepackage{fullpage}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+%\usepackage{algorithmic}
+
+\begin{document}
+
+\message{ !name(users_guide.tex) !offset(-3) }
+
+\maketitle
+
+\section{Introduction}
+
+This is the fixed boundaries branch of Rajesh Kommu's CDT code. The
+algorithm was originally worked on by David Kemansky, and later
+improved upon and updated by Jonah Miller.
+
+The code implements CDT using an updated action that includes the
+boundary terms.
+
+\section{Running the Code}
+
+The code is typically run by creating a Common Lisp script and running
+it using the command
+
+\lstset{language=Bash,stepnumber=2}
+\begin{lstlisting}
+nohup nice sbcl --dynamic-space-size 2000 --script <your-script> >> logname.log &
+\end{lstlisting}
+In order, each command does the following:
+\begin{itemize}
+\item nohup---stands for ``no hangup.'' Prevents the program from
+  stopping if you log off of your computer.
+\item nice---Tells the computer to prioritize this program less highly
+  than other programs you start. What this means is that programs
+  without the ``nice'' flag will take more cputime than programs that
+  have the ``nice'' flag. This prevents the computer from freezing up
+  if all the cores are running simulations.
+\item sbcl---Steele Bank Common Lisp. The Common Lisp interpeter we use.
+\item dynamic-space-size 2000--- This tells the lisp interpreter to
+  reserve 2 GB of RAM for use with the garbage collector. If the we
+  don't reserve enough memory, the program crashes.
+\item script [your script name]---This is hopefully self-explanatory.
+\item $>>$ logname.log---This sends the
+  output of the program from the console to the file logname.log.
+\item \&---This ``daemonizes'' the program, so you can still use your console.
+\end{itemize}
+
+It is also possible to run lisp in a live interpreted environment
+using common lisp's REPL (read-eval-print-loop), which compiles
+individual functions as they're defined and runs them in an
+interpreted environment. This is very nice for debugging and
+prototyping. To do this, just type
+\begin{lstlisting}
+sbcl
+\end{lstlisting}
+into the command line.
+
+Alternatively, you can use SLIME, an extension for emacs, as a more
+powerful interpreter and indeed IDE. Slime is a very powerful tool and
+I suggest you check it out:
+\begin{verbatim}
+http://common-lisp.net/project/slime/
+\end{verbatim}
+
+\section{Dependencies}
+One of the first lines of your script should be 
+\lstset{language=Lisp,numbers=left,stepnumber=1,frame=shadowbox,rulesepcolor=\color{blue}}
+\begin{lstlisting}
+(load ``cdt2p1.lisp'')
+\end{lstlisting}
+This is a top level wrapper which includes all the most important
+modules. It is equivalent to:
+\begin{lstlisting}
+(load "../utilities.lisp")
+(load "globals.lisp")
+(load "tracking_vectors.lisp")
+(load "action.lisp")
+(load "reset_spacetime.lisp")
+(load "generalized-hash-table-counting-functions.lisp")
+(load "simplex.lisp")
+(load "topological_checks.lisp")
+(load "moves.lisp")
+(load "ascii_plotting_tools.lisp")
+(load "initialization.lisp")
+(load "montecarlo.lisp")
+(load "output.lisp")
+\end{lstlisting}
+
+\section{Getting a spacetime}
+
+When you run a simulation, you're going to want to do one of two
+tings: create a new spacetime to thermalize, or load an existing
+spacetime from a file.
+
+\subsection{Creating a new spacetime}
+
+You can initialize your spacetime with the
+``set-t-slcies-with-v-volume'' command. For example:
+
+\begin{lstlisting}
+(set-t-slices-with-v-volume :num-time-slices 64
+                            :target-volume 30850
+                            :spatial-topology "S2"
+                            :boundary-conditions "OPEN"
+               :initial-spatial-geometry "boundary_files/tetrahedron.boundary"
+               :final-spatial-geometry "boundary_files/tetrahedron.boundary")
+\end{lstlisting}
+
+Some options require explanation. 
+\begin{itemize}
+\item The input number of time slices \textit{must} be even, due to
+  the way the simulation initializes the spacetime. In the periodic
+  boundary conditions case, the actual number of time slices the
+  computer will generate is indeed the number you put here. However,
+  in the fixed boundary conditions case, one additional time slice
+  will be added.
+\item The options for spatial topology are ``S2'' and ``T2,'' for the
+  sphere and the torus respectively. The sphere topology works for
+  everything. However, the torus only works for periodic boundary
+  conditions.
+\item Boundary condition types are ``OPEN'' and ``PERIODIC''.
+\item The ``initial-spatial-geoemtry'' and ``final-spatial-geometry''
+  fields are entirely optional. If you don't want them, don't even
+  type them. Like so:
+\begin{lstlisting}
+(set-t-slices-with-v-volume :num-time-slices 64
+			    :target-volume(* 8 1024)
+			    :spatial-topology "S2"
+			    :boundary-conditions "PERIODIC")
+\end{lstlisting}
+If you don't include these options and you use ``OPEN'' boundary
+conditions, then the boundaries will be minimal triangulations of the
+sphere: tetrahedra.
+\item The input to the ``initial-spatial-geometry'' and
+  ``final-spatial-geometry'' options should be a list of
+  space-separated lists, each containing three points (for a triangle,
+  you see). Using this format, we can completely describe a 2D
+  triangulation. For instance, a tetrahedron is
+\begin{lstlisting}
+((4 3 2) (4 1 3) (1 4 2) (2 1 3))
+\end{lstlisting}
+Give each point a number, and draw the triangles, and you'll see this
+is a tetrahedron. Generalize this format to input any boundary
+geometry homeomorphic to the sphere.n
+\end{itemize}
+
+Once you've initialized a spacetime, you also need to set the coupling
+constants. The two commands you can use for this are
+``set-k0-k3-alpha'' and ``set-k-litl-alpha.'' They both set all
+coupling constants, but in one case you directly set $k$ and $\lambda$
+(called litL here) and in the other case you set $k_0$ and $k_3$, as
+discussed in Amb\o rn and Loll. In theory, in the fixed boundary
+conditions case, $k_0$ and $k_3$ should be radically different
+functions of $k$ and $\lambda$ than they are in the periodic boundary
+conditions case. However, so that we can easily compare $k$ and
+$\lambda$ between simulations, the formulae for $k_0$ and $k_3$ are
+identical to what they are in the fixed boundary conditions case.
+$$\texttt{k} = k=\frac{1}{8\pi G}$$
+and
+$$\texttt{litL} = \lambda = k\Lambda.$$
+$k_0=$k0 and $k_3$=k3 are related to $k$ and $\lambda$ in a complicated way.
+
+\end{document}
+\message{ !name(users_guide.tex) !offset(-171) }

@@ -134,8 +134,9 @@ k3_of_k0.py -- function call:
 
 
 
-SHELL SCRIPTS (all live in ~/data_analysis_scripts)
+SHELL SCRIPTS
 ;+-----------------------------------------------------------------------------+
+Lives in ~/data_analysis_scripts/
 extract_action.sh -- function call: ./extract_action.sh *.3sx2p1
  		     
 		     Takes any number of spacetimes generated in an
@@ -154,6 +155,12 @@ extract_action.sh -- function call: ./extract_action.sh *.3sx2p1
 		     extract_action.sh relies on the
 		     action_output.lisp module to the main CDT
 		     program.
+
+Lives in ~
+start_cores.sh -- function call: ./start_cores.sh
+
+	       	  Useful for running a number of CDT simulations at once. I
+		  use it to build ensembles from a thermalized spacetime.
 ;+-----------------------------------------------------------------------------+
 
 
