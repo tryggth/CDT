@@ -170,7 +170,7 @@
 ;; creates an additional data file every SAVE-EVERY-N-SWEEPS that
 ;; contains the spatial 2-simplex information for each spatial slice.
 (defun generate-data-v3 (&optional (start-sweep 1))
-  "Like generate-data-v2, but generates spatial 2 simplex and spatial 
+  "Like generate-data-v2, but generates spatial 2 simplex and 
    3-simplex information every SAVE-EVERY-N-SWEEPS."
   (setf SIM-START-TIME (cdt-now-str))
   (let ((end-sweep (+ start-sweep NUM-SWEEPS -1)))

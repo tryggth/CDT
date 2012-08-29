@@ -1,7 +1,5 @@
-SCRIPTNAME="default_post_thermalization.script.lisp"
-
-for i in {1..28}; do 
-    nice sbcl --dynamic-space-size 2000 --script $SCRIPTNAME >> "120824_ensemble_building_T016_$i.log" &
+for i in {1..24}; do 
+    nohup nice sbcl --dynamic-space-size 2000 --script $1 >> $1.log &
     sleep 2s
     echo $i
 done

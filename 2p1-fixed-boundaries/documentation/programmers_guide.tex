@@ -1,0 +1,197 @@
+
+\documentclass[12pt]{article}
+
+\author{Jonah Miller\\
+\textit{jonah.maxwell.miller@gmail.com}}
+\title{2+1-dimensional Fixed Boundaries CDT: Programmer's Guide}
+
+\usepackage{fullpage}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+%\usepackage{algorithmic}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+\label{s:intro}
+
+This is the fixed boundaries branch of Rajesh Kommu's CDT code. The
+algorithm was originally worked on by David Kemansky, and later
+improved upon and updated by Jonah Miller.
+
+The code implements CDT using an updated action that includes the
+boundary terms.
+
+The goal of this file is to explain how to modify the code. I will
+first give a very brief overview of the algorithm of the program. Then
+dive into data structures and specific functions and how they should
+be used. This document assumes the reader knows how to run the
+program, its basic structure, and the physics behind it. In order,
+these can be found in:
+\begin{itemize}
+\item The user's guide.
+\item The file called program\_and\_module\_list.txt
+\item Ambj\o rn and Loll's ``Dynamically Triangulating Lorentzian
+  Quantum Gravity,'' the documentation file
+  ``Gibbons-Hawkin\_Boundary\_Term\_in\_Causal\_Dynamical\_Triangulations.pdf,''
+  and my REU writeup, which is bundled here as well.
+\end{itemize}
+
+I also assume the reader knows some basics about programming in
+lisp. Here are some of the resources I used:
+\begin{itemize}
+\item Peter Siebel's ``Practical Common Lisp'' is an excellent,
+  readable, and in-depth guide to writing code in lisp. It was my
+  primary resource and you can find it online.
+  \begin{verbatim}
+http://www.gigamonkeys.com/book/
+\end{verbatim}
+\item The canonical work on Lisp is Paul Graham's ``On Lisp.'' It is available online.
+\begin{verbatim}
+http://www.paulgraham.com/onlisp.html
+\end{verbatim}
+\item Successful Lisp is another book available for free online.
+\begin{verbatim}
+http://psg.com/~dlamkins/sl/contents.html
+\end{verbatim}
+\item This website links to a number of useful resources.
+  \begin{verbatim}
+http://www.apl.jhu.edu/~hall/lisp.html
+\end{verbatim}
+\end{itemize}
+
+Hopefully this guide will help elucidate how to edit the CDT
+code-base. If you have any questions, don't hesitate to email me.
+
+\section{The Algorithm}
+\label{s:algorithm}
+Although I'm sure the reader is familiar with the algorithm of CDT, I
+present it here for completeness. The metropolis algorithm as applied
+to CDT is as follows:
+\begin{enumerate}
+\item Generate an arbitrary spacetime constructed of equilateral simplices.
+\item Randomly apply one of the ergotic moves to the spacetime.
+\item Calculate whether the new spacetime is more or less likely than
+  the old spacetime, or less, as given by its un-normalized weight in
+  the partition function,\footnote{Technically, the normalized weight
+    $\frac{1}{Z}e^{iS}$ is the important quantity. However, since we
+    only care about the ratio of weights, the factor of $1/Z$ cancels
+    out. This is fortunate, since we don't know what $Z$ is---if we
+    did, we could simply perform the path integral.} $e^{i S}$.
+\item If the new spacetime is more likely than the previous spacetime,
+  accept the change with probability $P=1$. If it is less likely,
+  accept the change with probability $P = P(new)/P(old)$. We can
+  rewrite this probability as
+  $$P = e^{i S_{new} - i S_{old}}.$$
+\item Return to step 2, and repeat until the spacetime is acceptably
+  probable.
+\end{enumerate}
+The primary data structures we need to worry about, then, are the
+geometric objects. These, and the functions that manipulate them, will
+be discussed in section \ref{s:data-structures}. The most important
+functions are the action and the ergotic moves. These will be
+discussed in some detail in section \ref{s:functions}.
+
+\section{Data Structures}
+\label{s:data-structures}
+
+The most important data structures in the simulation are, of course
+the goemetric objects that make up the spacetimes. These are points,
+edges, triangles, and tetrahedra. 
+
+The other important data structures in the simulation are the F and B
+vectors, which count geometric objects. We will discuss these after we
+discuss the geometric objects.
+
+\subsection{Points}
+\label{ss:points}
+
+Points are represented as integer identifiers. There is no master list
+of points, but, whenever a new point is created, the value of a global
+variable is incremented to obtain the next point ID. Points have no
+coordinates in this program. In some sense, points are the most
+important objects in the simulation. As will be discussed below, the
+higher-dimensional simplices are partly defined by which points they
+contain. Objects that manipulate points are:
+\lstset{language=Lisp,frame=shadowbox,rulesepcolor=\color{blue}}
+\begin{itemize}
+\item \textbf{*LAST-USED-POINT*}---This is the global variable that is
+  incremented to obtain point ids. It starts at 0.
+\item \textbf{next-pt}---This is a function that increments
+  *LAST-USED-POINT* by 1. It then returns the incremented
+  *LAST-USED-POINT*. Call it with
+\begin{lstlisting}
+(next-pt)
+\end{lstlisting}
+Thus, 
+\begin{lstlisting}
+(format t "The next point is ~A~%." (next-pt))
+\end{lstlisting}
+would return 
+\begin{verbatim}
+The next point is <next point>.
+\end{verbatim}
+\item \textbf{set-last-used-pt}---In certain circumstances, for
+  instance when loading a spacetime from file, we just want to tell
+  the simulation how many points IDs have been used, rather than
+  increment the global variable. The call
+\begin{lstlisting}
+(set-last-used-pt point-number)
+\end{lstlisting}
+will set *LAST-USED-POINT* to point-number.
+\end{itemize}
+
+*LAST-USED-POINT* and all objects that manipulate it can be found in ``globals.lisp.''
+
+\subsection{Links/Edges}
+
+Links are the edges of tetrahedra. There can be time-like links which
+connect points at two different times and space-like links which
+connect points at the same time. Since they are one dimensional, we
+also call links 1-simplices. Links, faces, and tetrahedra are stored
+in hash tables.\footnote{A hash table is a generalized list. You can
+  think of it as a function in the mathematical sense: It maps a
+  \textit{key} to a \textit{value}.} 
+
+Space-like links are stored in the hash table named
+\begin{lstlisting}
+*SL1SIMPLEX->ID*
+\end{lstlisting}
+and time-like links are stored in the hash table named
+\begin{lstlisting}
+*TL1SIMPLEX->ID*
+\end{lstlisting}
+
+As the name implies, the key of the hash table contains the geometric
+object itself. The value associated with each key is actually just
+0. For the lower-dimensional simplices, only the keys are really
+used. Because hash tables can be thought of like mathematical
+functions, a given key can't be entered into the hash table twice---it
+just doesn't make sense. If I tried to add a new entry to the hash
+table that shared a key with an existing entry, the value of the
+existing entry would be overwritten, but otherwise nothing would
+change. By storing geometric information in the keys of a hash table,
+we ensure that we have no duplicate geometric objects.
+
+\subsubsection{*SL1SIMPLEX-$>$ID*}
+\label{sss:sl1simplex:id}
+The keys for the *SL1SIMPLEX-$>$ID* hash table are of the form:
+\begin{lstlisting}
+(tslice (p0 p1))
+\end{lstlisting}
+where tslice is the proper time the edge lives in, or the time slice
+that contains the edge, and p0 and p1 are the endpoints of the
+edge. The parentheses represent that the key is a list. (p0 p1) is
+another list. As discussed above, the value for each entry in the hash table is \textbf{0}.
+
+\subsubsection{*TL1SIMPLEX-$>$ID*}
+\label{sss:tl1simplex:id}
+
+\section{Functions}
+\label{s:functions}
+
+\end{document}
+
+
