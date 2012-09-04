@@ -65,17 +65,6 @@
 			    :if-exists :supersede)
     (save-spacetime-to-file datafile)))
 
-(defun make-spatial-2-simplex-file (filename)
-  "Like make-spacetime-file aboce, but generates spatial 2-simplex
-   data instead of 3-simplex data. The filename input is made
-   by (generate-filename start-sweep) or somthing similar. It does not
-   have the file extension."
-  (3sx2p1->s2sx2p1)
-  (with-open-file (datafile (concatenate 'string filename S2SXEXT)
-			    :direction :output
-			    :if-exists :supersede)
-    (save-s2simplex-data-to-file datafile)))
-
 (defun make-progress-file (filename start-sweep ns end-sweep)
   "Makes a progress file that tells us the start sweep, the current
    sweep, the end sweep, and the numbers of simplices of all
@@ -164,24 +153,6 @@
 	 (sweep)
 	 (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
 	   (make-spacetime-file (generate-filename-v2 start-sweep ns))))))
-
-
-;; generate-data-v3 is similar to generate-data-v2 except it also
-;; creates an additional data file every SAVE-EVERY-N-SWEEPS that
-;; contains the spatial 2-simplex information for each spatial slice.
-(defun generate-data-v3 (&optional (start-sweep 1))
-  "Like generate-data-v2, but generates spatial 2 simplex and 
-   3-simplex information every SAVE-EVERY-N-SWEEPS."
-  (setf SIM-START-TIME (cdt-now-str))
-  (let ((end-sweep (+ start-sweep NUM-SWEEPS -1)))
-    (when (= 1 start-sweep) ;; save the initial spacetime contents if
-			    ;; this is a brand new run
-      (make-spacetime-file (generate-filename-v2 start-sweep 0))
-      (make-spatial-2-simplex-file (generate-filename-v2 start-sweep 0)))
-    (for (ns start-sweep end-sweep)
-      (sweep)
-      (make-spacetime-file (generate-filename-v2 start-sweep ns))
-      (make-spatial-2-simplex-file (generate-filename-v2 start-sweep ns)))))
 
 ;; generate-movie-data saves number of simplices every SAVE-EVERY-N-SWEEPS
 (defun generate-movie-data (&optional (start-sweep 1))

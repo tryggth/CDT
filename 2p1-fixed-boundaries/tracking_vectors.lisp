@@ -73,6 +73,7 @@
 ;; The f-vector manipulation functions
 (defun set-f-vector (v1 v2 v3 v4 v5 v6 v7)
   (setf N0 v1 N1-SL v2 N1-TL v3 N2-SL v4 N2-TL v5 N3-TL-31 v6 N3-TL-22 v7))
+
 (defun update-f-vector (dv)
   (incf N0       (nth 0 dv))
   (incf N1-SL    (nth 1 dv))

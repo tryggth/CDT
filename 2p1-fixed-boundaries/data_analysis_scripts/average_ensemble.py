@@ -248,5 +248,3 @@ if __name__ == "__main__":
     popt,N3,num_slices,rnorm = plot_and_fit(sys.argv[1:])
     print "Norm of the residuals: {}.".format(rnorm)
     print_popt(popt,N3,num_slices)
-
-        

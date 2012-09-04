@@ -394,6 +394,16 @@ test.lisp -- A program written by Rajesh Kommu to test that the simulation
 
 volume_and_dimension_computations.lisp -- Code written by Rajesh Kommu. I don't
 				       	  know what it does or how to use it.
+
+
+spacelike_2simplices.lisp -- Code written by Rajesh Kommu. Load this
+			     module if you want to extract information
+		      	     aobut 2-simplices using lisp rather than
+		      	     python. This is important for use with the
+		      	     volume_and_dimensions_computations.lisp
+		      	     module. Behaviour and code syntax should be
+		      	     very similar to that from simplex.lisp.
+
 ;+-----------------------------------------------------------------------------+
 		   
 

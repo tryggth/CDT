@@ -5,8 +5,13 @@
      "s:algorithm"
      "s:data-structures"
      "ss:points"
+     "s:links-edges"
+     "sss:sl1simplex:id"
+     "sss:tl1simplex:id"
+     "s:f-and-b-vectors"
      "s:functions")
     (TeX-run-style-hooks
+     "hyperref"
      "color"
      "listings"
      "verbatim"

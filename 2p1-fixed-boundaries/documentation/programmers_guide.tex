@@ -1,4 +1,3 @@
-
 \documentclass[12pt]{article}
 
 \author{Jonah Miller\\
@@ -9,6 +8,7 @@
 \usepackage{verbatim}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{hyperref}
 %\usepackage{algorithmic}
 
 \begin{document}
@@ -25,22 +25,41 @@ The code implements CDT using an updated action that includes the
 boundary terms.
 
 The goal of this file is to explain how to modify the code. I will
-first give a very brief overview of the algorithm of the program. Then
-dive into data structures and specific functions and how they should
-be used. This document assumes the reader knows how to run the
-program, its basic structure, and the physics behind it. In order,
-these can be found in:
+first give some tips about lisp. Then I will present a very brief
+overview of the algorithm of the program. Then dive into data
+structures and specific functions and how they should be used. This
+document assumes the reader knows how to run the program, its basic
+structure, and the physics behind it. In order these can be found in:
 \begin{itemize}
 \item The user's guide.
 \item The file called program\_and\_module\_list.txt
 \item Ambj\o rn and Loll's ``Dynamically Triangulating Lorentzian
   Quantum Gravity,'' the documentation file
   ``Gibbons-Hawkin\_Boundary\_Term\_in\_Causal\_Dynamical\_Triangulations.pdf,''
-  and my REU writeup, which is bundled here as well.
+  and my REU write-up.
 \end{itemize}
+All of these should be bundled in with the software in the
+documentation folder.
 
-I also assume the reader knows some basics about programming in
-lisp. Here are some of the resources I used:
+Hopefully this guide will help elucidate how to edit the CDT
+code-base. If you have any questions, don't hesitate to email me.
+
+\section{Lisp Tips and Tricks}
+\label{s:lisp:tricks}
+\subsection{Common Lisp Implementations}
+
+Although it is a programming language, ANSI Common Lisp is not a
+single program. Rather, it is a set of guidelines about how the
+programming language should behave. For this reason, there are a
+number of different implementations of Common Lisp, all of which
+behave slightly differently. We use Steel Bank Common Lisp, which can
+be found here:
+\begin{verbatim}
+http://www.sbcl.org/
+\end{verbatim}
+
+\subsection{Resources}
+Some resources on Lisp are:
 \begin{itemize}
 \item Peter Siebel's ``Practical Common Lisp'' is an excellent,
   readable, and in-depth guide to writing code in lisp. It was my
@@ -61,9 +80,66 @@ http://psg.com/~dlamkins/sl/contents.html
 http://www.apl.jhu.edu/~hall/lisp.html
 \end{verbatim}
 \end{itemize}
+\subsection{Coding Tools}
+\label{s:lisp:tools}
+When I edit lisp, I use the emacs text editor with SLIME, a module for
+emacs. This is not the only choice, but I think it is a very good one,
+and I suspect it is the canonical choice. You can find the home
+project for emacs here:
+\begin{verbatim}
+http://www.gnu.org/software/emacs/
+\end{verbatim}
+and the home project for slime here:
+\begin{verbatim}
+http://common-lisp.net/project/slime/
+\end{verbatim}
+For most Linux distributions, emacs and slime should be very easy to
+install if you have administrator privileges. The following tutorial explains how to get a nice set up in ubuntu:
+\begin{footnotesize}
+\begin{verbatim}
+https://functionalrants.wordpress.com/2008/09/06/how-to-set-up-emacs-slime-sbcl-under-gnulinux/
+\end{verbatim}
+\end{footnotesize}
+If you don't have administrator access, see pages 1--8 in the document
+labeled \textbf{cdthowto.pdf}. You may have to change some of the
+version numbers to get everything working.\footnote{The rest of the
+  cdthowto.pdf document is somewhat outdated. You're better off
+  referring to the other documentation.}
 
-Hopefully this guide will help elucidate how to edit the CDT
-code-base. If you have any questions, don't hesitate to email me.
+Emacs is a complicated piece of software. A good online tutorial is
+here:
+\begin{verbatim}
+http://www2.lib.uchicago.edu/keith/tcl-course/emacs-tutorial.html
+\end{verbatim}
+and Emacs includes a very good in-program tutorial as well. If you want to learn (much) more about what Emacs is capable of, check out ``Emacs Rocks'' and ``Emacs-Fu,'' two blogs about emacs:
+\begin{verbatim}
+http://emacsrocks.com/
+http://emacs-fu.blogspot.com/
+\end{verbatim}
+Finally, a very good resource on emacs is the Emacs Wiki:
+\begin{verbatim}
+http://emacswiki.org/
+\end{verbatim}
+
+\subsection{Tips and Tricks}
+
+When editing the CDT code, I suggest that you test your changes live,
+as you write code. You can do this by running slime from within
+emacs. Once you've opened up a *.lisp file, type ``Escape'' and then
+``x'' to access a command prompt. Then type ``slime'' and press
+``Enter.'' You will get a live Lisp interpreter. This is the ``REPL,''
+which stands for
+\textbf{R}ead-\textbf{E}val-\textbf{P}rint-\textbf{L}oop. Lisp is
+compiled, not interpreted. However, compilation happens at runtime:
+there is no separate compile-time step. One advantage of this is that
+functions can be defined and byte-compiled during a runtime
+algorithm. Another advantage is that you can prototype functions in
+Lisp the same way you would for a scripting language like
+Python. Indeed, you can do more than that, you can initialize a
+spacetime, and then define or redefine functions live and call them in
+the simulation to see what they do. While editing a *.lisp file with
+slime, if the REPL is active, you can compile a function by pressing
+``C-c C-c.'' This is how I suggest you change your code.
 
 \section{The Algorithm}
 \label{s:algorithm}
@@ -101,9 +177,9 @@ The most important data structures in the simulation are, of course
 the goemetric objects that make up the spacetimes. These are points,
 edges, triangles, and tetrahedra. 
 
-The other important data structures in the simulation are the F and B
-vectors, which count geometric objects. We will discuss these after we
-discuss the geometric objects.
+The other important data structures in the simulation are the f- and
+b-vectors, which count geometric objects. We will discuss these after
+we discuss the geometric objects.
 
 \subsection{Points}
 \label{ss:points}
@@ -146,7 +222,7 @@ will set *LAST-USED-POINT* to point-number.
 *LAST-USED-POINT* and all objects that manipulate it can be found in ``globals.lisp.''
 
 \subsection{Links/Edges}
-
+\label{s:links-edges}
 Links are the edges of tetrahedra. There can be time-like links which
 connect points at two different times and space-like links which
 connect points at the same time. Since they are one dimensional, we
@@ -175,6 +251,36 @@ existing entry would be overwritten, but otherwise nothing would
 change. By storing geometric information in the keys of a hash table,
 we ensure that we have no duplicate geometric objects.
 
+All 1-simplices contained in a given 3-simplex can be generated with
+the command \textbf{make-1simplices}, which has the following prototype:
+\begin{lstlisting}
+(defun make-1simplices (sxtype tmlo tmhi p0 p1 p2 p3)
+\end{lstlisting}
+The inputs here are relevant data from the definition of a 3-simplex,
+which I will discuss more below. sxtype is the type of
+tetrahedron---(2,2), (3,1), or (1,3)---; tmlo and tmhi are the time
+slices the simplex spans; and p0,p1,p2,p3 are the points of the
+simplex.
+
+\subsubsection{An Aside on Generating Lower-Dimensional Simplices}
+I will discuss each hash table for these objects in a little bit more
+detail below, but before I do that, I want to discuss how these
+objects, and objects like them, are usually generated. In general,
+lower-dimensional simplices are created when the higher-dimensional
+simplices are created. In other words, the function make-3simplex will
+generate the lower-dimensional subsimplices as a matter of course.
+
+The upside of this is that a programmer usually doesn't have to worry
+about explicitly keeping track of these simplices---lower-level
+functions are already doing all the book-keeping. However, an easy
+trap to fall into is to forget to remove lower-dimensional
+simplices. Removing a 3-simplex does not necessarily remove
+constituent sub-simplices, since that 3-simplex almost certainly
+shares some of its subsimplices with other simplices (in fact it
+always will). For this reason, lower-dimensional simplices are
+generated automatically by lower-level functions, but the programmer
+must intentionally remove them.
+
 \subsubsection{*SL1SIMPLEX-$>$ID*}
 \label{sss:sl1simplex:id}
 The keys for the *SL1SIMPLEX-$>$ID* hash table are of the form:
@@ -184,14 +290,885 @@ The keys for the *SL1SIMPLEX-$>$ID* hash table are of the form:
 where tslice is the proper time the edge lives in, or the time slice
 that contains the edge, and p0 and p1 are the endpoints of the
 edge. The parentheses represent that the key is a list. (p0 p1) is
-another list. As discussed above, the value for each entry in the hash table is \textbf{0}.
+another list. As discussed at the beginning of section
+\ref{s:links-edges}, the value for each entry in the hash table is
+\textbf{0}.
+
+You can remove spacelike 1-simplices with the commands
+\textbf{remove-sl1simplex} and \textbf{remove-sl1simplices}, which
+have the prototypes
+\begin{lstlisting}
+(defun remove-sl1simplex (sl1sx))
+\end{lstlisting}
+and 
+\begin{lstlisting}
+(defun remove-sl1simplices (sl1sxs))
+\end{lstlisting}
+respectively. The former accepts a single simplex key. The second
+accepts a list of simplices.
+
+You can look at the entire hash table with the function
+\textbf{show-sl1simplex-store}, with prototype
+\begin{lstlisting}
+(defun show-sl1simplex-store ())
+\end{lstlisting}
+and function call
+\begin{lstlisting}
+(show-sl1simplex-store)
+\end{lstlisting}
+
+You can access the spacelike links at a given time with the function
+\textbf{get-spacelike-links-at-time}, which has the
+prototype\footnote{When I describe prototypes, the prototype itself
+  probably doesn't exist, since this program doesn't prototype
+  functions. However, the prototype gives the user the relevant
+  information about a function call.}
+\begin{lstlisting}
+(defun get-spacelike-links-at-time (t0))
+\end{lstlisting}
+and you can count the number of spacelike links at a given time with
+the function \textbf{count-spacelike-links-at-time}, which has the
+prototype
+\begin{lstlisting}
+(defun count-spacelike-links-at-time (t0))
+\end{lstlisting}
+and you can count the spacelike 1simplices in the entire spacetime
+with the function \textbf{count-spacelike-links-in-spacetime}, which
+has the prototype
+\begin{lstlisting}
+(defun count-spacelike-links-in-spacetime ()).
+\end{lstlisting}
 
 \subsubsection{*TL1SIMPLEX-$>$ID*}
 \label{sss:tl1simplex:id}
 
+The keys for the *TL1SIMPLEX-$>$ID* hash table are of the form:
+\begin{lstlisting}
+(t_low t_high (p0 p1))
+\end{lstlisting}
+where t\_low and t\_high are the proper times between which the link
+is suspended, and p0 and p1 are the endpoints of the edge. As
+discussed at the beginning of section \ref{s:links-edges}, the value
+for each entry in the hash table is \textbf{0}.
+
+You can remove timelike 1-simplices with the commands
+\textbf{remove-tl1simplex} and \textbf{remove-tl1simplices}, which
+have the prototypes
+\begin{lstlisting}
+(defun remove-tl1simplex (tl1sx))
+\end{lstlisting}
+and 
+\begin{lstlisting}
+(defun remove-tl1simplices (tl1sxs))
+\end{lstlisting}
+respectively. The former accepts a single simplex key. The second
+accepts a list of simplices.
+
+You can look at the entire hash table with the function
+\textbf{show-tl1simplex-store}. The function call is analogous to that
+for show-sl1simplex-store. You can access the spacelike links at a
+given time with the function \textbf{get-timelike-links-in-sandwich},
+which has the prototype
+\begin{lstlisting}
+(defun get-timelike-links-in-sandwich (t-low t-high))
+\end{lstlisting}
+and you can count the number of spacelike links at a given time with
+the function \textbf{count-timelike-links-in-sandwich}, which has the
+prototype
+\begin{lstlisting}
+(defun count-timelike-links-in-sandwich (t-low t-high))
+\end{lstlisting}
+and you can count the spacelike 1simplices in the entire spacetime
+with the function \textbf{count-timelike-links-in-spacetime}, which
+has the prototype
+\begin{lstlisting}
+(defun count-timelike-links-in-spacetime ()).
+\end{lstlisting}
+
+You probably noticed that the spacelike and timelike 1simplices had
+very similar behavior and functions. This parallel will continue with
+spacelike and timelike triangles (also known as faces or 2-simplices).
+
+\subsection{Triangles/Faces}
+
+Triangles are the faces of the tetrahedra that make up a
+spacetime. Since they are two-dimensional, we also call them
+2-simplices or 2simplices. Space-like triangles are stored in the hash
+table named
+\begin{lstlisting}
+*SL2SIMPLEX->ID*
+\end{lstlisting}
+and time-like triangles are stored in the hash table named
+\begin{lstlisting}
+*TL2SIMPLEX->ID*
+\end{lstlisting}
+
+As with the edges, the hash table key contains the geometric object
+itself, and the value is \textbf{0}. All 2-simplices contained in a
+given 3-simplex can be generated with the \textbf{make-2simplices}
+function, which has the following prototype:
+\begin{lstlisting}
+(defun make-2simplices (sxtype tmlo tmhi p0 p1 p2 p3))
+\end{lstlisting}
+The function takes the same inputs as make-1simplices.
+
+\subsubsection{*SL2SIMPLEX$->$ID*}
+The keys for the *SL2SIMPLEX$->$ID* hash table are of the form
+\begin{lstlisting}
+(tslice (p0 p1 p2))
+\end{lstlisting}
+where tslice is the time slice the triangle lives in and p0, p1,and p2
+are the vertices of the triangle. Just like in the 1-simplex case, the
+value for a given key is always 0. 
+
+You can remove space-like 2-simplices with the commands
+\textbf{remove-sl2simplex} and \textbf{remove-sl2simplices}, which
+have prototypes and function calls analogous to the matching functions
+for space-like and time-like 1-simplices. You can access the
+space-like triangles with \textbf{show-sl2simplex-store}. You can
+access the spacelike triangles at a given time with
+\textbf{get-spacelike-triangles-at-time}, and you can count them with
+\textbf{count-spacelike-triangles-at-time} and
+\textbf{count-spacelike-triangles-in-spacetime}. The prototypes and
+function calls are analogous to those for the functions for space-like
+1-simplices.
+
+There is an additional function, \textbf{3sx2p1$->$s2sx2p1}, with the
+prototype
+\begin{lstlisting}
+(defun 3sx2p1->s2sx2p1 ())
+\end{lstlisting}
+which fills a hash table
+\begin{lstlisting}
+*ID->SPATIAL-2SIMPLEX*
+\end{lstlisting}
+with information on space-like 2-simplices as a function of proper
+time. At each proper time, the points and simplices will be numbered
+in such a way that the time slice will describe a surface in a
+coordinate-free way. I have never used this function, but I believe
+Rajesh uses it for data analysis. You can find this function and many
+more functions to do with spatial simplices in the module
+\textbf{spacelike\_2simplices.lisp}.
+
+
+\subsubsection{*TL2SIMPLEX$->$ID*}
+The keys for the *TL2SIMPLEX$->$ID* hash table are of the form
+\begin{lstlisting}
+(type tmlo (p0 p1 p2))
+\end{lstlisting}
+where the type is an integer, type$\in\{1,2\}$. It represents whether
+a triangle has one vertex in the lower time slice, or two
+(respectively). tmlo is the lower time slice that the the triangle is
+connected to. p0, p1, and p2 are the vertices of the triangle. The
+first type vertices are in the lower time slice and the last $3-$type
+vertices are in the upper time slice. Just like in the 1-simplex case,
+the value for a given key is always 0.
+
+As before, you remove time-like 2-simplices with the commands
+\textbf{remove-tl2simplex} and \textbf{remove-tl2simplices}. You can
+access the triangles with \textbf{show-tl2simplex-store},
+\textbf{get-timelike-triangles-in-sandwich}, and you can count them
+with \textbf{count-timelike-triangles-in-sandwich} and
+\textbf{count-timelike-triangles-in-spacetime}. The prototypes and
+calls are analogous to those for time-like 1-simplices.
+
+\subsection{Tetrahedra/3-simplices}
+Tetrahedra are the highest-level simplices in the spacetime. These are
+the most important objects: those changed by the ergotic moves. They
+are also by far the most complicated data structure in the
+program. There are three types of tetrahedra, labeled by the number of
+points in the lower time slice of the two slices they span:
+type$\in\{1,2,3\}$. A type 1 tetrahedron is a $(1,3)$-simplex. A type
+2 tetrahedron is a $(2,2)$-simplex, and a type 3 tetrahedron is a
+$(3,1)$-simplex. Tetrahedra are stored in the hash table
+\begin{lstlisting}
+*ID->3SIMPLEX*
+\end{lstlisting}
+and it uses both keys and values.
+
+The key is a numeric ID number assigned when the simplex is
+created. The 3-simplex IDs are generated in much the same way as the
+point IDs are generated. The programmer can find the functions
+\textbf{next-3simplex-id} and \textbf{recycle-3simplex-id} in the file
+globals.lisp. \textbf{recycle-3simplex-id} fulfills a special
+purpose. When a simplex is removed from the spacetime, its ID is added
+to a list \textbf{*RECYCLED-3SX-IDS*}. Later, when we want a new ID,
+\textbf{next-3simplex-id} first checks the list of recycled IDs and
+takes an element of that list. If the list is empty, then a new ID is
+generated. If we don't do this, the number of IDs and their values
+quickly becomes completely intractable.
+
+The value of \textbf{*ID$->$3SIMPLEX*} is the geometric object in
+question. The object is defined as
+\begin{lstlisting}
+(sxtype tmlo tmhi (p0 p1 p2 p3) (n1 n2 n3 n4))
+\end{lstlisting}
+where sxtype is the type of 3-simplex, as discussed at the beginning
+of \ref{s:links-edges}, tmlo and tmhi are the indexes of the
+time slices that the simplex spans. p0, p1, p2, p3 are the vertices of
+the tetrahedron, and the first type of them are in the lower time
+slice. n1, n2, n3, and n4 are the neighbors of the simplex---The ids
+of the tetrahedra that share a face with this tetrahedron. They are
+ordered such that the neighbor attached to the tetrahedron at the face
+opposite p1 is n1, the neighbor attached at the face opposite p2 is
+n2, etc..
+
+When a simplex is created \textbf{make-3simplex} (more on that below),
+the neighbor ids are all set to zero. The neighbors are set later
+using the command \textbf{connect-3simplices} and derivative
+functions. The reason for this is that the neighbors will be modified
+as the spacetime manifold changes. I will first describe simplex
+creation, then connecting neighbors, and then I will name the
+functions that access 3-simplices, which are often quite similar to
+the functions for lower-dimensional simplices.
+
+\subsubsection{Generation}
+The core function here is \textbf{make-3simplex}. It has the prototype 
+\begin{lstlisting}
+(defun make-3simplex (sxtype tmlo tmhi p0 p1 p2 p3))
+\end{lstlisting}
+and takes simplex type, time slices, and point IDs as its input. It
+doesn't take in neighbor IDs, because neighbor IDs are set later. This
+is the lowest-level tetrahedron function, and it generates
+sub-simplices automatically by calling make-2simplices and
+make-1simplices. It returns the ID number of the simplex, which it
+generates using next-3simplex-id. 
+
+There are also a number of functions that call make-3simplex for
+specialized purposes. \textbf{make-3simplex-v2} takes only 4 inputs,
+since the points are ``packed'' into a list. It's used when the
+ergodic moves are applied, since it is tailor-made to take the output
+of the try-move functions (more on these later) as input. The function
+definition is:
+\begin{lstlisting}
+(defun make-3simplex-v2 (sxtype tmlo tmhi pts)
+    (let ((p0 (nth 0 pts))
+	(p1 (nth 1 pts))
+	(p2 (nth 2 pts))
+	(p3 (nth 3 pts)))
+    (make-3simplex sxtype tmlo tmhi p0 p1 p2 p3)))
+\end{lstlisting}
+\textbf{make-3simplex-v3} is only used during the space-time
+initialization part of the algorithm. If periodic boundary conditions
+are specified, it adjusts the points on the final and initial
+time-slices, since the $t=t_{final}$ time slice is identified with the
+$t=0$ time slice. It also sets the variable *LAST-USED-POINT*, which
+is required for algorithm for fixed boundary
+conditions. \textbf{make-3simplex-v4} is used when loading a spacetime
+from a file, because the input is slightly
+different. \textbf{make-3simplex-v5} takes a single list as input,
+where the list contains all simplex data. A function call might look like
+\begin{lstlisting}
+(make-3simplex-v5 (list sxtype tmlo tmhi (list p0 p1 p2 p3)))
+\end{lstlisting}
+it is primarily used in the function
+\textbf{make-3simplices-in-bulk}. \textbf{make-3simplices-in-bulk} is
+used when applying a move, specifically in the function
+\textbf{2plus1move}, which will be described later. It takes a list of
+inputs to make-3simplex-v5. The function definition is
+\begin{lstlisting}
+(defun make-3simplices-in-bulk (simplex-data-list)
+  (let ((3sxids nil))
+    (dolist (simplex-data simplex-data-list)
+      (push (make-3simplex-v5 simplex-data) 3sxids))
+    3sxids))
+\end{lstlisting}
+
+Since 3-simplices start with no neighbors defined, we have to set
+their neighboring simplices using \textbf{connect-3simplices}. This
+function takes two 3-simplex IDs as input and, if they are neighbors,
+modifies their values in the hash table accordingly. This means
+finding which face they share (defined by the point opposite that
+face) and modifying the element of the list of neighbors corresponding
+to that point.
+
+We connect only a few 3-simplices at a time rather than connecting all
+simplices in the spacetime for efficiency reasons. We only need to
+connect a few simplices in the region of the spacetime we changed, so
+we don't want to check the entire spacetime each time. We have some
+functions that let us selectively connect more than two
+simplices. \textbf{connect-3simplices-within-list} takes a list of
+3-simplex ids and runs connect-3simplices on every possible
+combination of 3-simplices in the
+list. \textbf{connect-3simplices-across-lists} takes two lists of
+3-simplex ids as input, and tries to connect every 3-simplex in the
+first list with every 3-simplex in the second list. However, it
+doesn't try to connect 3-simplices in the first list with other
+3-simplices in the first list. \textbf{3simplices-connected?} takes 2
+simplex IDs as input. If they're listed as neighbors in each-others'
+list of neighbors, it returns true. Otherwise, it returns false.
+
+\subsubsection{Access}
+
+Because the 3-simplex data structure is used so often, and because it
+is somewhat complicated, there are some macros designed to make the
+code more readable when accessing 3-simplices. They are:
+\begin{small}
+\begin{lstlisting}
+(defmacro 3sx-type (sx) `(first ,sx))
+(defmacro 3sx-tmlo (sx) `(second ,sx))
+(defmacro 3sx-tmhi (sx) `(third ,sx))
+(defmacro 3sx-points (sx) `(fourth ,sx))
+(defmacro 3sx-sx3ids (sx) `(fifth ,sx))
+(defmacro 3sx-lopts (sx) `(subseq (3sx-points ,sx) 0 (3sx-type ,sx)))
+(defmacro 3sx-hipts (sx) `(subseq (3sx-points ,sx) (3sx-type ,sx)))
+(defmacro nth-point (sx n) `(nth ,n (3sx-points ,sx)))
+(defmacro nth-neighbor (sx n) `(nth ,n (3sx-sx3ids ,sx)))
+\end{lstlisting}
+\end{small}
+each takes a 3-simplex geometric object, not its id. An easy way to
+get a simplex associated with a given id is \textbf{get-3simplex},
+which takes an ID as input, and returns the simplex geometric
+object. 
+
+\textbf{remove-3simplex} and \textbf{remove-3simplices} remove
+tetrahedra from their hash table and take as inputs 3-simplex ID and a
+list of IDs respectively. \textbf{show-id->3simplex-store} outputs the
+hash table for tetrahedra in a human-readable way. It takes no input. 
+
+3-simplices are defined by their type and by the pair of time-slices
+they are sandwiched between. Thus the functions that access them are
+written with this in mind. \textbf{get-simplices-in-sandwich} has the
+prototype
+\begin{lstlisting}
+(defun get-simplices-in-sandwich (tlo thi))
+\end{lstlisting}
+where tlo is the lower time slice and thi is the upper time slice that
+``sandwich'' a bunch of tetrahedra. This function returns a list of IDs of
+all tetrahedra times in the
+sandwich. \textbf{get-simplices-in-sandwich-of-type}, on the other
+hand, returns only 3-simplices of the given type. It has prototype
+\begin{lstlisting}
+(defun get-simplices-in-sandwich-of-type (tlo thi typ))
+\end{lstlisting}
+where typ$\in\{1,2,3\}$ and indexes 3-simplex types as described in
+the beginning of section
+\ref{s:links-edges}. \textbf{get-simplices-in-sandwich-ordered-by-type}
+is like get-simplices-in-sandwich, but it orders them from type 1 to
+type 3. \textbf{get-simplices-of-type} takes a type integer as input
+and returns all 3-simplices of that
+type. \textbf{count-simplices-of-type} and
+\textbf{count-simplices-in-sandwich} work like their corresponding
+``get'' functions, but they return integers rather than lists of
+simplex ids. \textbf{count-simplices-of-all-types} does exactly what
+it says on the can. It takes no inputs.
+
+A function unique to fixed-boundaries CDT is
+\textbf{count-boundary-vs-bulk}. It takes no input and returns a list
+of the number of simplices of various and various locations. The
+output looks something like this
+\begin{lstlisting}
+(N13-INITIAL-SLICE N22-INITIAL-SLICE N31-INITIAL-SLICE
+ N13-BULK N22-BULK N31-BULK
+ N13-FINAL-SLICE N22-FINAL-SLICE N31-FINAL-SLICE
+ N3-TOTAL)
+\end{lstlisting}
+where N13-INITIAL-SLICE, N22-INITIAL-SLICE, and N31-INITIAL-SLICE are
+the number of $(1,3)$-simplices, $(2,2)$-simplices, and
+$(3,1)$-simplices respectively in the time slice defined by
+$t=0$. Analogously, N13-BULK, N22-BULK, and N31-BULK are the simplices
+in the bulk of the spacetime and N13-FINAL-SLICE, N22-FINAL-SLICE, and
+N31-FINAL-SLICE are the simplices in the time slice defined by
+$t=t_{final}$. N3-TOTAL is the total number of 3-simplices in the
+space time.
+
+There are a number of macros that test a 3-simplex's position in the
+spacetime manifold. \textbf{in-upper-sandwich} takes an ID number. If
+the boundary conditions are open and the simplex with the given ID has
+tmlo=t\_max-1 and tmhi=t\_max, then the macro returns true. Otherwise,
+it returns false. \textbf{in-lower-sandwich} works like
+in-upper-sandwich, but returns true if tmlo=0 and
+tmhi=1. \textbf{in-either-boundary-sandwich} returns true if either
+in-upper-sandwich or in-lower-sandwich returns
+true. \textbf{has-face-on-boundary} takes the ID of a 3-simplex as
+input and returns true of that 3-simplex has one face contained in
+either the initial or the final time slice. Obviously this macro
+always returns false for $(2,2)$-simplices.
+
+\subsubsection{Generic Counting Functions}
+
+A number of the functions that count and list geometric objects are
+actually calls of the metafunctions contained in
+\textbf{generalized-hash-table-counting-functions.lisp}. These are
+worth discussing in some detail, since they could save a lot of time,
+if you need to make new functions that interact with hash tables. We
+discuss them here, rather than in the functions section, because they
+are closely related to the data structures discussed in this
+section. Let's look at \textbf{list-keys-with-trait}:
+\begin{lstlisting}
+(defun list-keys-with-trait (trait hashtable key-subindex)
+  (let ((keylist nil)
+	(vallist nil))
+    (flet ((discriminator (hkey hval)
+	     (when (funcall trait (nth key-subindex hkey))
+	       (push hkey keylist)
+	       (push hval vallist))))
+      (maphash #'discriminator hashtable)
+      keylist)))
+\end{lstlisting}
+trait is a function that returns a Boolean value. hashtable is the
+hash table we're interested in acquiring keys from. key-subindex is an
+integer. These functions assume the key is a geometric object, and
+that the keys are lists. Thus, key-subindex is the index of the list
+of the key that we want the trait function to act
+on. list-keys-with-trait goes through hashtable and, for each entry,
+texts whether or not the trait function returns true when it is
+applied to the key-subindex'th element of the key. If it is, then that
+entry of the hash table is added to the list keylist. The function
+then returns keylist. As an example, if we wanted to list all the
+space-like 2-simplices at time 0, the function call would be:
+\begin{lstlisting}
+(list-keys-with-trait #'(lambda (x) (= x 0)) *SL2SIMPLEX->ID* 0)
+\end{lstlisting}
+
+\textbf{count-keys-with-trait} works like list-keys-with-trait, except
+that it returns an integer, the number of keys where trait is
+true. \textbf{list-vals-with-trait} and \textbf{count-vals-with-trait}
+work like list-keys-with-trait and count-keys-with trait respectively,
+except that they test the value of an entry in the hash table, rather
+than the key.
+
+Although they don't interact with hash tables, we do have two more
+metafunctions designed to interact with our geometric
+objects. \textbf{count-over-all-spacetime-slices} runs a function that
+returns an integer as a function of time slice (like
+count-points-at-time) and applies it to each time-slice and sums over
+the results. \textbf{count-over-all-spacetime-sandwiches} works the
+same as count-over-all-spacetime-slices, but accepts functions that
+take two proper times (for a spacetime sandwich) as input, such abs
+count-simplices-in-sandwich, as input.
+
+\subsection{The f- and b-vectors}
+\label{s:f-and-b-vectors}
+
+The discrete Regge action depends on the number of simplices of
+various type and dimension that make up the spacetime. The boundary
+term depends on the number of simplices in the boundary, as opposed to
+those in the bulk. We could, in theory, count up the number of
+simplices in the spacetime after every move and see if action has
+increased or decreased. However, this would be extremely slow and
+memory-intensive, since we'd have to keep track of the spacetime
+twice: once for before the move and once for after the move. We'd also
+have to run the counting functions, which are slow, every time we
+wanted to find out what the action was. A better way to predict
+changes in the action is to count the number of simplices once at
+initialization, and then simply keep track of how each ergodic move
+changes the number of simplices of each type we care about: both in
+the boundary and in the bulk. The f- and b-vectors do just that.
+
+\subsubsection{The f-Vector}
+The F-vector is defined as 
+\begin{small}
+\begin{displaymath}
+  \vec{f} = \left[\begin{array}{c}N0\\N1-SL\\N1-TL\\N2-SL\\N2-TL\\
+      N3-TL-31\\N3-TL-22\end{array}\right]
+  = \left[\begin{array}{c}\texttt{The number of points in the spacetime}\\
+      \texttt{The number of space-like edges in the spacetime}\\
+      \texttt{The number of time-like edges in the spacetime}\\
+      \texttt{The number of space-like triangles in the spacetime}\\
+      \texttt{The number of time-like triangles in the spacetime}\\
+      \texttt{The number of }(3,1)-\texttt{and }(1,3)-\texttt{simplices in the spacetime}\\
+      \texttt{The number of }(2,2)-\texttt{simplices in the spacetime}\end{array}\right].
+\end{displaymath}
+\end{small}
+Each element of the f-vector is its own variable that can be accessed
+on its own. For instance, there is a macro to get the total number of
+3-simplices in the spacetime:
+\begin{lstlisting}
+(defmacro N3 ()
+  "total number of timelike 3simplices (tetrahedra)"
+  `(+ N3-TL-31 N3-TL-22))
+\end{lstlisting}
+You can set the f-vector with the function \textbf{set-f-vector}:
+\begin{lstlisting}
+(defun set-f-vector (v1 v2 v3 v4 v5 v6 v7)
+  (setf N0 v1 N1-SL v2 N1-TL v3 N2-SL v4
+        N2-TL v5 N3-TL-31 v6 N3-TL-22 v7))
+\end{lstlisting}
+and you can print the current f-vector in a human-readable form with
+the function \textbf{f-vector}.
+
+You can update the f-vector with the function
+\textbf{update-f-vector}, which takes a list as input, where the
+$i^{th}$ element of the list is the change to the $i^{th}$ element of
+the f-vector.
+
+Each of the 5 ergodic moves changes the 5-vector the same way each
+time it is applied to the spacetime. For this reason, changes to the
+f-vector are defines as global variables so that they can be passed
+directly to update-f-vector:
+\begin{lstlisting}
+(defparameter DF26 '(1 3 2 2 6 4 0))
+(defparameter DF62 '(-1 -3 -2 -2 -6 -4 0))
+(defparameter DF44 '(0 0 0 0 0 0 0))
+(defparameter DF23 '(0 0 1 0 2 0 1))
+(defparameter DF32 '(0 0 -1 0 -2 0 -1))
+\end{lstlisting}
+\textbf{DF26} is the change to the f-vector due to a 2-$>$6 move,
+\textbf{DF23} is due to a 2-$>$3 move etc.. The DFnm variables are
+returned by the try-move functions discussed below.
+
+\subsubsection{The b-vector}
+
+In addition to the f-vector, which keeps track of total information
+(not bulk information), we also have the b-vector, which keeps track
+of boundary information only. This is useful for fixed boundary
+conditions. The b-vector is defined as:
+\begin{small}
+\begin{eqnarray}
+  \vec{b}&=&\left[\begin{array}{c}\texttt{*}N1-SL-TOP*\\
+      \texttt{*}N3-22-TOP*\\\texttt{*}N3-31-TOP*\\
+      \texttt{*}N1-SL-BOT* \\\texttt{*}N3-22-BOT*\\ 
+      \texttt{*}N3-31-BOT*\end{array}\right]\nonumber\\
+  &=&\left[\begin{array}{c}\texttt{\# of space-like edges in the }t=t_{final}\texttt{ boundary}\\
+      \texttt{\# of }(2,2)-\texttt{simplices with an edge in the }t=t_{final}\texttt{ boundary}\\
+      \texttt{\# of }(3,1)-\texttt{and }(1,3)-\texttt{simplices with }\geq 1\texttt{ vertex in the }t=t_{final}\texttt{ boundary}\\
+      \texttt{\# of space-like edges in } t=0\texttt{ boundary}\\
+      \texttt{\# of }(2,2)-\texttt{simplices with an edge in the }t=0\texttt{ boundary}\\
+      \texttt{\# of }(3,1)-\texttt{and }(1,3)-\texttt{simplices with }\geq 1\texttt{ vertex in the }t=0\texttt{ boundary}\end{array}\right]\nonumber
+\end{eqnarray}
+\end{small}
+and it works much the same ways as the f-vector. Each element is its
+own variable that can be called individually. You can set the b-vector
+with the function \textbf{set-b-vector}, you can update the b-vector
+with \textbf{update-b-vector}, and you can view the b-vector in
+human-readable form with \textbf{b-vector}, which all work the same
+way as the corresponding function for the f-vector.\footnote{Note that the indices of the b-vector do
+  not at all correspond to the indices of the f-vector. The b-vector
+  contains only the elements of the boundary required for the boundary
+  term in the Regge action.}
+
+Like with the f-vector, we keep track of how each ergodic move changes
+the b-vector. However, the changes to the b-vector are dependent on
+whether or not a move affects simplices in the boundary. For this
+reason, the functions that change the b-vector are (almost)
+all\footnote{The 4-$>$4 move never affects simplex counts, so it is
+  just a constant.} macros that take a simplex ID as input, where that
+simplex ID comes from the 3-simplex chosen to apply a move onto. The changes in the b-vector are:
+\begin{lstlisting}
+(defmacro DB23 (sxid) ; Change in b-vector due to 23-move.
+  `(cond ((in-upper-sandwich ,sxid) (list 0 1 0 0 0 0))
+	 ((in-lower-sandwich ,sxid) (list 0 0 0 0 1 0))
+	 (t                         (list 0 0 0 0 0 0))))
+\end{lstlisting}
+\begin{lstlisting}
+;; change in b-vector due to 32-move. Inverse of DB23
+(defmacro DB32 (sxid) 
+  `(cond ((in-upper-sandwich ,sxid) (list 0 -1 0 0 0  0))
+	 ((in-lower-sandwich ,sxid) (list 0  0 0 0 -1 0))
+	 (t                         (list 0  0 0 0  0 0))))
+\end{lstlisting}
+\begin{lstlisting}
+(defparameter DB44 '(0 0 0 0 0 0)) ; Change in b-vector due to a
+				   ; 44-move. 44 is its own inverse.
+\end{lstlisting}
+\begin{lstlisting}
+(defmacro DB26 (sxid) ; Change in b-vector due to a 26-move.
+  `(cond ((and (has-face-on-boundary ,sxid) *merge-faces*)
+	  (list 3 0 2 3 0 2))
+	 (t (list 0 0 0 0 0 0))))
+\end{lstlisting}
+\begin{lstlisting}
+(defmacro DB62 (sxid) ; Change in b-vector due to a 62-move.
+  `(cond ((and (has-face-on-boundary, sxid) *merge-faces*)
+	  (list -3 0 -2 -3 0 -2))
+	 (t (list 0 0 0 0 0 0))))
+\end{lstlisting}
+
+The variable \textbf{*merge-faces*} perhaps deserves some
+description. If *merge-faces* is set to a non-nil value, and the
+boundary conditions are set to ``OPEN,'' then the initial and final
+boundaries will be identified, but the simulation will keep track of
+changes to the boundary and put them into the action. This mode is
+really only for debugging purposes and shouldn't be used for a real
+simulation. All functions and variables relating to the f- and
+b-vectors can be found in \textbf{tracking\_vectors.lisp}.
+
+
 \section{Functions}
 \label{s:functions}
 
+We're now ready to talk about the primary functions in the
+simulation. There are a number of broad categories of function that
+interact with each other as the Monte Carlo algorithm runs. We will
+discuss functions relating to the action, functions that relate to the
+ergodic moves, functions that relate to the actual Metropolis loop,
+functions that relate to initialization, and functions that relate to
+data output.
+
+\subsection{The Action}
+
+Although there are calls to a function named ``action,'' no such
+function is named in the code. What is going on? For efficiency
+reasons, the function \textbf{action} is defined at runtime. It's
+compiled after a call to \textbf{set-k0-k3-alpha} or
+\textbf{set-k-litL-alpha}\footnote{These functions are discussed in
+  depth in the users' guide. They set \textit{all} the coupling
+  constants, no matter which function you use. The difference is which
+  pair of coupling constants is more intuitive to you as input.} so
+that the numeric values of the coupling constants are byte-compiled
+into the code. This makes the algorithm run a little bit faster. The
+function that contains the definition of the action is
+\textbf{action-exposed}. set-k0-k3-alpha and set-k-litL-alpha call
+\textbf{make-action}, which defines and byte-compiles the function
+``action.''
+
+If you change the action, you must change action-exposed. If all you
+change is the functional form of the action, but it is not dependent
+on any new variables, you don't need to change any other function. If
+the number of inputs to the action change, you must edit
+action-exposed, make-action, and \textbf{accept-move?}. We'll discuss
+accept-move? later, since it is part of the Monte Carlo loop. All
+functions relating to generating and setting the action can be found
+in \textbf{action.lisp}.
+
+A function not directly related to the action, but nevertheless
+essential to the functioning of the simulation is \textbf{damping},
+which has the following function definition:
+\begin{lstlisting}
+(defun damping (num3)
+  (* *eps* (abs (- num3 N-INIT))))
+\end{lstlisting}
+Damping is multiplied by the action during the accept-move? phase of
+the Metropolis-Hasting algorithm. It makes moves that deviate from the
+3-volume of the just-initialized spacetime less
+probable. \textbf{*eps*} defines how significant the damping term is
+compared to the action.
+
+\subsection{Ergodic Moves}
+There are three types of function that relate to the ergodic moves:
+the move-subcomplex functions, the try-move functions, and the moves
+themselves. I will discuss each type in-depth here. Move types are 
+$$n->m$$
+where $n$ is the number of simplices in the subcomplex before the move
+and $m$ is the number of simplices in the subcomplex after the
+move. When I say \textit{subcomplex}, I mean a collection of simplices
+on which an ergodic move of the correct type can be performed. For
+more details, see the literature by Amb\o rn and Loll. In 2+1
+dimensions, we have:
+\begin{itemize}
+\item 2-$>$6
+\item 2-$>$3
+\item 4-$>$4
+\item 3-$>$2
+\item 6-$>$2
+\end{itemize}
+
+\subsubsection{move-subcomplex}
+
+These functions are: \textbf{2-$>$6-subcomplex},
+\textbf{2-$>$3-subcomplex}, \textbf{4-$>$4-subcomplex},
+\textbf{3-$>$2-subcomplex}, and \textbf{6-$>$2-subcomplex}. These
+functions take a 3-simplex ID and try and retrieve the a set of
+simplices around and containing the simplex with the given ID, such
+that a move of the given type can be applied without breaking any
+topological restrictions.\footnote{Each spatial slice must remain
+  homeomorphic to a sphere, for instance.} If such a set can be
+retrieved, then the function returns a list of simplex IDs contained
+in the subcomplex. Otherwise, the function returns nil. These
+functions are extremely complicated, however, it is unlikely they will
+need to be changed. Each move-subcomplex function is only called by
+its corresponding try-move function.
+
+One subtlety is that sometimes it is possible to construct more than
+one topologically acceptable subcomplex around a given simplex. If
+this is the case, the function constructs all acceptable subcomplexes
+and returns them all in a list. This is important because a bias in
+which subcomplex is chosen could cause irregular behavior. More on
+this later.
+
+\subsubsection{try-move}
+
+These functions are: \textbf{try-2$>$6}, \textbf{try-2$>$3},
+\textbf{try-4$>$4}, \textbf{try-3-$>$2}, and
+\textbf{try-6-$>$2}. These functions take a 3-simplex ID, call their
+corresponding move-subcomplex function to generate a subcomplex, and
+then return move data that the accept-move? and apply-move functions
+can use decide whether or not to keep a change to the spacetime and to
+apply that change. If a move is not topologically acceptable the
+try-move functions return nil. If it is topologically acceptable, they
+return a list of the form:
+\begin{small}
+\begin{lstlisting}
+(new3sx neighbors old3sx oldTL2sx oldSL2sx oldTL1sx oldSL1sx DFnm DBnm)
+\end{lstlisting}
+\end{small}
+Here new3sx contains a list of points and types for 3-simplices that
+will be generated by applying the move. old3sx contains a list of IDs
+of the simplices in the subcomplex that will be deleted by applying
+the move. The function make-3simplices-in-bulk will make
+them. neighbors returns a list of simplices that neighbor the
+simplices in old3sx and on which the the connect-simplices function
+will need to be called on. oldTL2sx, oldSL2sx, oldTL1sx and oldSL1sx
+are lists of lower-dimensional simplices which will need to be deleted
+along with the simplices containing them. DFnm and DBnm are the change
+to f-vector and the b-vector for a given move. They are lists. the
+try-move functions return the DFnm and DBnm variables defined in
+section \ref{s:f-and-b-vectors}. A list of this type is called
+\textbf{move data}.
+
+A single macro encapsulates all the try-move functions. It is called
+\textbf{try-move}, and it takes a simplex ID and an integer between 0
+and 4 as the input. The integer defines the move type:
+\begin{lstlisting}
+(defun try-move (sxid mtype)
+  (ecase mtype
+    (0 (try-2->6 sxid))
+    (1 (try-2->3 sxid))
+    (2 (try-4->4 sxid))
+    (3 (try-3->2 sxid))
+    (4 (try-6->2 sxid))))
+\end{lstlisting}
+
+Note that, since the move-subcomplex functions can generate multiple
+possible complexes, the try-move function will generate all possible
+sets of move data, and then choose one at random. This is an important
+bug-fix. In the original CDT code, the try-move functions constructed
+a list of all acceptable move attempts and then chose the first
+element of that list. The result was that the volume-increasing moves
+were favored at earlier proper times and
+volume-decreasing\footnote{Here I mean spacetime 3-volume. See the
+  user's guide for more details.} moves were favored at later proper
+times. For periodic boundary conditions, this wasn't a problem. It
+meant that the bulk of the spacetime had a random walk over proper
+time. However, for fixed boundary conditions, the results were
+non-physical.
+
+\subsubsection{Apply Move}
+
+The function that actually applies a move is called
+\textbf{2plus1move}. It takes the output of a try-move function as
+input and it performs all the necessary operations to make a change to
+the spacetime:
+\begin{lstlisting}
+(defun 2plus1move (sxdata)
+  (let ((new3sxids (make-3simplices-in-bulk (first sxdata))))
+    (connect-3simplices-within-list new3sxids)
+    (connect-3simplices-across-lists new3sxids (second sxdata))
+    (remove-3simplices (third sxdata))
+    (remove-tl2simplices (fourth sxdata))
+    (remove-sl2simplices (fifth sxdata))
+    (remove-tl1simplices (sixth sxdata))
+    (remove-sl1simplices (seventh sxdata))
+    (update-f-vector (eighth sxdata))
+    (update-b-vector (ninth sxdata))))
+\end{lstlisting}
+
+\subsection{Metropolis Loop}
+\label{s:f:metropolis:loop}
+
+The Metropolis algorithm as applied to CDT is described in section
+\ref{s:algorithm}. The functions run the loop can be found in
+\textbf{montecarlo.lisp}. \textbf{random-move} has the prototype 
+\begin{lstlisting}
+(defun random-move (nsweeps))
+\end{lstlisting}
+random-move is used for debugging, initialization, and
+randomization. It simply applies a move at random nsweeps times. It
+then prints out some information on the moves it performed and the
+simplex counts in the spacetime in a human-readable format. If
+something is wrong with the simulation, it might be a good idea to use
+random-move in the slime interpreter and see what happens.
+
+\textbf{accept-move?} takes as input the simplex ID for a simplex in
+the spacetime around which a subcomplex has been constructed, and an
+integer representing the type of move to be applied to that
+subcomplex. It has the following prototype:
+\begin{lstlisting}
+(defun accept-move? (mtype sxid))
+\end{lstlisting}
+It checks whether the post-move spacetime is more or less probable
+than the pre-move spacetime and by how much and decides whether or not
+to accept the move, as per the Metropolis algorithm (see section
+\ref{s:algorithm}). accept-move returns a Boolean value: true if the
+move is to be accepted, nil otherwise. accept-move also checks to make
+sure that the change in the Wick-rotated action for a given move is
+purely imaginary and raises an error if the action contains a real
+part. This function is a core component of the Metropolis
+algorithm. It is called in \textbf{sweep} (described next) after a
+move is attempted. If the user makes changes to the f- and b-vectors,
+accept-move must also be changed.
+
+\textbf{sweep} has the prototype 
+\begin{lstlisting}
+(defun sweep ())
+\end{lstlisting}
+and is the actual loop that performs the Metropolis-Hastings
+algorithm. It performs $N_3$ iterations of steps 2--5 in the algorithm
+defined in section \ref{s:algorithm}, where $N_3$ is the total number
+of 3-simplices in the spacetime. Over the course of a simulation, it
+takes about 50000 sweeps to thermalize a small spacetime so that a
+probable configuration is reached. After that, another 500 sweeps per
+spacetime usually generates suitably different spacetimes for an
+ensemble.
+
+\subsection{Initialization}
+\label{s:initialization}
+\subsubsection{Top-Level Functionality}
+\label{s:initialization:top-level}
+The initialization routines, found in \textbf{initialization.lisp} are
+quite possibly the most difficult to understand and intimidating
+algorithms in the entire code-base. All the end user sees is the
+function \textbf{initialize-t-slices-with-v-volume}, the use of which
+is described in detail in the user's guide. However,
+initialize-t-slices-with-v-volume is a top-level function which calls
+a number of much more complicated algorithms.
+
+It might be worth talking about initialize-t-slice-with-v-volume step
+by step. The algorithm is shown in figure \ref{f:itswvv}. First, we
+set the global variable \textbf{STOPOLOGY}, which some other functions
+(mostly initialization functions) reference. Then, the function
+initializes a spacetime. If the user asked for a two-sphere, the
+function calls \textbf{initialize-s2-triangulation}. If the user asked
+for a two-torus, the function calls
+\textbf{initialize-t2-triangulation}.\footnote{initialize-s2-triangulation
+  will be discussed in considerable more detail below. We will not
+  discuss initialize-t2-triangulation much. Suffice it to say that it
+  works like the two-sphere case except that it only works for
+  periodic boundary conditions.} If the user asked for some other
+topology, the function raises an error. Finally, the function sets the
+global variable \textbf{N-INIT} to the total number of 3-simplices
+after initialization. N-INIT is used by the damping function to help
+keep the 3-volume of the spacetime fixed.
+
+\begin{figure}[htb]
+\begin{small}
+\begin{lstlisting}[numbers=left]
+(defun initialize-T-slices-with-V-volume (&key 
+					  num-time-slices
+					  target-volume
+					  spatial-topology
+					  boundary-conditions
+					  initial-spatial-geometry
+					  final-spatial-geometry)
+
+  ;;set global variables according to parameters
+  (setf STOPOLOGY  (string-upcase spatial-topology))
+
+  ;;perform initialization based on type of spatial topology
+  (cond 
+    ((string= STOPOLOGY "S2")
+     (initialize-S2-triangulation num-time-slices boundary-conditions 
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    ((string= STOPOLOGY "T2") 
+     (initialize-T2-triangulation num-time-slices boundary-conditions
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    (t (error "unrecognized spatial topology")))
+  
+  ;; ...some human-readable output omitted... 
+
+  (setf N-INIT (N3)))
+\end{lstlisting}
+\end{small}
+\caption{The ``initialize-t-slices-with-v-volume'' function.}
+\label{f:itswvv}
+\end{figure}
+
+\subsubsection{Mid-Level Functions}
+\label{s:initialization:mid-level-functions}
+
+Mid-Level
+
 \end{document}
-
-

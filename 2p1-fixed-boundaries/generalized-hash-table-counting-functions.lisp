@@ -1,3 +1,6 @@
+;;;; generalized-hash-table-counting-functions.lisp
+;;;; Author: Jonah MIller (jonah.maxwell.miller@gmail.com)
+
 
 ;;; What follows are a number of functions to retrieve information
 ;;; about simplexes, by listing them or counting them.
@@ -62,3 +65,59 @@
 	       (push hkey trashlist))))
       (maphash #'discriminator hashtable)
       count)))
+
+
+;; Function to count objects in a single time slice over the entire
+;; spacetime. I know this could be written as a macro, but it works
+;; passably as a function, so we'll do that. It's true that if the
+;; boundary conditions are periodic, this count will look at the empty
+;; NUM-T time slice, but since the slice is empty (and there's no
+;; periodic boundary conditions modulo going on here), the result of
+;; the count there will be zero.
+(defun count-over-all-spacetime-slices (counting-function 
+					&optional (count-argument nil))
+  "Runs a counting function of a single time slice over all spacetime
+slices and returns the sum. If the spacetime. If a count-argument is
+given, this is passed to the counting-function as the second argument
+after time-slice."
+  (let ((count 0)
+	(tmax (if (string= BCTYPE "PERIODIC")
+		  (1- NUM-T)
+		  NUM-T)))
+    (if (not count-argument)
+	(loop for time-slice from 0 to tmax do
+	     (setf count (+ count (funcall counting-function time-slice))))
+	(loop for time-slice from 0 to tmax do
+	     (setf count (+ count (funcall 
+				   counting-function 
+				   time-slice 
+				   count-argument)))))
+    count))
+       
+
+;; Function to count objects in a sandwich over the entire
+;; spacetime. I know this could be written as a macro, but it works
+;; passably as a function, so we'll do that. It's true that if the
+;; boundary conditions are periodic, this count will look at the empty
+;; NUM-T-1, NUM-T, sandwich, but since the slice is empty (and there's no
+;; periodic boundary conditions modulo going on here), the result of
+;; the count there will be zero.
+(defun count-over-all-spacetime-sandwiches (counting-function 
+					    &optional (count-argument nil))
+  "Runs a counting function of a single sandwich over all sandwiches
+in the spacetime and returns the sum. If a count-argument is given,
+this is passed to the counting-function as the second argument after
+time-slice."
+  (let ((count 0))
+    (if (not count-argument)
+	(loop for time-slice from 0 to (1- NUM-T) do
+	     (setf count (+ count (funcall counting-function 
+					   time-slice
+					   (1+ time-slice)))))
+	(loop for time-slice from 0 to (1- NUM-T) do
+	     (setf count (+ count (funcall 
+				   counting-function 
+				   time-slice 
+				   (1+ time-slice)
+				   count-argument)))))
+    count))

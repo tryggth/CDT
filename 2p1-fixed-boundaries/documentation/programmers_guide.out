@@ -1,0 +1,32 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Lisp Tips and Tricks}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Common Lisp Implementations}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Resources}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Coding Tools}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Tips and Tricks}{section.2}% 6
+\BOOKMARK [1][-]{section.3}{The Algorithm}{}% 7
+\BOOKMARK [1][-]{section.4}{Data Structures}{}% 8
+\BOOKMARK [2][-]{subsection.4.1}{Points}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.2}{Links/Edges}{section.4}% 10
+\BOOKMARK [3][-]{subsubsection.4.2.1}{An Aside on Generating Lower-Dimensional Simplices}{subsection.4.2}% 11
+\BOOKMARK [3][-]{subsubsection.4.2.2}{*SL1SIMPLEX->ID*}{subsection.4.2}% 12
+\BOOKMARK [3][-]{subsubsection.4.2.3}{*TL1SIMPLEX->ID*}{subsection.4.2}% 13
+\BOOKMARK [2][-]{subsection.4.3}{Triangles/Faces}{section.4}% 14
+\BOOKMARK [3][-]{subsubsection.4.3.1}{*SL2SIMPLEX->ID*}{subsection.4.3}% 15
+\BOOKMARK [3][-]{subsubsection.4.3.2}{*TL2SIMPLEX->ID*}{subsection.4.3}% 16
+\BOOKMARK [2][-]{subsection.4.4}{Tetrahedra/3-simplices}{section.4}% 17
+\BOOKMARK [3][-]{subsubsection.4.4.1}{Generation}{subsection.4.4}% 18
+\BOOKMARK [3][-]{subsubsection.4.4.2}{Access}{subsection.4.4}% 19
+\BOOKMARK [3][-]{subsubsection.4.4.3}{Generic Counting Functions}{subsection.4.4}% 20
+\BOOKMARK [2][-]{subsection.4.5}{The f- and b-vectors}{section.4}% 21
+\BOOKMARK [3][-]{subsubsection.4.5.1}{The f-Vector}{subsection.4.5}% 22
+\BOOKMARK [3][-]{subsubsection.4.5.2}{The b-vector}{subsection.4.5}% 23
+\BOOKMARK [1][-]{section.5}{Functions}{}% 24
+\BOOKMARK [2][-]{subsection.5.1}{The Action}{section.5}% 25
+\BOOKMARK [2][-]{subsection.5.2}{Ergodic Moves}{section.5}% 26
+\BOOKMARK [3][-]{subsubsection.5.2.1}{move-subcomplex}{subsection.5.2}% 27
+\BOOKMARK [3][-]{subsubsection.5.2.2}{try-move}{subsection.5.2}% 28
+\BOOKMARK [3][-]{subsubsection.5.2.3}{Apply Move}{subsection.5.2}% 29
+\BOOKMARK [2][-]{subsection.5.3}{Metropolis Loop}{section.5}% 30
+\BOOKMARK [2][-]{subsection.5.4}{Initialization}{section.5}% 31
+\BOOKMARK [3][-]{subsubsection.5.4.1}{Top-Level Functionality}{subsection.5.4}% 32
