@@ -9,6 +9,7 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{hyperref}
+\usepackage{graphicx}
 %\usepackage{algorithmic}
 
 \begin{document}
@@ -28,22 +29,41 @@ The code implements CDT using an updated action that includes the
 boundary terms.
 
 The goal of this file is to explain how to modify the code. I will
-first give a very brief overview of the algorithm of the program. Then
-dive into data structures and specific functions and how they should
-be used. This document assumes the reader knows how to run the
-program, its basic structure, and the physics behind it. In order,
-these can be found in:
+first give some tips about lisp. Then I will present a very brief
+overview of the algorithm of the program. Then dive into data
+structures and specific functions and how they should be used. This
+document assumes the reader knows how to run the program, its basic
+structure, and the physics behind it. In order these can be found in:
 \begin{itemize}
 \item The user's guide.
 \item The file called program\_and\_module\_list.txt
 \item Ambj\o rn and Loll's ``Dynamically Triangulating Lorentzian
   Quantum Gravity,'' the documentation file
   ``Gibbons-Hawkin\_Boundary\_Term\_in\_Causal\_Dynamical\_Triangulations.pdf,''
-  and my REU writeup, which is bundled here as well.
+  and my REU write-up.
 \end{itemize}
+All of these should be bundled in with the software in the
+documentation folder.
 
-I also assume the reader knows some basics about programming in
-lisp. Here are some of the resources I used:
+Hopefully this guide will help elucidate how to edit the CDT
+code-base. If you have any questions, don't hesitate to email me.
+
+\section{Lisp Tips and Tricks}
+\label{s:lisp:tricks}
+\subsection{Common Lisp Implementations}
+
+Although it is a programming language, ANSI Common Lisp is not a
+single program. Rather, it is a set of guidelines about how the
+programming language should behave. For this reason, there are a
+number of different implementations of Common Lisp, all of which
+behave slightly differently. We use Steel Bank Common Lisp, which can
+be found here:
+\begin{verbatim}
+http://www.sbcl.org/
+\end{verbatim}
+
+\subsection{Resources}
+Some resources on Lisp are:
 \begin{itemize}
 \item Peter Siebel's ``Practical Common Lisp'' is an excellent,
   readable, and in-depth guide to writing code in lisp. It was my
@@ -64,12 +84,66 @@ http://psg.com/~dlamkins/sl/contents.html
 http://www.apl.jhu.edu/~hall/lisp.html
 \end{verbatim}
 \end{itemize}
+\subsection{Coding Tools}
+\label{s:lisp:tools}
 When I edit lisp, I use the emacs text editor with SLIME, a module for
 emacs. This is not the only choice, but I think it is a very good one,
-and I suspect it is the canonical choice.
+and I suspect it is the canonical choice. You can find the home
+project for emacs here:
+\begin{verbatim}
+http://www.gnu.org/software/emacs/
+\end{verbatim}
+and the home project for slime here:
+\begin{verbatim}
+http://common-lisp.net/project/slime/
+\end{verbatim}
+For most Linux distributions, emacs and slime should be very easy to
+install if you have administrator privileges. The following tutorial explains how to get a nice set up in ubuntu:
+\begin{footnotesize}
+\begin{verbatim}
+https://functionalrants.wordpress.com/2008/09/06/how-to-set-up-emacs-slime-sbcl-under-gnulinux/
+\end{verbatim}
+\end{footnotesize}
+If you don't have administrator access, see pages 1--8 in the document
+labeled \textbf{cdthowto.pdf}. You may have to change some of the
+version numbers to get everything working.\footnote{The rest of the
+  cdthowto.pdf document is somewhat outdated. You're better off
+  referring to the other documentation.}
 
-Hopefully this guide will help elucidate how to edit the CDT
-code-base. If you have any questions, don't hesitate to email me.
+Emacs is a complicated piece of software. A good online tutorial is
+here:
+\begin{verbatim}
+http://www2.lib.uchicago.edu/keith/tcl-course/emacs-tutorial.html
+\end{verbatim}
+and Emacs includes a very good in-program tutorial as well. If you want to learn (much) more about what Emacs is capable of, check out ``Emacs Rocks'' and ``Emacs-Fu,'' two blogs about emacs:
+\begin{verbatim}
+http://emacsrocks.com/
+http://emacs-fu.blogspot.com/
+\end{verbatim}
+Finally, a very good resource on emacs is the Emacs Wiki:
+\begin{verbatim}
+http://emacswiki.org/
+\end{verbatim}
+
+\subsection{Tips and Tricks}
+
+When editing the CDT code, I suggest that you test your changes live,
+as you write code. You can do this by running slime from within
+emacs. Once you've opened up a *.lisp file, type ``Escape'' and then
+``x'' to access a command prompt. Then type ``slime'' and press
+``Enter.'' You will get a live Lisp interpreter. This is the ``REPL,''
+which stands for
+\textbf{R}ead-\textbf{E}val-\textbf{P}rint-\textbf{L}oop. Lisp is
+compiled, not interpreted. However, compilation happens at runtime:
+there is no separate compile-time step. One advantage of this is that
+functions can be defined and byte-compiled during a runtime
+algorithm. Another advantage is that you can prototype functions in
+Lisp the same way you would for a scripting language like
+Python. Indeed, you can do more than that, you can initialize a
+spacetime, and then define or redefine functions live and call them in
+the simulation to see what they do. While editing a *.lisp file with
+slime, if the REPL is active, you can compile a function by pressing
+``C-c C-c.'' This is how I suggest you change your code.
 
 \section{The Algorithm}
 \label{s:algorithm}
@@ -320,7 +394,7 @@ very similar behavior and functions. This parallel will continue with
 spacelike and timelike triangles (also known as faces or 2-simplices).
 
 \subsection{Triangles/Faces}
-
+\label{s:data:tetrahedra}
 Triangles are the faces of the tetrahedra that make up a
 spacetime. Since they are two-dimensional, we also call them
 2-simplices or 2simplices. Space-like triangles are stored in the hash
@@ -529,7 +603,7 @@ simplex IDs as input. If they're listed as neighbors in each-others'
 list of neighbors, it returns true. Otherwise, it returns false.
 
 \subsubsection{Access}
-
+\label{s:d:tetrahedra:access}
 Because the 3-simplex data structure is used so often, and because it
 is somewhat complicated, there are some macros designed to make the
 code more readable when accessing 3-simplices. They are:
@@ -811,7 +885,8 @@ boundary conditions are set to ``OPEN,'' then the initial and final
 boundaries will be identified, but the simulation will keep track of
 changes to the boundary and put them into the action. This mode is
 really only for debugging purposes and shouldn't be used for a real
-simulation.
+simulation. All functions and variables relating to the f- and
+b-vectors can be found in \textbf{tracking\_vectors.lisp}.
 
 
 \section{Functions}
@@ -824,6 +899,24 @@ discuss functions relating to the action, functions that relate to the
 ergodic moves, functions that relate to the actual Metropolis loop,
 functions that relate to initialization, and functions that relate to
 data output.
+
+\subsection{An Aside: bc-mod}
+
+In the periodic boundary conditions case, it is important that the
+simulation think of $t = \tau > t_{final}$ as $t = \tau \texttt{ mod }
+t_{final}$. For this reason, we have the function \textbf{bc-mod}:
+\begin{lstlisting}
+(defmacro bc-mod (num)
+  `(if (or (string= BCTYPE "PERIODIC") *merge-faces*)
+       (mod ,num NUM-T)
+       ,num))
+\end{lstlisting}
+If boundary conditions are set as periodic, then bc-mod takes an input
+$i$ and returns $i$ modulo $t_{final}$, where $t_{final}$ is the
+number of time slices in the spacetime. However, if the boundary
+conditions are open (i.e., fixed), then bc-mod simply returns any
+input it is given. This is an extremely important macro, and nothing
+will work in the periodic boundary conditions case without it.
 
 \subsection{The Action}
 
@@ -850,6 +943,19 @@ action-exposed, make-action, and \textbf{accept-move?}. We'll discuss
 accept-move? later, since it is part of the Monte Carlo loop. All
 functions relating to generating and setting the action can be found
 in \textbf{action.lisp}.
+
+A function not directly related to the action, but nevertheless
+essential to the functioning of the simulation is \textbf{damping},
+which has the following function definition:
+\begin{lstlisting}
+(defun damping (num3)
+  (* *eps* (abs (- num3 N-INIT))))
+\end{lstlisting}
+Damping is multiplied by the action during the accept-move? phase of
+the Metropolis-Hasting algorithm. It makes moves that deviate from the
+3-volume of the just-initialized spacetime less
+probable. \textbf{*eps*} defines how significant the damping term is
+compared to the action.
 
 \subsection{Ergodic Moves}
 There are three types of function that relate to the ergodic moves:
@@ -923,6 +1029,19 @@ try-move functions return the DFnm and DBnm variables defined in
 section \ref{s:f-and-b-vectors}. A list of this type is called
 \textbf{move data}.
 
+A single macro encapsulates all the try-move functions. It is called
+\textbf{try-move}, and it takes a simplex ID and an integer between 0
+and 4 as the input. The integer defines the move type:
+\begin{lstlisting}
+(defun try-move (sxid mtype)
+  (ecase mtype
+    (0 (try-2->6 sxid))
+    (1 (try-2->3 sxid))
+    (2 (try-4->4 sxid))
+    (3 (try-3->2 sxid))
+    (4 (try-6->2 sxid))))
+\end{lstlisting}
+
 Note that, since the move-subcomplex functions can generate multiple
 possible complexes, the try-move function will generate all possible
 sets of move data, and then choose one at random. This is an important
@@ -937,8 +1056,482 @@ meant that the bulk of the spacetime had a random walk over proper
 time. However, for fixed boundary conditions, the results were
 non-physical.
 
+\subsubsection{Apply Move}
 
+The function that actually applies a move is called
+\textbf{2plus1move}. It takes the output of a try-move function as
+input and it performs all the necessary operations to make a change to
+the spacetime:
+\begin{lstlisting}
+(defun 2plus1move (sxdata)
+  (let ((new3sxids (make-3simplices-in-bulk (first sxdata))))
+    (connect-3simplices-within-list new3sxids)
+    (connect-3simplices-across-lists new3sxids (second sxdata))
+    (remove-3simplices (third sxdata))
+    (remove-tl2simplices (fourth sxdata))
+    (remove-sl2simplices (fifth sxdata))
+    (remove-tl1simplices (sixth sxdata))
+    (remove-sl1simplices (seventh sxdata))
+    (update-f-vector (eighth sxdata))
+    (update-b-vector (ninth sxdata))))
+\end{lstlisting}
+
+\subsection{Metropolis Loop}
+\label{s:f:metropolis:loop}
+
+The Metropolis algorithm as applied to CDT is described in section
+\ref{s:algorithm}. The functions run the loop can be found in
+\textbf{montecarlo.lisp}. \textbf{random-move} has the prototype 
+\begin{lstlisting}
+(defun random-move (nsweeps))
+\end{lstlisting}
+random-move is used for debugging, initialization, and
+randomization. It simply applies a move at random nsweeps times. It
+then prints out some information on the moves it performed and the
+simplex counts in the spacetime in a human-readable format. If
+something is wrong with the simulation, it might be a good idea to use
+random-move in the slime interpreter and see what happens.
+
+\textbf{accept-move?} takes as input the simplex ID for a simplex in
+the spacetime around which a subcomplex has been constructed, and an
+integer representing the type of move to be applied to that
+subcomplex. It has the following prototype:
+\begin{lstlisting}
+(defun accept-move? (mtype sxid))
+\end{lstlisting}
+It checks whether the post-move spacetime is more or less probable
+than the pre-move spacetime and by how much and decides whether or not
+to accept the move, as per the Metropolis algorithm (see section
+\ref{s:algorithm}). accept-move returns a Boolean value: true if the
+move is to be accepted, nil otherwise. accept-move also checks to make
+sure that the change in the Wick-rotated action for a given move is
+purely imaginary and raises an error if the action contains a real
+part. This function is a core component of the Metropolis
+algorithm. It is called in \textbf{sweep} (described next) after a
+move is attempted. If the user makes changes to the f- and b-vectors,
+accept-move must also be changed.
+
+\textbf{sweep} has the prototype 
+\begin{lstlisting}
+(defun sweep ())
+\end{lstlisting}
+and is the actual loop that performs the Metropolis-Hastings
+algorithm. It performs $N_3$ iterations of steps 2--5 in the algorithm
+defined in section \ref{s:algorithm}, where $N_3$ is the total number
+of 3-simplices in the spacetime. Over the course of a simulation, it
+takes about 50000 sweeps to thermalize a small spacetime so that a
+probable configuration is reached. After that, another 500 sweeps per
+spacetime usually generates suitably different spacetimes for an
+ensemble.
+
+\subsection{Initialization}
+\label{s:initialization}
+\subsubsection{Top-Level Functionality}
+\label{s:initialization:top-level}
+The initialization routines, found in \textbf{initialization.lisp} are
+quite possibly the most difficult to understand and intimidating
+algorithms in the entire code-base. All the end user sees is the
+function \textbf{initialize-t-slices-with-v-volume}, the use of which
+is described in detail in the user's guide. However,
+initialize-t-slices-with-v-volume is a top-level function which calls
+a number of much more complicated algorithms.
+
+It might be worth talking about initialize-t-slice-with-v-volume step
+by step. The algorithm is shown in figure \ref{f:itswvv}. First, we
+set the global variable \textbf{STOPOLOGY}, which some other functions
+(mostly initialization functions) reference. Then, the function
+initializes a minimally triangulated spacetime. If the user asked for
+a two-sphere, the function calls
+\textbf{initialize-s2-triangulation}. If the user asked for a
+two-torus, the function calls
+\textbf{initialize-t2-triangulation}.\footnote{initialize-s2-triangulation
+  will be discussed in considerable more detail below. We will not
+  discuss initialize-t2-triangulation much. Suffice it to say that it
+  works like the two-sphere case except that it only works for
+  periodic boundary conditions.} If the user asked for some other
+topology, the function raises an error. The function then calls
+\textbf{grow-volume-v2}\footnote{grow-volume-v1 works fine, but I
+  personally think it is less likely to generate a nicely random
+  spacetime. Either way, it shouldn't matter.} to increase the
+minimally triangulated spacetime to the target 3-volume chosen by the
+user. Finally, the function sets the global variable \textbf{N-INIT}
+to the total number of 3-simplices after initialization. N-INIT is
+used by the damping function to help keep the 3-volume of the
+spacetime fixed.
+
+\begin{figure}[htb]
+\begin{small}
+\begin{lstlisting}[numbers=left]
+(defun initialize-T-slices-with-V-volume (&key 
+					  num-time-slices
+					  target-volume
+					  spatial-topology
+					  boundary-conditions
+					  initial-spatial-geometry
+					  final-spatial-geometry)
+
+  ;;set global variables according to parameters
+  (setf STOPOLOGY  (string-upcase spatial-topology))
+
+  ;;perform initialization based on type of spatial topology
+  (cond 
+    ((string= STOPOLOGY "S2")
+     (initialize-S2-triangulation num-time-slices boundary-conditions 
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    ((string= STOPOLOGY "T2") 
+     (initialize-T2-triangulation num-time-slices boundary-conditions
+				  initial-spatial-geometry
+				  final-spatial-geometry))
+    (t (error "unrecognized spatial topology")))
+  
+  ;; ...some human-readable output omitted... 
+  (increase-volume-v2 target-volume)
+  ;; ...some human-readable output omitted... 
+
+  (setf N-INIT (N3)))
+\end{lstlisting}
+\end{small}
+\caption{The ``initialize-t-slices-with-v-volume'' function.}
+\label{f:itswvv}
+\end{figure}
+
+\subsubsection{Mid-Level Functionality}
+\label{s:initialization:mid-level-functions}
+
+\textbf{initialize-s2-triangulation} and
+\textbf{initialize-t2-triangulation} are the mid-level functions of
+the initialization routine. Let's discuss
+initialize-s2-triangulation. It has the following prototype:
+\begin{small}
+\begin{lstlisting}
+(defun initialize-S2-triangulation (num-time-slices boundary-conditions 
+				    &optional 
+				      initial-spatial-geometry
+				      final-spatial-geometry))
+\end{lstlisting}
+\end{small}
+initialize-s2-triangulation first generates a minimally triangulated
+manifold with the topology $S^2\times I$. If we have periodic boundary
+conditions, it then identifies the initial and final time
+slices. Otherwise, it removes the initial and final time slices,
+replaces them with user-input geometry, and connects them to the bulk
+of the spacetime in a topologically acceptable way. I will discuss
+each of these steps in detail below. First, let's talk about the
+minimal initialization. We use the following algorithm:
+\begin{enumerate}
+\item Generate a minimal triangulation of each of the first two time
+  slices. Since we are working with a spherical spatial topology, each
+  spatial slice is a tetrahedron and has a surface area of 4
+  triangles.
+\item The number of vertices on each slice is equal to the number of
+  triangles on each slice. We can imagine placing each vertex in the
+  first slice at the center of each triangular face in the second
+  slice, with a one-to-one correspondence. Furthermore, this creates
+  an analogous one-to-one correspondence between vertices in the
+  second slice and triangular faces in the first slice.
+\item Connect each vertex in the first time slice to each vertex in
+  the triangle we've assigned to it in the second time
+  slice. Similarly, connect each vertex in the second time slice to
+  each vertex of the triangle we've assigned to it in the first time
+  slice. This creates a collection of $(1,3)$- and $(3,1)$-simplices.
+\item Fill in ``holes'' in the triangulation\footnote{By ``holes'' I
+    mean that each time-like face should share two tetrahedra.} by
+  adding $(2,2)$-simplices. This generates a ``sandwich'' with the
+  $t=0$ and $t=1$ time slices as the bread.
+\item To generate the $t=1$, $t=2$ sandwich, we reflect the $t=0$,
+  $t=1$ sandwich about the $t=$ time slice and identify the tetrahedra
+  in the obvious way.
+\end{enumerate}
+Steps 1--4 are hard-coded into the algorithm. The remaining steps are
+handled by \textbf{connect-existing-simplices}.
+
+\subsubsection{connect-existing-simplices}
+
+connect-existing-simplices has the following prototype:
+\begin{small}
+\begin{lstlisting}
+(defun connect-existing-simplices (&optional initial-spatial-geometry 
+				     final-spatial-geometry)
+\end{lstlisting}
+\end{small}
+If the boundary conditions have been set to periodic,
+connect-existing-simplices simply resets the points in the final time
+slice to be the same as the points in the initial time slice. It then
+ensures that each 3-simplex knows its neighbors by using
+\textbf{connect-simplices-in-sandwich}, as described in section
+\ref{s:data:tetrahedra} and sets the f-vector using the counting
+functions defined in section \ref{s:d:tetrahedra:access}. If the
+boundary conditions have been set to open, things are more
+complicated.
+
+In the case where the boundary conditions are open, for each user
+defined boundary,\footnote{The user can choose not to define either
+  boundary, in which case connect-existing-simplices does very
+  little. It simply ensures that each simplex knows its neighbors and
+  sets the f- and b-vectors.}  connect-existing-simplices deletes the
+minimally triangulated boundary and replaces it with a user-defined
+one (see the users guide). It does this by first deleting all
+simplices connecting the boundary to the bulk and by deleting all
+lower-dimensional simplices that have at least one point in the
+boundary. It then calls the function
+\textbf{triangulate-between-s2-slices}\footnote{In the source code, it
+  calls triangulate-between-slices. However, this is just a macro that
+  calls triangulate-between-s2-slices if the topology is set to a
+  sphere and raises an error otherwise.} (which I will talk about
+below) to generate the simplex information which make-3simplex-v3 can
+use to make new 3-simplices to build all the simplices which connect
+the boundary to the bulk such that the boundary has the right
+geometry. Finally connect-existing-simplices runs
+triangulate-between-slices and sets the b- and f-vectors after
+counting up the number of simplices and sub-simplices in the manifold.
+
+\subsubsection{triangulate-between-s2-slices}
+\label{sss:triangulate-between-slices}
+
+\textbf{triangulate-between-s2-slices} has the following prototype:
+\begin{lstlisting}
+(defun triangulate-between-s2-slices (original-sheet new-sheet 
+				      t0 t1 last-used-pt-id))
+\end{lstlisting}
+
+The job of triangulate-between-s2-slices is to calculate, given the
+spatial simplices of two separate time slices, how to generate
+3-simplices that connect the two time slices in a topologically
+acceptable way. The algorithm for this code was written by David
+Kamensky. 
+
+David generalizes the known triangulation between two space-like
+tetrahedra (described in section
+\ref{s:initialization:mid-level-functions}) by decomposing each
+spatial geometry into four ``pseudo-faces'' and six ``pseudo-edges.''
+Each pseudo-face is a simply-connected set of triangular faces. Each
+pseudo-face is bounded by 3 pseudo-edges. A pseudo-edge is a set of
+line-segments---edges of the actual triangular faces---such that it
+forms a piecewise curve. The pseudo-faces are analogous to the
+triangular sides of a tetrahedron and the pseudo-edges are analogous
+to the edges of those triangular sides.
+
+\begin{figure}[htb]
+\begin{center}
+\leavevmode
+\includegraphics[width=\textwidth]{pseudo-face_pseudo-edge_decomposition.png}
+\caption{A simple decomposition of a manifold $\mathcal{M}$ into 4
+  pseudo-faces and corresponding pseudo-edges, where $\mathcal{M}$ is
+  homeomorphic to the 2-sphere. Figure by David Kamensky.}
+\label{fig:pseudo-face-decomposition}
+\end{center}
+\end{figure}
+
+The algorithm for generating pseudo-faces and pseudo-edges does not
+have to be very clever, since Monte Carlo simulations are simulation
+independent if we wait long enough, and since the configuration is
+immediately randomized (although the the space-like simplices on the
+boundary must remain fixed). David's algorithm is as follows:
+\begin{enumerate}
+\item Select a random triangle in the boundary as the first pseudo-face.
+\item Select a random neighbor of the first triangle as a second
+  pseudo-face.
+\item Select one endpoint of the shared edge between the two triangles
+  and let all other triangles that contain that endpoint as a vertex
+  be the third pseudo-face.
+\item Let all remaining triangles be the fourth pseudo-face.
+\item Since each of the first two triangles is a pseudo-face, each
+  edge contained by either of those two triangles is a
+  pseudo-edge. The sixth pseudo-edge is the combination of edges
+  required to completely bound the third pseudo-edge.
+\end{enumerate}
+Figure \ref{fig:pseudo-face-decomposition} shows this decomposition.
+This part of the algorithm is handled by
+\textbf{get-s2-pseudo-faces-and-edges}.
+
+The advantage of this approach is that the pseudo-faces and
+pseudo-edges meet each other with the same combinatorics as for a
+tetrahedron. In this case, we can replace the simplices used to
+connect two space-like tetrahedra with analogous complices constructed
+of many simplices. Space-like triangles are replaced by pseudo-faces,
+space-like edges are replaced by pseudo-edges, and time-like triangles
+are replaced by ``triangle fans'' which connect every vertex in a
+pseudo edge to a single vertex on the other time slice. The result is
+that we have 3 types of complices analogous to the 3 types of
+3-simplex, as shown in figure \ref{fig:pseudo-face-complices}. Indeed,
+the $(3,1)$-complex can be constructed entirely out of
+$(1,3)$-simplices, the $(2,2)$-complex can be constructed entirely out
+of $(2,2)$-simplices, and the $(3,1)$-complex can be constructed
+entirely out of $(3,1)$-simplices. This information is hard-coded into
+the program in the functions \textbf{triangulate-13-complex},
+\textbf{triangulate-22-complex}, and
+\textbf{triangulate-31-complex}. Each takes in the appropriate
+combination of pseudo-faces and pseudo-edges as input, as well as the
+low and high time-slice indices as input.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{pseudo-face_complices.png}
+  \caption{Possible types of complices constructed by pseudo-faces and
+    pseudo-edges. Left: a $(3,1)$-complex. Right: a
+    $(2,2)$-complex. The jagged lines are space-like pseudo-edges and
+    the straight lines are time-like edges. Figure by David Kamensky.}
+  \label{fig:pseudo-face-complices}
+\end{figure}
+
+\subsubsection{Generating a Random Spacetime of The Appropriate Size}
+\label{sec:grow-spacetime}
+
+Once a minimally triangulated spacetime has been created, as described
+in the sections above, we need to generate a spacetime of the proper
+3-volume. To do this, use either \textbf{increase-volume-v1} or
+\textbf{increase-volume-v2}. By default, the program calls
+increase-volume-v2. increase-volume-v1 was written by Christian
+Anderson, wile increase-volume-v2 was written by Rajesh
+Kommu.
+\begin{itemize}
+\item increase-volume-v1 has the following prototype:
+\begin{lstlisting}
+(defun increase-volume-v1 (target-volume))
+\end{lstlisting}
+  It randomly chooses one of the volume increasing moves until the
+  spacetime reaches the target volume, which it takes as input. The
+  range of the local variable type-chooser decides the weight and
+  frequency of the volume-increasing moves. The advantage of
+  increase-volume-v1 is that it is more random than
+  increase-volume-v2.
+\item increase-volume-v2 has the following prototype:
+\begin{lstlisting}
+(defun increase-volume-v2 (target-volume))
+\end{lstlisting}
+  It performs the following algorithm:
+  \subitem ---Apply 2-$>$3 moves on all simplices for which this is
+  topologically acceptable. 
+  \subitem ---Apply 4-$>$4 moves on all simplices for which this is 
+  topologically acceptable.
+  \subitem ---Apply 2-$>$6 moves on all simplices for which this is 
+  topologically acceptable.
+  \subitem ---Apply 4-$>$4 moves on all simplices for which this is 
+  topologically acceptable.
+  \subitem ---Repeat until the total number of 3-simplices in the spacetime 
+  is equal to \subitem $\quad$target-volume
+\end{itemize}
+The advantage of increase-volume-v2 is that it generates an extremely
+even volume distribution to start the simulation with before
+thermalization. I personally believe this makes thermalization go
+faster because the spacetime is probably not in a meta-stable state
+to start.
+
+This pretty much covers how to initialize a
+spacetime. initialize-t2-triangulation works very much like
+initialize-s2-triangulation and calls the same lower-level
+functions. However, initialize-t2-triangulation does not support fixed
+boundaries.
+
+\subsubsection{Loading a Spacetime From File}
+\label{sec:load-from-file}
+
+Instead of initializing (and then probably thermalizing) a new
+spacetime, you may wish to load a spacetime from a previous *.3sx2p1
+file. The function to call is \textbf{load-spacetime-from-file}, and
+has the following prototype:
+\begin{lstlisting}
+(defun load-spacetime-from-file (infile)
+  (parse-parameters-line (read-line infile nil))
+  (loop for line = (read-line infile nil)
+     while line do (parse-simplex-data-line line)))
+\end{lstlisting}
+infile is a file stream, not a file name. Therefore, the syntax is :
+\begin{lstlisting}[numbers=left]
+(defparameter *filename* "/path/to/your/file.3sx2p1")
+(with-open-file (f *filename*)
+  (load-spacetime-from-file f))
+\end{lstlisting}
+This function reads a file and generates all 3-simplices defined in
+the *.3sx2p1 file and all subsimplices---the function it calls for
+this is \textbf{parse-simplex-data-line}. Furthermore, all the
+required parameters such as the number of sweeps so far performed, the
+number of simplices of each type, and the coupling constants are all
+defined---the function it calls for this is
+\textbf{parse-parameters-line}.
+
+
+\subsection{Output Functions}
+\label{subsec:output}
+
+Once you've run a simulation, you probably want to see the output. A
+catalog of the various data-taking functions is given in the user's
+guide, so I won't dwell much on the top-level functions. Instead, I'd
+like to talk about how the output functions work and on what
+lower-level functions the top-level functions depend on. The
+\textbf{generate-data} functions use the following algorithm:
+\begin{enumerate}
+\item Make the files that are appended to during data creation. See
+  section \ref{sec:output-new-files}.
+\item Run a Monte Carlo Sweep. See section \ref{s:f:metropolis:loop}.
+\item If the sweep number is an integer multiple of
+  SAVE-EVERY-N-SWEEPS, append to the files created in step 1 (see
+  section \ref{sec:output:appending-to-files}) and make any files that
+  are generated anew during data creation (see section
+  \ref{sec:output-new-files}).
+\item Go back to step 2.
+\end{enumerate}
+
+Let's talk about the individual steps in the algorithm. All of the
+higher-level functions can be found in \textbf{output.lisp}
+
+\subsubsection{Making new files}
+\label{sec:output-new-files}
+
+The functions that generate new files are:
+
+\begin{itemize}
+\item \textbf{make-spacetime-file}, which makes *.3sx2p1 files. It
+  uses: 
+  \subitem \textbf{save-spacetime-to-file}, which prints
+  3-simplex information and parameter information to a stream (found
+  in \textbf{simplex.lisp}).
+\item \textbf{make-progress-file}, which makes *.prg2p1 files.
+\item \textbf{make-movie-file}, which makes *.mov2p1 files. It uses:
+  \subitem \textbf{print-movie-data}, which is described in section
+  \ref{sec:output:appending-to-files}.
+\end{itemize}
+
+These functions generate a filename and then print the appropriate
+information into the file. Filename generation is handled by a pair of
+functions and a battery of constants. The functions are:
+\begin{itemize}
+\item \textbf{generate-filename}: generate-filename lists a number of
+parameters for the simulation, but doesn't specify how many sweeps
+have been performed. It is, in general, for generating a single file
+over the course of the simulation.
+\item \textbf{generate-filename-v2}: generate-filename-v2 works like
+  generate-filename, but it keeps track of how many sweeps have been
+  performed in the simulation when filename is generated. This is
+  useful for generating files periodically during a simulation.
+\end{itemize}
+The generate-filename functions only generate the bulk of the file
+name. The extension is predefined in one of 4 global variables (all of
+which are defined in globals.lisp). The extensions are:
+\begin{lstlisting}
+(defparameter 3SXEXT ".3sx2p1" 
+  "used for storing the parameters and 3simplex information")
+(defparameter PRGEXT ".prg2p1" 
+  "used for keeping track of the progress of a simulation run")
+(defparameter MOVEXT ".mov2p1" 
+  "used for storing the movie data information")
+(defparameter S2SXEXT ".s2sx2p1" 
+  "used for storing the spatial 2-simplex information")
+\end{lstlisting}
+
+\subsubsection{Appending to Files}
+\label{sec:output:appending-to-files}
+
+The only file to which information is appended is a movie data file,
+*.mov2p1. We append to a *.mov2p1 file with
+\textbf{append-to-movie-file}, which calls \textbf{print-movie-data}
+to format the movie data. print-movie-data looks through each
+sandwich, counts the number of 3-simplices in that sandwich, and
+prints that information to a stream. 
+
+\section{Final Thoughts and TODO}
 
 \end{document}
 
-\message{ !name(programmers_guide.tex) !offset(-944) }
+\message{ !name(programmers_guide.tex) !offset(-1537) }

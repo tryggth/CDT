@@ -22,11 +22,21 @@
 \BOOKMARK [3][-]{subsubsection.4.5.1}{The f-Vector}{subsection.4.5}% 22
 \BOOKMARK [3][-]{subsubsection.4.5.2}{The b-vector}{subsection.4.5}% 23
 \BOOKMARK [1][-]{section.5}{Functions}{}% 24
-\BOOKMARK [2][-]{subsection.5.1}{The Action}{section.5}% 25
-\BOOKMARK [2][-]{subsection.5.2}{Ergodic Moves}{section.5}% 26
-\BOOKMARK [3][-]{subsubsection.5.2.1}{move-subcomplex}{subsection.5.2}% 27
-\BOOKMARK [3][-]{subsubsection.5.2.2}{try-move}{subsection.5.2}% 28
-\BOOKMARK [3][-]{subsubsection.5.2.3}{Apply Move}{subsection.5.2}% 29
-\BOOKMARK [2][-]{subsection.5.3}{Metropolis Loop}{section.5}% 30
-\BOOKMARK [2][-]{subsection.5.4}{Initialization}{section.5}% 31
-\BOOKMARK [3][-]{subsubsection.5.4.1}{Top-Level Functionality}{subsection.5.4}% 32
+\BOOKMARK [2][-]{subsection.5.1}{An Aside: bc-mod}{section.5}% 25
+\BOOKMARK [2][-]{subsection.5.2}{The Action}{section.5}% 26
+\BOOKMARK [2][-]{subsection.5.3}{Ergodic Moves}{section.5}% 27
+\BOOKMARK [3][-]{subsubsection.5.3.1}{move-subcomplex}{subsection.5.3}% 28
+\BOOKMARK [3][-]{subsubsection.5.3.2}{try-move}{subsection.5.3}% 29
+\BOOKMARK [3][-]{subsubsection.5.3.3}{Apply Move}{subsection.5.3}% 30
+\BOOKMARK [2][-]{subsection.5.4}{Metropolis Loop}{section.5}% 31
+\BOOKMARK [2][-]{subsection.5.5}{Initialization}{section.5}% 32
+\BOOKMARK [3][-]{subsubsection.5.5.1}{Top-Level Functionality}{subsection.5.5}% 33
+\BOOKMARK [3][-]{subsubsection.5.5.2}{Mid-Level Functionality}{subsection.5.5}% 34
+\BOOKMARK [3][-]{subsubsection.5.5.3}{connect-existing-simplices}{subsection.5.5}% 35
+\BOOKMARK [3][-]{subsubsection.5.5.4}{triangulate-between-s2-slices}{subsection.5.5}% 36
+\BOOKMARK [3][-]{subsubsection.5.5.5}{Generating a Random Spacetime of The Appropriate Size}{subsection.5.5}% 37
+\BOOKMARK [3][-]{subsubsection.5.5.6}{Loading a Spacetime From File}{subsection.5.5}% 38
+\BOOKMARK [2][-]{subsection.5.6}{Output Functions}{section.5}% 39
+\BOOKMARK [3][-]{subsubsection.5.6.1}{Making new files}{subsection.5.6}% 40
+\BOOKMARK [3][-]{subsubsection.5.6.2}{Appending to Files}{subsection.5.6}% 41
+\BOOKMARK [1][-]{section.6}{Final Thoughts and TODO}{}% 42

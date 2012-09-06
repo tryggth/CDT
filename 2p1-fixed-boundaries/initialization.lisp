@@ -16,8 +16,8 @@
 	(setf retval (push tri retval))))
     retval))
 
-;;find all triangles containing a particular point.  triangles are
-;;represented in a list of 3-tuples
+;; find all triangles containing a particular point.  triangles are
+;; represented in a list of 3-tuples
 (defun triangles-around-point (point list-of-triangles)
   (let ((retval ()))
     (dolist (tri list-of-triangles)
