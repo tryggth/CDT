@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """
 simplex_descendants.py
 
@@ -52,31 +50,6 @@ class vertex(geometry):
     -- id = The identifying number of the simplex. Useful. 
     -- instances = The dictionary containing all instances of the class.
 
-    Methods:
-    -- find_duplicates(triangle_list) = A function that searches for other 
-                                        vertices that have the same triangle
-                                        list as triangle_list.
-    -- find_triangles() = A function that calculates triangles that contain 
-                          this vertex.
-    -- set_triangles(triangle_list) = A way to set self.triangles
-    -- find_and_set_triangles() = A function that uses find triangles and 
-                                  set triangles to do exactly that.
-    -- curvature() = a function that calculates the local curvature
-                     of the manifold at a vertex.
-    -- connect_surrounding_triangles() = Ensures surrounding triangles 
-                                         see each other as neighbors.
-    -- find_edges() = A function that calculates the edges that contain the
-                     vertex.
-    -- increment_id() = A function that increments last_used_id
-    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
-                                 list.
-    -- recycle_id() = A function that returns the least element of 
-                     recycled_ids and deletes it from the list.
-    -- make_id() = A function that generates a new id for a vertex.
-                   First looks in recycled IDs. If there are non
-                   available, uses increment ID.
-
-
     To initialize: v = vertex()
     """               
     
@@ -121,7 +94,7 @@ class vertex(geometry):
         return isinstance(object_instance,vertex)
 
     # Initialization function
-    def __init__(self, triangle_list = [],new_id=0):
+    def __init__(self, triangle_list = [],new_id=0,edge_list=[]):
         """
         Initialize a vertex. You can give the vertex a list of
         triangles you know are connected to it to add them to the list
@@ -134,13 +107,17 @@ class vertex(geometry):
             self.id = new_id
         # Local triangle list
         self.triangles = set(triangle_list)
+        # Local edge list
+        self.edges = set(edge_list)
 
     def __str__(self):
         "String conversion reveals id and the number of triangles."
         t_string = str([x for x in self.triangles])
+        e_string = str([x for x in self.edges])
         idstring = str(self.id)
-        return "Vertex object.\nID: {}\nTriangles: {}".format(idstring, 
-                                                                t_string)
+        outstring = "Vertex object.\nID: {}\nTriangles: {}\nEdges: {}"
+        outstring = outstring.format(idstring, t_string, e_string)
+        return outstring
 
     def __len__(self):
         "Length reveals the number of attached triangles."
@@ -155,6 +132,26 @@ class vertex(geometry):
             if self.id in e.vertices:
                 containing_edges.add(e.id)
         return containing_edges
+
+    def get_edges(self):
+        "Returns the objects, not the ids."
+        return [edge.instances[e] for e in self.edges]
+
+    def get_edge_ids(self):
+        "Returns the ids, not the objects."
+        return self.edges
+
+    def set_edges(self,edge_list):
+        "Sets self.edges"
+        self.edges = set(edge_list)
+
+    def find_and_set_edges(self):
+        """
+        Finds attached edges and sets self.edges to include them.
+        """
+        new_edges = self.find_edges()
+        self.set_edges(new_edges)
+        return new_edges
 
     def get_triangles(self):
         "Returns the objects, not the ids."
@@ -241,22 +238,6 @@ class edge(geometry):
     -- length = The length of an edge in the physical geometry.
     -- instances = The dictionary containing all instances of the class.
 
-    Methods:
-    -- bisect()  = Bisects the edge and returns two pairs of points, each 
-                   defining a new edge.
-    -- increment_id() = A function that increments last_used_id
-    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
-                        list.
-    -- recycle_id() = A function that returns the least element of 
-                      recycled_ids and deletes it from the list.
-    -- make_id() = A function that generates a new id for a vertex.
-                   First looks in recycled IDs. If there are non
-                   available, uses increment ID.
-    -- check_topology() = A function to make sure the edge has 
-                          either 2 or 0 endpoints.
-    -- set_vertices(vertices) = A function to set self.vertices. Takes a 
-                                list of length 2 as input.
-
     Example of call: e = edge(vertex_pair)
     where vertex_pair = [vertex1, vertex2]
     """
@@ -274,6 +255,24 @@ class edge(geometry):
     def isinstance(self,object_instance):
         "Tests if an object_instnace is an instance of the edge class."
         return isinstance(object_instance,edge)
+
+    @classmethod
+    def exists(self,endpoint_pair):
+        """
+        Tests to see if the edge defined by a vertex pair exists. If
+        it does, return the edge ID.
+        """
+        if len(endpoint_pair) != 2:
+            raise ValueError("Must be a pair of vertices or vertex IDs!")
+        endpoints = set([vertex.parse_input(i) for i in endpoint_pair])
+        possible_edges = list(endpoints)[0].get_edges()
+        same_edges = [e.get_id() for e in possible_edges \
+                          if endpoints == set(e.get_vertices())]
+        if same_edges:
+            return same_edges
+        else:
+            return False
+        
 
     def bisect(self):
         """
@@ -378,23 +377,6 @@ class triangle(geometry):
                60 degrees.
     -- instances = The dictionary containing all instances of the class.
 
-    Methods:
-    -- increment_id() = A function that increments last_used_id
-    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
-                                 list.
-    -- recycle_id() = A function that returns the least element of 
-                               recycled_ids and deletes it from the list.
-    -- make_id() = A function that generates a new id for a vertex.
-                            First looks in recycled IDs. If there are non
-                            available, uses increment ID.
-    -- edges() = A list of edges contained by the triangle
-    -- check_topology() = Checks to ensure the number of neighbors, 
-                          edges, and vertices is okay.
-    -- connect_to_triangle(other_triangle) = Sees if another triangle is 
-                                             a neighbor. If it is, set each 
-                                             triangle in the other 
-                                             triangle's neighbors list.
-    
     Example of call: t = triangle(point_list)
     where point_list = [p1,p2,p3]
     """
@@ -414,6 +396,21 @@ class triangle(geometry):
         "Tests if an object_instnace is an instance of the vertex class."
         return isinstance(object_instance,triangle)
 
+    def check_neighbor_edge_correlation(self):
+        """
+        Ensures there is a bijection between neighbors and edges.
+        """
+        edges = set([])
+        for n in self.get_neighbors():
+            shared_edges = ut.set_intersection([n.edges,self.edges])
+            if len(shared_edges) == 1:
+                edges.add(list(shared_edges)[0])
+        if edges != self.edges:
+            print "\nErroneous Triangle!\n"
+            print self
+            raise ValueError("Each neighbor does not share exactly 1 edge!")
+                        
+
     def check_topology(self,return_value=False):
         """
         Ensure that the triangle has the correct numbers of
@@ -423,7 +420,27 @@ class triangle(geometry):
         """
         assert len(self.vertices) == 0 or len(self.vertices) == 3
         assert len(self.edges) == 0 or len(self.edges) == 3
-        assert 0 <= len(self.neighbors) <= 3
+        if not 0 <= len(self.neighbors) <= 3:
+            print "\nErroneous Triangle!\n"
+            print self
+            raise ValueError("Number of neighbors is wrong!")
+        if return_value:
+            print "Topology is okay."
+
+    def check_topology_v2(self,return_value=False):
+        """
+        Like check_topology, but only allows 3 for each value. Useful
+        after initialization.
+        """
+        if len(self.vertices) != 3:
+            print self
+            raise ValueError("Number of vertices is wrong!")
+        if len(self.edges) != 3:
+            print self
+            raise ValueError("Number edges is wrong!")
+        if len(self.neighbors) != 3:
+            print self
+            raise ValueError("Number vertices is wrong!")
         if return_value:
             print "Topology is okay."
 
@@ -505,6 +522,14 @@ class triangle(geometry):
         "Returns the ids."
         return self.neighbors
 
+    def make_outstring(self):
+        """
+        Makes a string of the form '(v1, v2, v3)' for vertices. Useful
+        for output.
+        """
+        assert len(self.vertices) == 3
+        v = list(self.vertices)
+        return "({} {} {})".format(v[0],v[1],v[2])
 
     # Initialization function
     def __init__(self,point_list=[],edge_list=[],neighbor_list=[]):

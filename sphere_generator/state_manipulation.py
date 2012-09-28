@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """
 state_manipulation.py
 
@@ -166,7 +164,15 @@ def build_triangle_and_edges(point_list):
     already exist. Checks for redundancies. If the triangle already
     exists, returns its id.
     """
- 
+    # local constants
+    triangle_length = 3 # The total number of vertices in a triangle.
+
+    # Make sure we actually have a collection of 3 triangle vertices.
+    assert len(point_list) == triangle_length
+
+    # Generate a list of point ids.
+    point_list = [vertex.parse_input(t).get_id() for t in point_list]
+    
     # Typecast to eliminate duplicates
     vertices = set(point_list)
 

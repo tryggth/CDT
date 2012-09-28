@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """
 utilities.py
 
@@ -19,6 +17,8 @@ generation program that are simply useful little tricks.
 import itertools # For combinations
 import math # For factorials
 import numpy as np
+import functools
+import operator
 #-------------------------------------------------------------------------
 
 
@@ -107,3 +107,14 @@ def round_to_zero(x):
         return 0
     else:
         return x
+
+def product(seq):
+    """Product of a sequence."""
+    return functools.reduce(operator.mul, seq, 1)
+
+def concatenate_strings(list_of_strings):
+    "Take every string in a list and concatenate them."
+    S = list_of_strings[0]
+    for i in range(1,len(list_of_strings)):
+        S += list_of_strings[i]
+    return S

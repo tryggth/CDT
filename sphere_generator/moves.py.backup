@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 """
 moves.py
 
@@ -41,6 +43,7 @@ import error_checking
 import initialization
 import state_tracking as st
 #-------------------------------------------------------------------------
+
 
 
 ####---------------------------------------------------------------------####
@@ -96,54 +99,27 @@ class complex(generalized_complex):
     complex class over just a list.
     """
     
-class complex22(generalized_complex):
+class complex42(generalized_complex):
     """
-    The complex22 class is the same as the complex class, but includes
-    a method to set the pair of vertices that share an edge between
-    the two triangles in the complex and a method to set the pair of
-    vertices that DO NOT share an edge for the two triangles in the
-    complex. For use with complex_2_to_2, try_2_to_2, and move_2_to_2.
+    The complex42 class is the same as the complex class, but includes
+    a method to set the pair of vertices which have >=4 triangles
+    attached to them and which we treat differently than the other 2
+    boundary vertices. For use with the complex_4_to_2, try_4_to_2 and
+    move_4_to_2 functions.
     """
-    def set_shared_vertices(self,vertex_pair):
+    def set_vertices(self,vertices_with_4_triangles):
         """
-        The 2->2 move requires a pair of vertices with 4 triangles
-        attached to each of them. These vertices are the endpoints for
-        the edge shared between the two triangles in the
-        complex. These are they.
+        The 4->2 move requires a pair of vertices with 4
+        triangles. These are they.
         """
-        if len(vertex_pair) != 2:
-            raise TypeError("We need a PAIR of vertices!")
-        self.shared_vertices = [sd.vertex.parse_input(v)\
-                                    for v in vertex_pair]
+        self.vertices_with_4_triangles = vertices_with_4_triangles
 
-    def get_shared_vertices(self):
+    def get_vertices(self):
         """
-        The 2->2 move requires a pair of vertices with 4 triangles
-        attached to each of them. These vertices are the endpoints for
-        the edge shared between the two triangles in the
-        complex. These are they.
+        The 4->2 move requires a pair of vertices with 4
+        triangles. These are they.
         """
-        return self.shared_vertices
-
-    def set_unshared_vertices(self,vertex_pair):
-        """
-        The 2->2 move requires a pair of vertices that don't share an
-        edge but are vertices of of the two triangles in the
-        complex. These are they.
-        """
-        if len(vertex_pair) != 2:
-            raise TypeError("We need a PAIR of vertices!")
-        self.unshared_vertices = [sd.vertex.parse_input(v)\
-                                      for v in vertex_pair]
-
-    def get_unshared_vertices(self):
-        """
-        The 2->2 move requires a pair of vertices that don't share an
-        edge but are vertices of of the two triangles in the
-        complex. These are they.
-        """
-        return self.unshared_vertices
-
+        return self.vertices_with_4_triangles
 #---------------------------------------------------------------------------
 
    
@@ -185,7 +161,6 @@ def set_neighbors_and_triangles(changed_vertices,changed_triangle_ids):
     # Set triangles associated with a vertex
     for v in changed_vertices:
         v.find_and_set_triangles()
-        v.find_and_set_edges()
         
     # Set triangle neighbors
     for v in changed_vertices:
@@ -193,35 +168,8 @@ def set_neighbors_and_triangles(changed_vertices,changed_triangle_ids):
 
     # Finally run some error checking:
     for t_id in changed_triangle_ids:
-        sd.triangle.instances[t_id].check_topology_v2()
+        sd.triangle.instances[t_id].check_topology()
         sd.triangle.instances[t_id].check_edge_validity()
-        sd.triangle.instances[t_id].check_neighbor_edge_correlation()
-
-def try_random(allowed_move_list):
-    """
-    Randomly attempts to apply a random move from the allowed move
-    list. Returns movedata.
-    """
-    # The move we will attempt
-    try_move = random.choice(allowed_move_list)
-    # The simplex we will work on
-    try_simplex = random.choice(sd.triangle.instances.values())
-    # Try the move, return the movedata
-    mdata = try_move(try_simplex)
-
-    return mdata
-
-def apply_move(move_data):
-    """
-    Apply the move specified in move_data
-    """
-    # The function we apply the move with
-    move_function = move_data.get_move_type()
-    # The complex we apply the move on
-    cmpx = move_data.get_complex()
-    # Do the move!
-    return move_function(cmpx)
-
 #---------------------------------------------------------------------------
 
 
@@ -256,8 +204,7 @@ def complex_1_to_3(simplex_id_or_simplex):
 def try_1_to_3(simplex_id_or_simplex):
     """
     Tries a 1->3 move and returns the move data that the metropolis
-    algorithm will use to decide whether or not to accept a move. Also
-    returns useful information for applying the move.
+    algorithm will use to decide whether or not to accept a move.
     """
     # The complex
     cmpx = complex_1_to_3(simplex_id_or_simplex)
@@ -482,223 +429,397 @@ def move_3_to_1(cmpx):
 #---------------------------------------------------------------------------
 
 
-# Functions for the 2->2 move
+# Functions for the 2->4 move
 #---------------------------------------------------------------------------
 """
-Move behavior: Given two triangles that share an edge, rotate the
-               configuration by ninety degrees.
-
-               For the move to work properly, the new edge must not already
-               exist. Furthermore, the vertices marked "1" below must be each
-               connected to 4 or more triangles before the move is applied.
-
-               Since the volume is unchanged, we don't have to check
-               to see if the volume change will make the move
-               topologically unacceptable.
-
+Move behavior: Bisect the edge the triangles share and add a vertex there.
+               Connect the new vertex to each of the other 4 vertices.
       0                   0
      / \                 /|\
     /   \               / | \
    /     \             /  |  \
   /       \           /   |   \
- 1---------1   -->   1    |    1
+ 0---------0   -->   0----0----0 
   \       /           \   |   /
    \     /             \  |  /
     \   /               \ | /
      \ /                 \|/
-      0                   0
-"""
+      0                   0 
 
-def complex_2_to_2(simplex_id_or_simplex):
+Volume increase: 2
+"""
+def complex_2_to_4(simplex_id_or_simplex):
     """
     Takes a simplex or simplex id as input and calculates what, if
-    any, complices are topologically acceptable to operate on. If
-    there's more than one, return one at random. If there are none,
-    return False.
+    any, complices are topologically acceptable to operate on.
 
-    The 2->2 move equires that the new edge not already exist (there
-    are cases when it does) and that the endpoints of the deleted edge
-    each have >=4 triangles attached to them before the move is
-    applied.
+    The 2->4 move requires only that two triangles are neighbors. Thus
+    it is almost always (if not always) topologically acceptable to
+    use. If there is more than on acceptable complex (there will
+    almost always be 3), return one at random.
     """
-    # Declare local constants
-    pair_length = 2 # The length of a pair 
-    neighbor_length = 3 # The number of vertices a triangle must have.
-
     # Extract data for the first triangle
     # Extract triangle
     t1 = extract_triangle(simplex_id_or_simplex)
     # Extract neighbors
     t1_neighbors = t1.get_neighbors()
-    # Extract vertices
-    t1_vertices = t1.get_vertices()
+    # t1 and one of its neighbors will always form the complex we need.
+    complices = [complex([t1,neighbor]) for neighbor in t1_neighbors]
+    # Since this is a volume increasing move, there are no other
+    # topological concerns, so we just pick a complex at random.
+    return random.choice(complices)
 
-    # If we can find a pair of vertices of t1 that each have >=4
-    # triangles attached, then these vertices might be good choices of
-    # endpoints for the edge we will delete.
-    possible_endpoints = [v for v in t1_vertices if len(v) >= 4]
+def extract_from_complex_2_to_4(cmpx):
+    """
+    A sub-function for try_2_to_4. Extracts vertex information from
+    the complex passed to it.
+    """
+    # Extract information from the complex:
+    triangles = [sd.triangle.instances[i] for i in cmpx.get_triangles()]
+    # Extract vertices for each triangle
+    old_vertices = [set(triangle.get_vertices()) for triangle in triangles]
+    # Extract edges for each triangle
+    old_edges = [set(triangle.get_edges()) for triangle in triangles]
 
-    # If there are fewer than two possible endpoints, no acceptable
-    # edge exists, so me might as well give up.
-    if len(possible_endpoints) < 2:
-        return False
-    else: # If >=2 possible endpoints exist, get all possible pairs:
-        possible_endpoint_pairs = ut.k_combinations(possible_endpoints,2)
-    
-    # The other triangle in the complex will be the neighbor that
-    # shares the chosen pair of of endpoint vertices. We want to keep
-    # track of which pair this is associated with.
-    acceptable_neighbors = [(p,n) for p in possible_endpoint_pairs \
-                                for n in t1_neighbors \
-                                if p.issubset(n.get_vertices())]
-
-    # We will be making an edge between the unshared vertices of the
-    # two neighboring triangles. We have to make sure that this edge
-    # does not yet exist. 
-
-    # A function to calculate the unshared vertices as a pair. Just
-    # syntactic sugar.
-    unshared_v = lambda p,n: ut.set_union([set(t1.get_vertices()),
-                                           set(n.get_vertices())]) - set(p)
-    # An acceptable complex has a pair of shared points, a neighbor,
-    # and a pair of unshared points which are not the endpoints of an
-    # existing edge.
-    acceptable_cmpxs = [(p,n,unshared_v(p,n))\
-                             for (p,n) in acceptable_neighbors \
-                             if not sd.edge.exists(unshared_v(p,n))]
-
-    # Double check to make sure we have what we expect.
-    acceptable_cmpxs = [(p,n,u) for (p,n,u) in acceptable_cmpxs \
-                            if len(p) == pair_length\
-                            and len(n) == neighbor_length\
-                            and len(u) == pair_length]
-
-    # We have everything. If it exists, stick it in a complex and
-    # return it. Otherwise, return false.
-    if acceptable_cmpxs:
-        chosen_complex = random.choice(acceptable_cmpxs)
-        triangles = [t1,chosen_complex[1]]
-        shared_vertices = chosen_complex[0]
-        unshared_vertices = chosen_complex[2]
-        cmpx = complex22(triangles)
-        cmpx.set_shared_vertices(shared_vertices)
-        cmpx.set_unshared_vertices(unshared_vertices)
-        return cmpx
+    # Find the edge shared by the two triangles. There should be only
+    # one of these, but we should be careful and check anyways.
+    shared_edges = ut.set_intersection(old_edges) 
+    if len(shared_edges) == 1:
+        shared_edge = list(shared_edges)[0]
     else:
-        return False
+        raise ValueError("The triangles should only share one edge!")
 
-def try_2_to_2(simplex_id_or_simplex):
+    # The shared vertices are just the endpoints of the edge
+    shared_vertices = set(shared_edge.get_vertices())
+
+    # We can now extract the vertices not on the shared edge using set
+    # difference.
+    unshared_vertices = ut.set_union(old_vertices) - shared_vertices
+    # There should be only 2 unshared vertices.
+    assert len(unshared_vertices) == 2
+
+    # We have everything we need now, so return it:
+    return [unshared_vertices,shared_edge,triangles]
+
+def try_2_to_4(simplex_id_or_simplex):
     """
-    Tries a 2->2 move and returns the data that the metropolis
-    algorithm will use to decide whether ornot to accept the
-    move. Also returns useful information for applying the move.
+    Tries a 2->4 move and returns the move data that the metropolis
+    algorithm will use to determine whether or not to accept the
+    move. If the move is simply not topologically acceptable, returns
+    false.
     """
+    # Increases/decreases per imaginary vertex
+    unshared_increase = 1 # Each vertex opposite the shared edge gets
+                          # 1 additional triangle
+    central_increase = 4  # We add a vertex that bisects the shared
+                          # edge of the two triangles. This vertex
+                          # will have 4 triangles attached to it when
+                          # we're done.
+
     # The complex
-    cmpx = complex_2_to_2(simplex_id_or_simplex)
-
-    # If no complex is possible, immediately return false
-    if not cmpx:
-        return False
-
-    # The triangles in the complex. There should be 2.
-    triangles = [sd.triangle.parse_input(t) for t in cmpx.get_triangles()]
-    if len(triangles) != 2:
-        raise ValueError("There should be 2 triangles in this complex!")
-
-    # The unshared vertices. There should be 2, but complex22 does
-    # this error checking for us. It also returns instances rather
-    # than values in the case of the vertices.
-    unshared_vertices = cmpx.get_unshared_vertices()
-    # The shared vertices. Similar to the unshared
-    shared_vertices = cmpx.get_shared_vertices()
-
-    # All 4 of the original vertices will be replaced.
-    original_vertices = unshared_vertices + shared_vertices
-    assert len(set(original_vertices)) == 4
-    removed_vertices = [st.imaginary_vertex(len(v),False) \
-                            for v in original_vertices]
-
-    # The unshared vertices will become shared, so each one will
-    # become attached to one additional triangle.
-    added_vertices = [st.imaginary_vertex(len(v)+1,True) \
-                          for v in unshared_vertices]
-    # The shared vertices will become unshared, so each one will
-    # become attached to one less triangle.
-    added_vertices += [st.imaginary_vertex(len(v)-1,True) \
-                           for v in shared_vertices]
-
-    return st.move_data(removed_vertices + added_vertices,
-                        cmpx, move_2_to_2,0)
-
-def move_2_to_2(cmpx):
-    """
-    Applies a 2->2 move to the input complex, cmpx. Input must be of
-    type complex22.
-    """
-    # Declare local constants
-    triangle_size = 3 # The number of veritces in a triangle
-    complex_size = 2 # The complex has 2 triangles
-    number_of_shared_vertices = 2 # The complex has 2 shared vertices
-    number_of_unshared_vertices = 2 # The complex has 2 unshared vertices
-    total_number_of_vertices = 4 # There should be a total of 4
-                                 # vertices in the complex.
-
-    # Extract the triangles. Don't need error checking because if the
-    # complexd is not correct, we won't be able to extract the shared
-    # and unshared vertices.
-    triangles = [sd.triangle.parse_input(t) for t in cmpx.get_triangles()]
-    # Extract the shared_vertices
-    shared_vertices = cmpx.get_shared_vertices()
-    # Extract the unshared vertices
-    unshared_vertices = cmpx.get_unshared_vertices()
-
-    # Tiny bit of error checking just in caes
-    assert len(triangles) == complex_size
-    assert len(shared_vertices) == number_of_shared_vertices
-    assert len(unshared_vertices) == number_of_unshared_vertices
-    assert len(set(shared_vertices+unshared_vertices)) \
-        == total_number_of_vertices
-
-    # The edge shared by the two shared vertices. If it doesn't
-    # exist, something went very wrong!
-    if sd.edge.exists(shared_vertices):
-        shared_edge = sd.edge.exists(shared_vertices)[0]
+    cmpx = complex_2_to_4(simplex_id_or_simplex)
+    # If there are no topologically acceptable complices, stop right
+    # now and return False. Otherwise, extract the triangles.
+    if cmpx:
+        unshared_vertices = extract_from_complex_2_to_4(cmpx)[0]
     else:
-        raise ValueError("The pair of vertices you gave me are not "
-                         + "endpoints of an edge!")
+        return False
+    
+    # The shared vertices remain unchanged and we add a vertex with 4
+    # triangles in the center. The unshared vertices each get one
+    # additional triangle attached to them.
+    
+    # First, "replaces" the original unshared vertices
+    removed_vertices = [st.imaginary_vertex(len(v),False) \
+                            for v in unshared_vertices]
+    added_vertices = [st.imaginary_vertex(len(v)+unshared_increase,True) \
+                          for v in unshared_vertices]
 
-    # Calculate the vertices for the new triangles
-    new_triangles = [set(unshared_vertices+[s]) for s in shared_vertices \
-                         if len(set(unshared_vertices+[s])) == triangle_size]
-    # Tiny bit of error checking just in case. The number of new
-    # triangles should be the same as the number of old triangles.
-    assert len(new_triangles) == complex_size
+    # Add the center vertex
+    added_vertices.append(st.imaginary_vertex(central_increase,True))
 
-    # Remove the old triangles
+    return st.move_data(removed_vertices + added_vertices,cmpx,
+                        move_2_to_4,2)
+
+def extract_from_complex_move_2_to_4(cmpx):
+    "Extracts useful triangle,edge,and vertex information for move_2_to_4."
+    # Extract the triangles required for this move.
+    # Error checking
+    triangles = set([sd.triangle.instances[i] for i in triangle_ids])
+    # Get edges
+    edges = [set(t.get_edges()) for t in triangles]
+    # Get vertices
+    vertices = [set(t.get_vertices()) for t in triangles]
+    # Find the shared ed
+
+def move_2_to_4(cmpx):
+    "Applies a 2->4 move to the input complex, cmpx."
+    
+    # We need to extract vertex and edge information. Check to make
+    # sure the complex is correct too.
+    if len(cmpx.get_triangles()) == 2:
+        extracted_complex = extract_from_complex_2_to_4(cmpx)
+    else:
+        raise ValueError("There should be 2 triangles for the 2->4 complex.")
+    unshared_vertices = extracted_complex[0] # Vertices opposite the shared edge
+    shared_edge = extracted_complex[1] # The edge shared between the
+                                       # two triangles
+    shared_vertices = set(shared_edge.get_vertices())
+    triangles = extracted_complex[2] # The two triangle objects used.
+
+    # With all this information at our disposal, we're ready to start
+    # changing things:
+    
+    # Bisect the edge, get a set of 2 new edges and the new
+    # vertex. The old shared edge now no longer exists.
+    new_edges,new_vertex = sm.bisect_edge(shared_edge)
+    
+    # We need to make 4 triangles: 2 connected to each unshared
+    # vertex, one per new edge.
+    new_triangles = set([])
+    for vertex in unshared_vertices:
+        vertex_id = vertex.get_id()
+        for edge in new_edges:
+            endpoints = set(edge.get_vertex_ids())
+            assert len(endpoints) == 2 # If this is not true,
+                                       # something went wrong.
+            triangle_vertices = endpoints | set([vertex_id])
+            new_triangles.add(sm.build_triangle_and_edges(triangle_vertices))
+
+    # With the new triangles constructed, the old triangles must be destroyed.
     for t in triangles:
         sm.remove_triangle(t)
-    # Remove the old edge we no longer need.
-    sm.remove_edge(shared_edge)
 
-    # With the old geometric constructs out of the way, make the new one!
+    # Set the triangles for each vertex that was changed:
+    changed_vertices = ut.set_union([shared_vertices,
+                                     unshared_vertices,
+                                     set([new_vertex])])
+    set_neighbors_and_triangles(changed_vertices,new_triangles)
+    
+    return True
+# ---------------------------------------------------------------------------
+
+
+# Functions for the 4->2 move
+#---------------------------------------------------------------------------
+"""
+Move behavior: Undo a 2->4 move. Take the central vertex of a complex of 4
+               triangles and remove it and one edge to form 2 triangles.
+       0                 0
+      /|\               / \
+     / | \             /   \
+    /  |  \           /     \
+   /   |   \         /       \
+  0----0----0  -->  0---------0
+   \   |   /         \       /
+    \  |  /           \     /
+     \ | /             \   /
+      \|/               \ /
+       0                 0
+ Volume decrease: 2
+"""
+def complex_4_to_2(simplex_id_or_simplex):
+    """
+    Takes a simplex or simplex id as input and calculates what, if
+    any, complices are topologically acceptable to operate on.
+
+    The 4->2 move requires that 4 triangles are connected to a single
+    vertex. If there is more than one acceptable complex, then the
+    function returns one at random.
+    """
+
+    #      0
+    #     /|\       
+    #    / | \       For a complex to be acceptable, at least one pair of
+    #   /  |  \      vertices opposite each other in the complex (marked 1
+    #  1---0---1     on the diagram to the left), must have at least 4 
+    #   \  |  /      triangles attached to each vertex.
+    #    \ | /       
+    #     \|/       
+    #      0        
+
+    # The accepted minimum number of triangles attached to a vertex in
+    # the chosen opposite pair of vertices:
+    acceptable_minimum = 4
+
+    # Local syntactic sugar:
+    vertex_pairs = lambda c: st.find_opposite_vertices_in_complex(c)
+    # Number of triangles attached to a given vertex
+    num_ts = lambda vertex: len(vertex.get_triangles())
+    # A vertex pair is okay if each vertex in it is attached to 4 triangles:
+    pair_ok = lambda pair: 2==len([v for v in pair \
+                                       if num_ts(v) >= acceptable_minimum])
+
+    # Ensure that the volume decrease is accepable for the sphere at all.
+    volume_decrease = 2
+    if not check_area_decreasing_validity(volume_decrease):
+        return False
+
+    # Extract data for the first triangle
+    t1 = extract_triangle(simplex_id_or_simplex) # Extract triangle
+    t1_vertices = set(t1.get_vertices()) # Vertices surrounding the
+                                         # first triangle.
+    
+    # Vertices to center the complex have 4 triangles associated with them
+    possible_vertices = [v for v in t1_vertices if len(v) == 4]
+    # Thus possible complices are built around the possible vertices
+    possibilities = [set(v.get_triangles()) for v in possible_vertices]
+    
+    # For a possible complex to be acceptable, it must have at least
+    # one pair of vertices opposite each other for which each vertex
+    # is attached to at least 4 triangles.
+    new_possibilities = []
+    for cmpx in possibilities:
+        for pair in vertex_pairs(cmpx):
+            if pair_ok(pair):
+                new_possibilities.append((cmpx,pair))
+    possibilities = new_possibilities
+#    possibilities = [(cmpx,pair) for cmpx in possibilities \
+#                         for pair in vertex_pairs(cmpx)
+#                         if pair_ok(pair)]
+
+    # If there are any possibilities left, return one at
+    # random. Otherwise, return false.
+    if possibilities:
+        for p in possibilities:
+            for v in p[1]:
+                print v
+        chosen_complex = random.choice(possibilities)
+        output_complex = complex42(chosen_complex[0])
+        output_complex.set_vertices(chosen_complex[1])
+        return output_complex
+    else: 
+        return False
+
+
+def try_4_to_2(simplex_id_or_simplex):
+    """
+    Tries a 4->2 move and returns the move data that the metropolis
+    algorithm will use to determine whether or not to accept the
+    move. If the move is simply not technologically acceptable,
+    returns false.
+    """
+    # Increases/decreases per imaginary vertex
+    unshared_decrease = 1 # Each vertex in the vertex pair that don't
+                          # share a triangle (and each has 4 triangles
+                          # attached to it) that we found in
+                          # complex_4_to_2 will each lose 1 triangle.
+    central_decrease = 4 # We remove the central vertex in the complex
+                         # of 4. Thus we lose a vertex with 4
+                         # triangles attached to it.
+
+    # The complex
+    cmpx = complex_4_to_2(simplex_id_or_simplex)
+    # If there are no topologically acceptable complices, stop right
+    # now and return false. Otherwise, extract the triangles.
+    if cmpx:
+        unshared_vertices = cmpx.get_vertices()
+    else:
+        return False
+
+    # The vertices opposite each other that were not chosen by
+    # complex_4_to_2 remain unchanged. The vertices that were chosen
+    # each lose 1 traingle. The central vertex is removed.
+
+    # First "replace" the vertices opposite each other
+    removed_vertices = [st.imaginary_vertex(len(v),False) \
+                            for v in unshared_vertices]
+    added_vertices = [st.imaginary_vertex(len(v)-unshared_decrease, True)\
+                          for v in unshared_vertices]
+
+    # Remove the center vertex
+    removed_vertices.append(st.imaginary_vertex(central_decrease,False))
+
+    return st.move_data(removed_vertices + added_vertices, cmpx,
+                        move_4_to_2, -2)
+
+
+def move_4_to_2(cmpx):
+    """
+    Applies a 4->2 move to the input complex, cmpx.
+
+    Deletes all 4 triangles we currently have and replaces them with
+    two. The shared edge has the endpoints which are the vertices in
+    the 4 triangles not explicitly passed to us in
+    cmpx.get_vertices().
+    """
+
+    # Extract information from the complex
+    triangles = set([extract_triangle(t) for t in cmpx.get_triangles()])
+    unshared_vertices = cmpx.get_vertices()
+
+    # Check to make sure the complex is correct
+    if len(unshared_vertices) != 2:
+        raise ValueError("Two vertices should have 4 " \
+                             + "triangles attached to them!")
+    if len(triangles) != 4:
+        raise ValueError("There should be 4 triangles for the 4->2 complex.")
+
+    # All vertices in the complex
+    old_vertices = ut.set_union([set(t.get_vertices()) for t in triangles])
+    # The vertex shared by all triangles in the complex
+    center_vertex = ut.set_intersection([set(t.get_vertices()) \
+                                             for t in triangles])
+    # All vertices except the central vertex
+    boundary_vertices = old_vertices - center_vertex
+    # The two vertices contained in the edge shared by the new
+    # 2-triangle complex.
+    shared_edge_endpoints = boundary_vertices - unshared_vertices
+
+    # Check to make sure we have the correct number of everything:
+    assert len(center_vertex) == 1
+    assert len(old_vertices) == 5
+    assert len(shared_edge_endpoints) == 2
+
+    # Construct the point list for each triangle we want to make (of
+    # which there are two). build_triangle_and_edges accepts ids only. So...
+    unshared_vertex_ids = [v.get_id() for v in unshared_vertices]
+    shared_edge_endpoint_ids = [v.get_id() for v in shared_edge_endpoints]
+    triangle_point_ids = [shared_edge_endpoint_ids + [v] \
+                              for v in unshared_vertex_ids]
+    boundary_vertex_ids = [v.get_id() for v in boundary_vertices]
+
+    # The edges that will be removed are the edges that go from the
+    # boundary vertices to the center vertex.
+
+    # The id of the central vertex
+    center_vertex_id = list(center_vertex)[0].get_id()
+    # A list of possible endpoints for edges we want to remove
+    removable_edge_endpoints = [set([center_vertex_id, v]) \
+                                    for v in boundary_vertex_ids]
+
+    # Syntactic sugar:
+    su = lambda L: ut.set_union(L)
+        
+    # This function checks to see if a given edge is one we want to remove
+    correct_endpoints = lambda edge: \
+        set(edge.get_vertex_ids()) in removable_edge_endpoints
+
+    # Now, select the edges to remove
+    old_edges = ut.set_union([set(t.get_edges()) for t in triangles])
+    edges_to_remove = [e for e in old_edges if correct_endpoints(e)]
+
+    # Make the new triangles
     new_triangles = [sm.build_triangle_and_edges(point_list) \
-                         for point_list in new_triangles]
+                         for point_list in triangle_point_ids]
 
-    # Connect triangles and connect the triangles to their respective edges
-    changed_vertices = shared_vertices + unshared_vertices
+    # Delete the old triangles, edges, and the central vertex
+    for e in edges_to_remove: # Edges
+        sm.remove_edge(e)
+    for t in triangles: # Triangles
+        sm.remove_triangle(t)
+    sd.vertex.delete(list(center_vertex)[0]) # Cental vertex 
+
+    # Set the triangles for each vertex that was changed
+    changed_vertices = su([unshared_vertices, shared_edge_endpoints])
     set_neighbors_and_triangles(changed_vertices,new_triangles)
 
     return True
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 
-### Various constants
-###-----------------------------------------------------------------------
-# All try functions. Useful for the Metropolis Algorithm
-list_of_try_functions = [try_1_to_3,try_3_to_1,try_2_to_2]
-# Try functions for volume increasing moves. Useful for initialization.
-list_of_volume_increasing_functions = [try_1_to_3,try_2_to_2]
-###-----------------------------------------------------------------------
-
-
+# Various constants
+# ---------------------------------------------------------------------------
+list_of_try_functions = [try_1_to_3,try_3_to_1,try_2_to_4,try_4_to_2]
+# ---------------------------------------------------------------------------

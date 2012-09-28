@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """
 simplex_ancestors.py
 
@@ -36,25 +34,6 @@ class geometry:
     them to control id recycling and construction.
 
     Do not initialize this class. It is not useful to do so.
-
-    Methods:
-    -- increment_id() = A function that increments last_used_id
-    -- reclaim_id(id) = Takes the id and adds it to recycled_ids 
-                                 list.
-    -- recycle_id() = A function that returns the least element of 
-                               recycled_ids and deletes it from the list.
-    -- make_id() = A function that generates a new id for a vertex.
-                            First looks in recycled IDs. If there are non
-                            available, uses increment ID.
-    -- add() =  Adds an object of the same type as self to the dictionary 
-                containing those objects.
-    -- delete() = Deletes an object of the same type as self from the 
-                  dictionary containing those objects and reclaims its id.
-                  Accepts an id, a list of ids, an object, or a list of 
-                  objects.
-    -- delete_all() =  Deletes all instances of the same type as self.
-    -- list_ids() = Returns a list of all object ids of type self.
-    -- count_instances() = Counts all objects of the same type as self.
     """
     def __init__(self):
         print "Why did you initialize me? Stop it."

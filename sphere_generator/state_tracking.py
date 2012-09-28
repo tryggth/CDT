@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """
 state_tracking.py
 
@@ -38,16 +36,6 @@ class sphere:
     given time-step. Meant to be initialized.
 
     It's worth noting that printing the sphere instances is useful.
-
-    Methods:
-    euler_characteristic() = Calculates the euler characteristic of 
-                             the sphere.
-    curvature_total(normalized=False) = Calculates the total Gauss curvature 
-                                        of the sphere. If normalized=True, 
-                                        also divide by the number of vertices
-                                        to get an average.
-    curvature_std() = Calculates standard deviation of the Gauss curvature 
-                      over the sphere. 
     """
     
     def __init__(self):
@@ -87,6 +75,12 @@ class sphere:
         # Get the standard deviation
         return np.std(local_curvatures)
           
+    def surface_area(self):
+        """
+        Calculates the surface area of the sphere. Basically syntactic sugar.
+        """
+        return sd.triangle.count_instances()
+
     def get_vertices(self):
         "Returns a string each vertex in the sphere. Output could be long."
         outstring = ''
@@ -180,7 +174,7 @@ class move_data:
     deviation.  
     """
 
-    def __init__(self,i_vertex_list,cmpx,move_type):
+    def __init__(self,i_vertex_list,cmpx,move_type,change_in_surface_area=0):
         """
         Set the imaginary vertices. Take a list of imaginary vertices
         as input.
@@ -188,6 +182,7 @@ class move_data:
         self.imaginary_vertices = i_vertex_list
         self.complex = cmpx
         self.move_type = move_type
+        self.change_in_surface_area = change_in_surface_area
 
     def __len__(self):
         "Just returns the number of imaginary vertices in the move data."
@@ -297,6 +292,20 @@ class move_data:
         # the average of the deviations:
         ave_dev = total_dev / total_vertices
         return np.sqrt(np.abs(ave_dev))
+
+    def predicted_surface_area(self):
+        "Predicts the number of triangles on the sphere."
+        # The triangle number as it is now
+        triangle_number = sd.triangle.count_instances()
+
+        # Now we need to account for imaginary vertices
+        triangle_number += self.change_in_surface_area
+
+        # If we have fewer than 4 triangles, something went wrong
+        assert triangle_number >= 4
+
+        return triangle_number
+        
 # ---------------------------------------------------------------------------
 
 
@@ -364,4 +373,5 @@ def find_opposite_vertices_in_complex(triangle_complex):
             filtered.append(vertex_pair)
 
     return filtered
+
 # ---------------------------------------------------------------------------

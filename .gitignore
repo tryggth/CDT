@@ -61,3 +61,6 @@ _ReSharper*/
 *~
 *.pyc
 *.script.lisp
+# Files output by sphere_generator
+*.boundary2p1
+*.boundaryprg2p1
