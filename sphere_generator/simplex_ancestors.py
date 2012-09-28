@@ -35,9 +35,6 @@ class geometry:
 
     Do not initialize this class. It is not useful to do so.
     """
-    def __init__(self):
-        print "Why did you initialize me? Stop it."
-        pass
     
     @classmethod
     def increment_id(self):

@@ -64,3 +64,4 @@ _ReSharper*/
 # Files output by sphere_generator
 *.boundary2p1
 *.boundaryprg2p1
+*.zip
