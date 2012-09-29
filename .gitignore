@@ -61,7 +61,12 @@ _ReSharper*/
 *~
 *.pyc
 *.script.lisp
+<<<<<<< HEAD
 # Files output by sphere_generator
 *.boundary2p1
 *.boundaryprg2p1
 *.zip
+=======
+# ignore EMACS cruft
+*.DS_Store
+>>>>>>> Ignore EMACS cruft
