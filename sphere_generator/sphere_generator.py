@@ -3,7 +3,7 @@
 """
 sphere_generator.py
 
-Time-stamp: <2012-09-28 11:29:19 (jonah)>
+Time-stamp: <2012-09-29 18:41:26 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -322,7 +322,7 @@ def start_simulation(parameters,algorithm):
     # If there's a sphere file to load, we need to load it. Otherwise,
     # we need to initialize the sphere.
     if parameters.filename:
-        triangle_ids = init.load_sphere_from_file(filename)
+        triangle_ids = init.load_sphere_from_file(parameters.filename)
     else:
         triangle_ids = init.initialize_sphere(parameters.target_area)
 
