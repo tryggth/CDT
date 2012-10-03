@@ -1,0 +1,51 @@
+\message{ !name(sphere_generator.tex)}\documentclass{article}
+
+\title{Sphere Generator: Techniques}
+\author{Jonah Miller\\\textit{jonah.maxwell.miller@gmail.com}
+
+\begin{document}
+
+\message{ !name(sphere_generator.tex) !offset(-3) }
+
+
+\maketitle
+
+This is documentation for sphere_generator.py, a program to generate
+spheres of arbitrary surface area triangulated by equilateral
+triangles. The sphere is represented as a list of triples, each triple
+containing 3 vertex id numbers. Matching up the IDs yields an object
+homeomorphic to a sphere, and with an (ideally) uniform curvature.
+
+This is a description of the ideas used to make the sphere generator
+program. The README and the programmer's guide offer more details. In
+this document I will describe how the program selects for standard
+deviation surface area of a given sphere.
+
+Associated with each vertex is a point curvature:
+$$K_p(v) = 2(2 - \theta_t N_T(v)),$$
+where $\theta_t = \pi/3$ is the interior angle of an equilateral
+triangle and $N_t(v)$ is the total number of triangles connected to a
+given vertex. This description of curvature is given by Regge
+calculus.
+
+The mean curvature is then 
+$$K = \frac{1}{N_v}\sum_{vertices, \ v} K_p(v),$$
+where $N_v$ is the total number of vertices in the sphere.
+
+The standard deviation of curvature, $\sigma$ is then given by
+$$\sigma^2 = \frac{1}{N_v} \sum_{vertices, \ v}\left(K - K_p(v)\right)^2.$$
+
+Let $\epsilon_a$ and $\epsilon_\sigma$ be numbers between 0 and 1. Let
+the target standard deviation---i.e., the standard deviation we want
+the sphere to have---be $\sigma_t$ and the target surface area of the
+sphere---i.e., the surface area we want the sphere to have---be
+$A_t$. The \textit{fitness function} for a given sphere $S$ is
+$$f(S) = e^{-\epsilon_a (A - A_t)}e^{-\epsilon_\sigma (\sigma - \sigma_t)},$$
+where $A$ is the surface area of the sphere at a given time. 
+
+The metropolis algorithm does the following:
+
+
+
+\end{document}
+\message{ !name(sphere_generator.tex) !offset(-51) }
