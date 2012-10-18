@@ -3,7 +3,7 @@
 """
 sphere_generator.py
 
-Time-stamp: <2012-09-29 18:41:26 (jonah)>
+Time-stamp: <2012-10-18 13:41:30 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -72,7 +72,39 @@ The flags available are:
                 simulation to save to a single file every time it saves.
                 The simulation also writes to a progress file so that if
                 it crashes, you can resume with no trouble.)
-                
+
+--micro        (You don't need a value after this flag. It controls when the
+                simulation stops. If the flag is set, and the --one
+                flag is set, the simulation stops when the sphere is
+                close enough to flab based on the conditions for a
+                micrscopically optimal--see the rest of the
+                documentation--if the flag is set and the --many flag
+                is set, the simulation runs until the final sweep but
+                only saves when a sphere is close enough to the
+                micriscopically optimal conditions. "close enough" is
+                defined by the --v5 and --v6 flags. If the flag is not
+                set, the simulation just runs until the final sweep.)
+
+--v5           (The margin of error for microscopically optimal spheres
+                for vertices of order 5. A sphere is "close enough" to
+                micrscopically optimal if
+                12-v5 <= the number of vertices of order 5 <= 12+v5,
+                and
+                n-12-v6 <= the number of vertices of order 6 <= n-12+v6,
+                where n is the total number of vertices, and the order of
+                a vertex is the total number triangles attached to it.
+                The default value is the target area (integer) divided by 10.)
+
+--v6           (The margin of error for microscopically optimal spheres
+                for vertices of order 6. A sphere is "close enough" to
+                micrscopically optimal if
+                12-v5 <= the number of vertices of order 5 <= 12+v5,
+                and
+                n-12-v6 <= the number of vertices of order 6 <= n-12+v6,
+                where n is the total number of vertices, and the order of
+                a vertex is the total number triangles attached to it.
+                The default value is the target area (integer) divided by 10.)
+
 --file         (File is a special flag. The value after it should be a
                 filename ending in either ".boundary2p1" or "boundaryprg2p1".
                 The simulation will load a sphere from that file. If the
@@ -87,28 +119,48 @@ The flags available are:
                 in this case.)
 
 As alluded to in the tags, a sphere_generator.py call will produce one
-of two types of outputs. If the --one flag is used, the program will
-save to two files. One, ending in ".boundary2p1", will contain exactly
-the format required to feed to CDT/2p1-fixed-boundaries. It is of the form
+of several types of outputs. If the --one flag is used, and the
+--micro flag is not, the program will save to three files. One, ending
+in ".boundary2p1", will contain exactly the format required to feed to
+CDT/2p1-fixed-boundaries. It is of the form
 
 ((v1 v2 v3) (v1 v3 v4) ... )
 
 where v1,v2,v3,v4,... are vertex numbers. Each space-separated list of
-3 vertices is a triangle (i.e., a space-like 2-simplex). The other
+3 vertices is a triangle (i.e., a space-like 2-simplex). Another
 file ends in ".boundaryprg2p1". It is of the following format
 
 target-area area-damping target-std std-damping save-every-n-sweeps
 current-sweep/final-sweep
 
+The last file prints human-readable statistics on the sphere. It gives
+surface area, standard deviation of curvature, and the number of
+vertices of each order. It ends in ".boundarystatistics2p1"
+
 The file name format will be
 
-S2_TA0<target-area>_STD0<std>_f0<final-sweep>_<start-date-and-time>.suffix
+S2_TA0<target-area>_STD0<std>_f0<final-sweep>_started<start-date-and-time>.suffix
 
-If the --many flag is ued, the program will save a new sphere file
-every time it saves to file, so there's no need for a progress
-file. In this case, the file names are of the following form:
+If the --many flag is ued, and the --micro flag is not, the program
+will save a new sphere file every time it saves to file, so there's no
+need for a progress file. There will still be statistics files. In
+this case, the file names are of the following form:
 
-S2_TA0<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_<start-date-and-time>.boundary2p1
+S2_TA0<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If the --micro flag is used, the files output will be the same, but the
+formats will be
+
+S2_TAO<target-area>_STD0<std>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+and
+
+S2_TAO<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+respectively. In this case, the program will either save to 1 file and
+stop when the convergence conditions are met, or the program will run
+final-sweep sweeps and only save a file when the file meets the
+convergence conditions.
 
 You can find some examples (with the .example suffix) in the folder
 "output." By default, the files are saved to the pwd (which should
@@ -149,6 +201,16 @@ default_target_std = 0 # By default we want a perfect sphere
 default_algorithm = monte_carlo.select_for_curvature
 ##----------------------------------------------------------------------
 
+
+## Data-gathering functions that require different inputs
+##----------------------------------------------------------------------
+sweep_based_functions = [output.gather_data_to_1_file,
+                         output.gather_data_to_n_files]
+microscopically_optimal_functions = [output.stop_at_microscopically_optimal,
+                                     output.save_many_microscopically_optimal]
+##----------------------------------------------------------------------
+
+
 ## CLASSES
 ## ----------------------------------------------------------------------
 ## These classes just hold parameters passed between the functions
@@ -161,6 +223,7 @@ class parameters:
     def __init__(self,filename,target_area,area_damping_strength,
                  target_std,std_damping_strength,current_sweep,
                  final_sweep,save_every_n_sweeps,
+                 v5damping, v6damping,
                  gather_data_function):
         self.filename = filename
         self.target_area = target_area
@@ -170,6 +233,8 @@ class parameters:
         self.current_sweep = current_sweep
         self.final_sweep = final_sweep
         self.save_every_n_sweeps = save_every_n_sweeps
+        self.v5damping = v5damping
+        self.v6damping = v6damping
         self.gather_data_function = gather_data_function
 
     def __str__(self):
@@ -182,6 +247,8 @@ class parameters:
         outstring += "Current Sweep {}\n".format(self.current_sweep)
         outstring += "Final Sweep: {}\n".format(self.final_sweep)
         outstring += "Save every N sweeps: {}\n".format(self.save_every_n_sweeps)
+        outstring += "Order 5 damping: {}\n".format(self.v5damping)
+        outstring += "Order 6 damping: {}\n".format(self.v6damping)
         outstring += "Gather data function: {}\n".format(self.gather_data_function)
 
         return outstring
@@ -295,20 +362,46 @@ def parse_command_line_arguments(command_line_arguments):
     if save_every_n_sweeps < 1:
         raise ValueError("You must save at least every 1 sweeps!")
 
-    if "--many" in command_line_arguments:
-        gather_data_function = output.gather_data_to_n_files
+    if "--v5" in command_line_arguments:
+        index = command_line_arguments.index("--v5")+1
+        v5damping = int(eval(command_line_arguments[index]))
     else:
-        gather_data_function = output.gather_data_to_1_file
+        v5damping = target_area/10
 
-    if "--one" in command_line_arguments:
-        gather_data_function = output.gather_data_to_1_file
+    if "--v6" in command_line_arguments:
+        index = command_line_arguments.index("--v6")+1
+        v6damping = int(eval(command_line_arguments[index]))
+    else:
+        v6damping = target_area/10
+        
+    if "--many" in command_line_arguments \
+            and not "--one" in command_line_arguments:
+        if "--micro" in command_line_arguments:
+            gather_data_function = output.save_many_microscopically_optimal
+        else:
+            gather_data_function = output.gather_data_to_n_files
+    elif "--one" in command_line_arguments \
+            and not "--many" in command_line_arguments:
+        if "--micro" in command_line_arguments:
+            gather_data_function = output.stop_at_microscopically_optimal
+        else:
+            gather_data_function = output.gather_data_to_1_file
+    elif "--one" in command_line_arguments \
+            and "--many" in command_line_arguments:
+        print "I can't save to many files and only one!"
+        raise ValueError("Contradictory input.")
+    else:
+        if "--micro" in command_line_arguments:
+            gather_data_function = output.stop_at_microscopically_optimal
+        else:
+            gather_data_function = output.gather_data_to_1_file
 
     # return a class with all the info we need
-    params = parameters(filename,
-                        target_area,area_damping_strength,
-                        target_std,std_damping_strength,
-                        initial_sweep,final_sweep,
+    params = parameters(filename, target_area, area_damping_strength,
+                        target_std, std_damping_strength,
+                        initial_sweep, final_sweep,
                         save_every_n_sweeps,
+                        v5damping, v6damping,
                         gather_data_function)
     return params
               
@@ -335,6 +428,8 @@ def start_simulation(parameters,algorithm):
     # Now gather data!
     parameters.gather_data_function(metro,
                                     parameters.final_sweep,
+                                    parameters.v5damping,
+                                    parameters.v6damping,
                                     parameters.current_sweep,
                                     parameters.save_every_n_sweeps)
                                     

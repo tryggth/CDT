@@ -308,6 +308,236 @@ class move_data:
         
 # ---------------------------------------------------------------------------
 
+    
+# Vertex Count class
+# ---------------------------------------------------------------------------
+class vertex_count():
+    """
+    The vertex count class holds information about vertices. You call
+    the constructor on a list of vertex objects (or IDS), and you can
+    then ask it how many vertices are of order n (how many triangles
+    are attached to them.
+    """
+    def __init__(self, vertex_list=[],imaginary_vertex_list = []):
+        """
+        Constructs a vertex_count instance. Calculates the number of
+        vertices in the list vertex_list of order n.
+        """
+        # The container for vertex order information. The key is the
+        # order, the value is the number of vertices.
+        self.orders = {}
+        # Now, we calculate the vertex orders. If the vertex list is
+        # empty, nothing to do.
+        if vertex_list:
+            #If we have a list of imaginary vertices, take those into
+            # account.
+            if imaginary_vertex_list:
+                self.calculate_from_imaginary_vertices(vertex_list,
+                                                       imaginary_vertex_list)
+            else: # Otherwise, just use the real vertices.
+                self.calculate_vertex_orders(vertex_list)
+
+    def reset_orders(self):
+        """
+        Empties the orders field. Useful if we want to recycle this object.
+        """
+        self.orders = {}
+
+    def calculate_vertex_orders(self, vertex_list):
+        """
+        Goes through the list of vertex objects or ids and, if a
+        vertex is of a given order, add it to the count of vertices of
+        that order.
+        """
+        # We want objects for our vertices, so
+        vertex_object_list = [sd.vertex.parse_input(v) for v in vertex_list]
+        self.reset_orders()
+        for v in vertex_object_list:
+            if not len(v) in self.orders.keys():
+                self.orders[len(v)] = 1
+            else:
+                self.orders[len(v)] += 1
+        self.enforce_vertex_orders(vertex_object_list)
+
+    def check_vertex_orders(self,vertex_object_list):
+        """
+        Check that the total number of vertices counted in orders is
+        the same as the number of vertices in
+        vertex_object_list. Returns a boolean
+        """
+        return sum(self.orders.values()) == len(vertex_object_list)
+
+    def enforce_vertex_orders(self,vertex_object_list):
+        """
+        Checks that the total number of vertices counted in orders is
+        the same as the total number of vertex_object_list. Raises an
+        error if this is not the case.
+        """
+        if not self.check_vertex_orders(vertex_object_list):
+            print "The number of triangles counted in vertex_object_list " +\
+                "do not match the number in self.orders."
+            print "Object list "+vertex_object_list
+            print "Orders "+self.orders
+            raise ValueError("self.order not the correct length.")
+
+    def get_vertex_count_for_order(self,order):
+        """
+        Returns the number of vertices of the specified order.
+        """
+        if order in self.orders.keys():
+            return self.orders[order]
+        else:
+            return 0
+
+    def get_total_vertex_count(self):
+        """
+        Returns the the total number of vertices we keep track of.
+        """
+        return sum(self.orders.values())
+
+    # The following method is useful for working with imaginary
+    # vertices. Not in the constructor to avoid buggy behavior.
+    def calculate_from_imaginary_vertices(self,real_vertex_list,
+                                          imaginary_vertex_list):
+        """
+        Calculates the vertex count using both real and imaginary
+        vertices. Useful for working with move data.
+        """
+        self.calculate_vertex_orders(real_vertex_list)
+        for v in imaginary_vertex_list:
+            num_triangles = len(v)
+            if v.volume_increasing:
+                if num_triangles in self.orders.keys() \
+                        and self.orders[num_triangles] > 0:
+                    self.orders[num_triangles] -= 1
+            else:
+                if num_triangles in self.orders.keys():
+                    self.orders[num_triangles] += 1
+                else:
+                    self.orders[num_triangles] = 1
+    
+    # Data conventions methods
+    def __len__(self):
+        """
+        The length of the vertex count object.
+        """
+        return len(self.orders)
+
+    def __repr__(self):
+        """
+        The debugging form of a vertex_count object.
+        """
+        return str(self.orders)
+
+    def __str__(self):
+        """
+        Return a useful output for computation.
+        """
+        output = "#Order\tn-vertices\n"
+        for i in self.orders.keys():
+            output+="{}\t{}\n".format(i, self.orders[i])
+        return output
+
+    def __eq__(self,other):
+        """
+        Tests whether or not two sets of vertex counts are the
+        same. Returns true if they give the same vertex counts for
+        each order.
+        """
+        return self.orders == other.orders
+
+    def __ne__(self,other):
+        """
+        Not equal condition.
+        """
+        return not self.__eq__(other)
+
+#---------------------------------------------------------------------------
+
+# Subclasses of vertex_count
+#---------------------------------------------------------------------------
+class vertex_count_selection_optimal(vertex_count):
+    """
+    This subclass of vertex_count has a fitness function for finding
+    out how close to optimal a sphere is. It also has a boolean
+    function for deciding when a sphere is close enough to optimal.
+
+    Here, optimal means that there are N-12 vertices of order 6 and 12
+    vertices of order 5, where N is the total number of vertices.
+
+    "close enough" means, for some damping integers chosen at the
+    start, call them D1 and D2, let V5 be the vertices of order 5 and
+    V6 be the vertices of order 6. Then,
+
+    N-12-D1 <= V6 <= N-12+D1 and 12-D2 <= V5 <= 12+D2
+    """
+    def __init__(self, order_5_damping, order_6_damping,
+                 vertex_list = [],
+                 imaginary_vertex_list = []):
+        """
+        Same as super(self).__init__, except sets the damping integers
+        for order 5 and order 6 damping. Enforces that they're
+        positive integers. If they aren't typecasts them.
+        """
+        vertex_count.__init__(self,vertex_list,imaginary_vertex_list)
+        self.order_5_damping = abs(int(order_5_damping))
+        self.order_6_damping = abs(int(order_6_damping))
+
+
+    def optimal_count_order_6(self):
+        """
+        We want N-12 vertices of order 6, where N is the total number
+        of vertices.
+        """
+        return self.get_total_vertex_count() - 12
+
+    def optimal_count_order_5(self):
+        """
+        We want 12 vertices of order 5. This is only a function in
+        case we want to change these criteria later.
+        """
+        return 12
+
+    def fitness_order_6(self):
+        """
+        How close we are to the optimal count for order 6.
+        """
+        return abs(self.optimal_count_order_6() \
+                       - self.get_vertex_count_for_order(6))
+
+    def fitness_order_5(self):
+        """
+        How close we are to the optimal count for order 5.
+        """
+        return abs(self.optimal_count_order_5() \
+                       - self.get_vertex_count_for_order(5))
+
+    def fitness_function(self):
+        """
+        A fitness function similar to those used for the metropolis
+        algorithm. Possibly useful if we decide to select for
+        this. Gives a quick idea how close we are at a clance.
+        """
+        return np.exp(-(self.fitness_order_5()+self.fitness_order_6()))
+
+    def is_close_enough(self):
+        """
+        Tests whether or not a given sphere is close enough to
+        microscopically optimal. Let V5 be the total number of
+        vertices of order 5, V6 the total number of vertices of order
+        6, and N the total number of vertices. Then we test whether or
+        not
+
+        N-12-D1 <= V6 <= N-12+D1 and 12-D2 <= V5 <= 12+D2
+
+        Returns a boolean.
+        """
+        return self.fitness_order_5() <= self.order_5_damping\
+            and self.fitness_order_6() <= self.order_6_damping
+    
+#---------------------------------------------------------------------------
+
+
 
 # Functions that look at local properties:
 # ---------------------------------------------------------------------------

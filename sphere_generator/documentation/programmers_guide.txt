@@ -1,6 +1,6 @@
 sphere_generator/documentation/programmers_guide.txt
 
-Time-stamp: <2012-09-28 13:00:23 (jonah)>
+Time-stamp: <2012-10-18 13:12:25 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -146,6 +146,13 @@ state_tracking.py -- This file contains classes and methods for measuring
 		                           it that are set just by
 		                           giving a number during
 		                           initialization.
+ 		     -- vertex_count = a class that keeps track of the
+		     	               number of vertices of each order, as
+				       a function of order. Order is the
+				       number of triangles attached to each
+				       vertex. Sublcasses of the vertex_count
+				       class allow you to select for
+				       criteria relating to vertex order.
 		     -- move_data = a class that contains many
 		                    instances of the imaginary_vertex
 		                    class. It has methods to predict
@@ -229,11 +236,25 @@ output.py --- This file contains all the methods necessary to run a
 	      Monte Carlo simulation and save the simulated sphere to
 	      a file. There are a bunch of methods for saving a sphere
 	      to a file and there's also two methods for gathering
-	      data. Each takes a metropolis class instance, an initial sweep
-	      number, a final sweep number, and a command for how often to
-	      save. It then gathers data from initial sweep to final sweep.
-	      -- gather_data_to_1_file saves to 1 file
-	      -- gather_data_to_n_files saves to a new file every save.
+	      data. Each takes a metropolis class instance, an initial
+	      sweep number, a final sweep number, a value for damping
+	      on the number of vertices of order 5, a value for
+	      damping on the number of vertices of order 6, and a
+	      command for how often to save. It then gathers data
+	      until some stopping condition is met.
+	      -- gather_data_to_1_file saves the sphere every
+	      	 save_every_n_sweeps to 1 file and gathers data
+	      	 for final_sweep-initial_sweep sweeps.
+	      -- gather_data_to_n_files saves to a new file every
+	         save_every_n_sweeps and gathers data for
+		 final_sweep-initial_sweep sweeps.
+	      -- stop_at_microscopically_optimal saves to 1 file every
+	      	 save_every_n_sweeps and stops when the sphere is close
+		 enough to  microscopically optimal (see the documentation).
+	      -- save_many_microscopically_optimal performs
+	      	 final_sweep-initial_sweep sweeps. It only saves a file when
+		 the sphere meets the conditions for close enough to
+		 microscopically optimal.
 
 sphere_generator.py --- This is the UI for the whole program. You call it
 		        by command line to run the program.

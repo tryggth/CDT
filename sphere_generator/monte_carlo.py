@@ -1,7 +1,7 @@
 """
 monte_carlo.py
 
-Time-stamp: <2012-09-28 10:35:34 (jonah)>
+Time-stamp: <2012-10-18 11:29:04 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -36,6 +36,7 @@ import moves
 ###----------------------------------------------------------------------
 output_suffix = ".boundary2p1" # The file ending for files generated.
 output_prefix = "S2_" # The file prefix for files generated.
+convergence_name = "_M-OPTIMAL"
 ###----------------------------------------------------------------------
 
 ####---------------------------------------------------------------------####
@@ -215,8 +216,43 @@ class select_for_curvature(metropolis):
             + "_started" + str(starttime)
         return outstring
 
+    def make_file_name_v3(self,order_5_damping,order_6_damping):
+        """
+        Makes a file name that matches the type of things the class
+        optimizes for. Contains damping information.
+        """
+        now = datetime.datetime.today()
+        nowstr = str(now).split(' ')[0] + '_' + str(now).split(' ')[1]
+        outstring = output_prefix \
+            + "TA0" + str(self.target_area) \
+            + "_STD0" + str(self.target_std)\
+            + convergence_name\
+            + "_V5D0"+str(order_5_damping)\
+            + "_V6D0"+str(order_6_damping)\
+            + "_started"+nowstr
+        return outstring
+
+    def make_file_name_v4(self, final_sweep,starttime,
+                          order_5_damping,order_6_damping):
+        """
+        Makes a file name that matches the type of things the class
+        optimizes for. Contains damping information and current sweep
+        information.
+        """
+        outstring = output_prefix \
+            + "TA0" + str(self.target_area) \
+            + "_STD0" + str(self.target_std)\
+            + "_i0" + str(self.current_sweep) \
+            + "_f0" + str(final_sweep) \
+            + convergence_name\
+            + "_V5D0"+str(order_5_damping)\
+            + "_V6D0"+str(order_6_damping)\
+            + "_started"+starttime
+        return outstring
+
+
     def make_progress_file_output(self,final_sweep,save_every_n_sweeps):
-        "Returns the text for a profress file."
+        "Returns the text for a progress file."
         outstring = "{} {} {} {} {}\n".format(self.target_area,
                                              self.area_damping_strength,
                                              self.target_std,
@@ -225,3 +261,19 @@ class select_for_curvature(metropolis):
         outstring += "{}/{}\n".format(self.current_sweep,final_sweep)
         return outstring
 
+    def make_statistics_file_output(self,vertex_count):
+        """
+        The statistics file contains statistics on the simulated
+        sphere in a human readable format.
+
+        vertex_count should be a state_tracking.vertex_count instance,
+        or you could get strange (not necessarily bad) behavior.
+        """
+        outstring = "# Surface-Area\tCurvature-STD\n"
+        outstring+="{}\t{}\n".format(self.current_state.surface_area(),
+                                     self.current_state.curvature_std())
+        outstring+="# Vertex order information\n"
+        outstring+=str(vertex_count)
+        return outstring
+
+#-------------------------------------------------------------------------

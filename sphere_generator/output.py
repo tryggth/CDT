@@ -1,7 +1,7 @@
 """
 output.py
 
-Time-stamp: Time-stamp: <2012-09-27 21:54:35 (jonah)>
+Time-stamp: Time-stamp: <2012-10-18 13:42:14 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -32,6 +32,12 @@ import state_tracking as st
 output_suffix = ".boundary2p1" # The file ending for files generated.
 tracking_suffix = ".boundaryprg2p1" # The file ending for progress files
 output_prefix = "S2_" # The file prefix for files generated.
+STATISTICS_SUFFIX= ".boundarystatistics2p1" # The file ending for
+                                            # files with
+                                            # human-readable
+                                            # information on a given
+                                            # sphere.
+
 ###----------------------------------------------------------------------
 
 
@@ -114,6 +120,19 @@ def write_progress_file(metropolis_state,final_sweep,save_every_n_sweeps,
     with open(filename,'w') as f:
         f.write(metropolis_state.make_progress_file_output(final_sweep,save_every_n_sweeps))
 
+def write_statistics_file(metropolis_state,vertex_count,filename):
+    """
+    Writes a file contianing the statistics on the simulated
+    sphere.
+
+    metropolis_state is an instance of a descendant class of
+    the metropolis class.
+
+    vertex_count is an instance of the state_tracking.vertex_count class.
+    """
+    with open(filename,'w') as f:
+        f.write(metropolis_state.make_statistics_file_output(vertex_count))
+
 def make_time_string():
     """
     Makes a string out of the current time
@@ -128,6 +147,7 @@ def make_time_string():
 ### DATA GATHERING FUNCTIONS
 ###----------------------------------------------------------------------
 def gather_data_to_1_file(metropolis_state,final_sweep,
+                          order_5_damping,order_6_damping,
                           initial_sweep=0,
                           save_every_n_sweeps=10):
     """
@@ -135,6 +155,9 @@ def gather_data_to_1_file(metropolis_state,final_sweep,
     instance of a descendant class of metropolis). 
 
     Saves one sphere file and one progress file.
+
+    The parameters order_5_damping and order_6_damping do
+    nothing. They're here for consistency.
     """
     # Reset the current sweep so that we start from the specified sweep
     metropolis_state.reset_current_sweep(initial_sweep)
@@ -145,6 +168,9 @@ def gather_data_to_1_file(metropolis_state,final_sweep,
     write_sphere_to_file(filename+output_suffix)
     write_progress_file(metropolis_state,final_sweep,save_every_n_sweeps,
                         filename+tracking_suffix)
+    write_statistics_file(metropolis_state,
+                          st.vertex_count(sd.vertex.instances.values()),
+                          filename+STATISTICS_SUFFIX)
 
     # Rewrite each file every save_every_n_sweeps
     while metropolis_state.get_current_sweep() < final_sweep:
@@ -152,18 +178,25 @@ def gather_data_to_1_file(metropolis_state,final_sweep,
         write_sphere_to_file(filename+output_suffix)
         write_progress_file(metropolis_state,final_sweep,save_every_n_sweeps,
                             filename+tracking_suffix)
+        write_statistics_file(metropolis_state,
+                              st.vertex_count(sd.vertex.instances.values()),
+                              filename+STATISTICS_SUFFIX)
 
     # Print a happy message
     print "All done! :)"
 
 def gather_data_to_n_files(metropolis_state, final_sweep,
-                          initial_sweep=0,
-                          save_every_n_sweeps=10):
+                           order_5_damping, order_6_damping,
+                           initial_sweep=0,
+                           save_every_n_sweeps=10):
     """
     Runs a monte carlo simulation using the metropolis state (a class
     instance of a descendant class of metropolis). 
 
     Saves as many sphere files as necessary. There's no progress file.
+
+    The parameters order_5_damping and order_6_damping do
+    nothing. They're here for consistency.
     """
     # Reset the current sweep so that we start from the specified sweep
     metropolis_state.reset_current_sweep(initial_sweep)
@@ -172,16 +205,115 @@ def gather_data_to_n_files(metropolis_state, final_sweep,
     start_time = make_time_string()
 
     # Immediately save a file
-    fname = metropolis_state.make_file_name_v2(final_sweep,start_time)\
-        + output_suffix
-    write_sphere_to_file(fname)
+    fname = metropolis_state.make_file_name_v2(final_sweep,start_time)
+    write_sphere_to_file(fname+output_suffix)
+    write_statistics_file(metropolis_state,
+                          st.vertex_count(sd.vertex.instances.values()),
+                          fname+STATISTICS_SUFFIX)
     while metropolis_state.get_current_sweep() < final_sweep:
         metropolis_state.sweep(save_every_n_sweeps)
         fname = metropolis_state.make_file_name_v2(final_sweep,start_time)\
             + output_suffix
-        write_sphere_to_file(fname)
+        write_sphere_to_file(fname+output_suffix)
+        write_statistics_file(metropolis_state,
+                              st.vertex_count(sd.vertex.instances.values()),
+                              fname+STATISTICS_SUFFIX)
 
     # Print a happy message
     print "All done! :)"
+
+def stop_at_microscopically_optimal(metropolis_state, final_sweep,
+                                    order_5_damping, order_6_damping,
+                                    initial_sweep=0,
+                                    save_every_n_sweeps=10):
+    """
+    Runs a monte carlo simulation using the metropolis state (a class
+    instance of a descendent class of metropolis).
+
+    Saves to a single file, and stops when the sphere is close
+    microscopically ideal, as defined by the functions in the
+    vertex_count class and subclasses.
+
+    We write a progress file anyway, despite there being no final sweep.
+
+    initial_sweep and final sweep do nothing. They're in the
+    parameters list for consistency.
+    """
+    # Pretend final sweep. For the progress file.
+    final_sweep = 0
+
+    # Reset the current sweep so that we start from 0.
+    metropolis_state.reset_current_sweep(initial_sweep)
+
+    # Calculate the file name
+    fname = metropolis_state.make_file_name_v3(order_5_damping, order_6_damping)
+
+    # Keep track of the number of vertexes of each order
+    v_count =  st.vertex_count_selection_optimal(order_5_damping,
+                                                 order_6_damping,
+                                                 sd.vertex.instances.values())
+
+    
+    # Immediately save a file.
+    write_sphere_to_file(fname+output_suffix)
+    write_progress_file(metropolis_state,final_sweep,
+                        save_every_n_sweeps,fname+tracking_suffix)
+    write_statistics_file(metropolis_state,
+                          v_count,
+                          fname+STATISTICS_SUFFIX)
+    while not v_count.is_close_enough():
+        metropolis_state.sweep(save_every_n_sweeps)
+        v_count =  st.vertex_count_selection_optimal(order_5_damping,order_6_damping,sd.vertex.instances.values())
+        write_sphere_to_file(fname+output_suffix)
+        write_statistics_file(metropolis_state,
+                              v_count,fname+STATISTICS_SUFFIX)
+        write_progress_file(metropolis_state,final_sweep,
+                            save_every_n_sweeps,fname+tracking_suffix)
+
+    # Print a happy message
+    print "All done! :)"
+
+def save_many_microscopically_optimal(metropolis_state, final_sweep,
+                                      order_5_damping, order_6_damping,
+                                      initial_sweep=0,
+                                      save_every_n_sweeps=10):
+    """
+    Runs a monte carlo simulation using the metropolis state (a class
+    instance of a descendent class of metropolis).
+
+    Performs final_sweep - initial_sweep sweeps. Every
+    save_every_n_sweeps, checks to see if the microscopically optimal
+    conditions are met. If they are, saves a sphere. Otherwise
+    continues sweeping.
+
+    Might be susceptible to crashes.
+
+    Progress file is unnecessary.
+    """
+    # Reset the current sweep
+    metropolis_state.reset_current_sweep(initial_sweep)
+
+    # Calculate the current time
+    start_time = make_time_string()
+
+    # Start the sweeps
+    while metropolis_state.get_current_sweep() < final_sweep:
+        metropolis_state.sweep(save_every_n_sweeps)
+        v_count =  st.vertex_count_selection_optimal(order_5_damping,
+                                                     order_6_damping,
+                                                     sd.vertex.instances.values())
+        if v_count.is_close_enough():
+            fname = metropolis_state.make_file_name_v4(final_sweep,
+                                                       start_time,
+                                                       order_5_damping,
+                                                       order_6_damping)
+            write_sphere_to_file(fname+output_suffix)
+            write_statistics_file(metropolis_state,
+                                  v_count,fname+STATISTICS_SUFFIX)
+
+    # Print a happy message
+    print "All done! :)"
+
+    
 
 ###----------------------------------------------------------------------

@@ -17,7 +17,7 @@ This is a description of the ideas used to make the sphere generator
 program. The README and the programmer's guide offer more details. In
 this document I will describe how the program selects for standard
 deviation surface area of a given sphere.
-
+\section{Using Regge Calculus}
 Associated with each vertex is a point curvature:
 $$K_p(v) = 2(2 - \theta_t N_T(v)),$$
 where $\theta_t = \pi/3$ is the interior angle of an equilateral
@@ -39,7 +39,34 @@ sphere---i.e., the surface area we want the sphere to have---be
 $A_t$. The \textit{fitness function} for a given sphere $S$ is
 $$f(S) = e^{-\epsilon_a (A - A_t)}e^{-\epsilon_\sigma (\sigma - \sigma_t)},$$
 where $A$ is the surface area of the sphere at a given time. 
+\section{Microscopically Optimal}
 
+One way to test whether or not a sphere is as close to ``flat'' as
+allowed is by testing for microscopically optimal. This is a global
+property, and doesn't care about the distribution of the
+curvature. Combinatorically, a sphere with $N$ vertices is
+microscopically optimal if and only if the number of vertices attached
+to 6 triangles is
+$$N - 12$$
+and the number of vertices attached to 5 triangles is 
+$$12.$$
+The number of triangles attached to a vertex is the \textit{order} of
+the vertex or the \textit{degree} of the vertex. We can test how close
+to microscopically optimal a sphere is by testing its deviation from
+these two conditions. Let $V5D$ be the number of vertices of degree 5
+and $V6D$ be the number of vertices of degree 6. Then we have the
+following fitness functions:
+\begin{eqnarray}
+  f_1(sphere) = |(N-12) - V6D|\texttt{ and }f_2(sphere) = |12 - V5D|.\nonumber
+\end{eqnarray}
+let $damping_{v5D}$ and $damping_{v6D}$ be integers. Then we can
+construct the following convergence condition. The sphere is
+acceptably close to microscopically optimal if and only if
+$$f_1(sphere) \leq damping_{V6D}\texttt{ and }f_2(sphere)\leq damping_{V5D}.$$
+We can choose to only output sphere data when the convergence
+condition is met. 
+
+\section{The Metropolis Algorithm}
 The metropolis algorithm does the following:
 \begin{itemize}
 \item Make a small change to the sphere using one of the ergodic
