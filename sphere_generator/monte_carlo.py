@@ -1,7 +1,7 @@
 """
 monte_carlo.py
 
-Time-stamp: <2012-10-18 11:29:04 (jonah)>
+Time-stamp: <2012-10-21 16:37:07 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -104,6 +104,140 @@ class metropolis:
         return self.current_sweep
 
 #-------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------
+class select_for_area(metropolis):
+    """
+    The select_for_area class is a descendant of metropolis. It
+    selects only for spheres of a given surface area, nothing else. It
+    contains all methods necessary to run a monte carlo simulation to
+    select for a given sphere surface area.
+    """
+    def __init__(self, target_area, area_damping_strength = .8):
+        """
+        Initializes a select_for_area class isntance. This basically
+        means defining the constants the instance needs.
+        """
+        self.area_damping_strength = area_damping_strength
+        self.target_area = target_area
+        self.current_state = st.sphere()
+        self.current_sweep = 0
+
+    def get_area_damping_strength(self):
+        "Return area damping strength."
+        return self.area_damping_strength
+
+    def get_target_area(self):
+        "Return target area."
+        return self.target_area
+
+    def fitness_function(self,surface_area):
+        return self.area_damping(surface_area)
+
+    def confirm_move(self,move_data):
+        """
+        Takes in the output of a try-move function and determines
+        whether or not the move should be accepted. Uses self.fitness
+        function.
+        """
+        # Shorter names
+        new_sa = move_data.predicted_surface_area()
+        # Probability of the new sphere
+        p_new = self.fitness_function(new_sa)
+        # probability of the old sphere
+        p_old = self.fitness_function(self.current_state.surface_area())
+        # Probability of move acceptance (if >1, truncates to 1)
+        p_acceptance = p_new/float(p_old)
+        # If p_acceptance >= 1, accept the move. Otherwise accept the
+        # move with probability p_acceptance.
+        if random.random() < p_acceptance:
+            return True
+        else:
+            return False
+
+    def make_file_name_v1(self, final_sweep):
+        """
+        Makes a file name that matches the type of things the class
+        optimizes for. Single file name without current sweep
+        information.
+        """
+        now = datetime.datetime.today()
+        nowstr = str(now).split(' ')[0] + '_' + str(now).split(' ')[1]
+        outstring = output_prefix + "TA0" + str(self.target_area) \
+            + "_f0" + str(final_sweep) \
+            + "_started" + nowstr
+        return outstring
+
+    def make_file_name_v2(self, final_sweep,starttime):
+        """
+        Makes a file name that matches the type of things the class
+        optimizes for. Contains current sweep information.
+        """
+        outstring = output_prefix + "TA0" + str(self.target_area) \
+            + "_i0" + str(self.current_sweep) \
+            + "_f0" + str(final_sweep) \
+            + "_started" + str(starttime)
+        return outstring
+
+    def make_file_name_v3(self,order_5_damping,order_6_damping):
+        """
+        Makes a file name that matches the type of things the class
+        optimizes for. Contains damping information.
+        """
+        now = datetime.datetime.today()
+        nowstr = str(now).split(' ')[0] + '_' + str(now).split(' ')[1]
+        outstring = output_prefix \
+            + "TA0" + str(self.target_area) \
+            + convergence_name\
+            + "_V5D0"+str(order_5_damping)\
+            + "_V6D0"+str(order_6_damping)\
+            + "_started"+nowstr
+        return outstring
+
+    def make_file_name_v4(self, final_sweep,starttime,
+                          order_5_damping,order_6_damping):
+        """
+        Makes a file name that matches the type of things the class
+        optimizes for. Contains damping information and current sweep
+        information.
+        """
+        outstring = output_prefix \
+            + "TA0" + str(self.target_area) \
+            + "_i0" + str(self.current_sweep) \
+            + "_f0" + str(final_sweep) \
+            + convergence_name\
+            + "_V5D0"+str(order_5_damping)\
+            + "_V6D0"+str(order_6_damping)\
+            + "_started"+starttime
+        return outstring
+
+
+    def make_progress_file_output(self,final_sweep,save_every_n_sweeps):
+        "Returns the text for a progress file."
+        outstring = "{} {} {}\n".format(self.target_area,
+                                        self.area_damping_strength,
+                                        save_every_n_sweeps)
+        outstring += "{}/{}\n".format(self.current_sweep,final_sweep)
+        return outstring
+
+    def make_statistics_file_output(self,vertex_count):
+        """
+        The statistics file contains statistics on the simulated
+        sphere in a human readable format.
+
+        vertex_count should be a state_tracking.vertex_count instance,
+        or you could get strange (not necessarily bad) behavior.
+        """
+        outstring = "# Surface-Area\tCurvature-STD\n"
+        outstring+="{}\t{}\n".format(self.current_state.surface_area(),
+                                     self.current_state.curvature_std())
+        outstring+="# Vertex order information\n"
+        outstring+=str(vertex_count)
+        return outstring
+    
+
+# -------------------------------------------------------------------------
 
 
 #-------------------------------------------------------------------------

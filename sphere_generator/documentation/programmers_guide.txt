@@ -1,6 +1,6 @@
 sphere_generator/documentation/programmers_guide.txt
 
-Time-stamp: <2012-10-18 13:12:25 (jonah)>
+Time-stamp: <2012-10-21 16:36:46 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -228,9 +228,12 @@ monte_carlo.py --- This file contains all you need to perform the Metropolis
 		   set up as a class instance, so that more algorithms can
 		   be added if necessary. The ancestor class, metropolis,
 		   contains methods likely necessary no matter the algorithm
-		   used. The descendant class, select_for_curvature is a
-		   metropolis algorithm that specifically selects for
-		   standard deviation of curvature.
+		   used. The descendant classes are:
+		   -- select_for_area is a metropolis algorithm that only
+		      selects for the surface area of the sphere.
+		   -- select_for_curvature is a metropolis algorithm that
+		      specifically selects for standard deviation of
+		      curvature.
 
 output.py --- This file contains all the methods necessary to run a
 	      Monte Carlo simulation and save the simulated sphere to

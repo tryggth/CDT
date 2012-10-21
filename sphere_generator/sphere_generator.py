@@ -3,7 +3,7 @@
 """
 sphere_generator.py
 
-Time-stamp: <2012-10-18 13:41:30 (jonah)>
+Time-stamp: <2012-10-21 16:33:34 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -40,6 +40,14 @@ Surface area is the only command line argument you can use without a
 flag. If you use it without a flag, it must be the first argument.
 
 The flags available are:
+
+--select       (Sets the fitness function used for the simulation. The
+                options are std and area. If you use "area", then the
+                simulation only selects for spheres of a given target
+                surface area. It ignores standard deviation. If you
+                choose "std", the simulation selects for spheres of a given
+                standard deviation and a given surface area. Defaults to
+                "area".)
 
 --target-area  (sets the surface area of the sphere. No default.
                 You MUST set this value.)
@@ -127,26 +135,41 @@ CDT/2p1-fixed-boundaries. It is of the form
 ((v1 v2 v3) (v1 v3 v4) ... )
 
 where v1,v2,v3,v4,... are vertex numbers. Each space-separated list of
-3 vertices is a triangle (i.e., a space-like 2-simplex). Another
-file ends in ".boundaryprg2p1". It is of the following format
+3 vertices is a triangle (i.e., a space-like 2-simplex). Another file
+ends in ".boundaryprg2p1". If you select for standard deviation, it is
+of the following format
 
 target-area area-damping target-std std-damping save-every-n-sweeps
+current-sweep/final-sweep
+
+If you select for area, it is of the following format
+
+target-area area-damping save-every-n-sweeps
 current-sweep/final-sweep
 
 The last file prints human-readable statistics on the sphere. It gives
 surface area, standard deviation of curvature, and the number of
 vertices of each order. It ends in ".boundarystatistics2p1"
 
-The file name format will be
+If you select for standard deviation, the file name format will be
 
 S2_TA0<target-area>_STD0<std>_f0<final-sweep>_started<start-date-and-time>.suffix
 
-If the --many flag is ued, and the --micro flag is not, the program
+If you select for area, it will be
+
+S2_TA0<target-area>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If the --many flag is used, and the --micro flag is not, the program
 will save a new sphere file every time it saves to file, so there's no
 need for a progress file. There will still be statistics files. In
-this case, the file names are of the following form:
+this case, if you select for curvature, the file names are of the
+following form:
 
 S2_TA0<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If you select for standard deviation, it will be:
+
+S2_TA0<target-area>_io<current-sweep>_f0<final-sweep>_started<start-date-and-time>.suffix
 
 If the --micro flag is used, the files output will be the same, but the
 formats will be
@@ -156,6 +179,15 @@ S2_TAO<target-area>_STD0<std>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_dampi
 and
 
 S2_TAO<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+respectively if you use select for curvature. If you use select for
+area, they will be
+
+S2_TAO<target-area>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+and
+
+S2_TAO<target-area>_io<current-sweep>_f0<final-sweep>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
 
 respectively. In this case, the program will either save to 1 file and
 stop when the convergence conditions are met, or the program will run
@@ -198,7 +230,7 @@ default_final_sweep = 0 # By default, the simulation makes a random
                         # all.
 default_save_every_n_sweeps = 1
 default_target_std = 0 # By default we want a perfect sphere
-default_algorithm = monte_carlo.select_for_curvature
+default_algorithm = monte_carlo.select_for_area
 ##----------------------------------------------------------------------
 
 
@@ -224,6 +256,7 @@ class parameters:
                  target_std,std_damping_strength,current_sweep,
                  final_sweep,save_every_n_sweeps,
                  v5damping, v6damping,
+                 algorithm,
                  gather_data_function):
         self.filename = filename
         self.target_area = target_area
@@ -235,6 +268,7 @@ class parameters:
         self.save_every_n_sweeps = save_every_n_sweeps
         self.v5damping = v5damping
         self.v6damping = v6damping
+        self.algorithm = algorithm
         self.gather_data_function = gather_data_function
 
     def __str__(self):
@@ -249,6 +283,7 @@ class parameters:
         outstring += "Save every N sweeps: {}\n".format(self.save_every_n_sweeps)
         outstring += "Order 5 damping: {}\n".format(self.v5damping)
         outstring += "Order 6 damping: {}\n".format(self.v6damping)
+        outstring += "Algorithm: {}\n".format(self.algorithm)
         outstring += "Gather data function: {}\n".format(self.gather_data_function)
 
         return outstring
@@ -313,6 +348,17 @@ def parse_command_line_arguments(command_line_arguments):
         # If filename is of type *.boundary2p1, we assume its okay and
         # load from it. None of the other command line arguments
         # change.
+
+    if "--select" in command_line_arguments:
+        index = command_line_arguments.index("--select")+1
+        if command_line_arguments[index] == "std":
+            algorithm = monte_carlo.select_for_curvature
+        elif command_line_arguments[index] == "area":
+            algorithm = monte_carlo.select_for_area
+        else:
+            algorithm = default_algorithm
+    else:
+        algorithm = default_algorithm            
 
     if "--target-area" in command_line_arguments:
         index = command_line_arguments.index("--target-area")+1
@@ -402,11 +448,12 @@ def parse_command_line_arguments(command_line_arguments):
                         initial_sweep, final_sweep,
                         save_every_n_sweeps,
                         v5damping, v6damping,
+                        algorithm,
                         gather_data_function)
     return params
               
 
-def start_simulation(parameters,algorithm):
+def start_simulation(parameters):
     """
     Takes an instance of the parameters class and starts a simulation
     based on those parameters. Uses the metropolis algorithm class
@@ -421,9 +468,16 @@ def start_simulation(parameters,algorithm):
 
     # With the sphere initialized, we need to make an initialized
     # metropolis algorithm class instance.
-    metro = algorithm(parameters.target_area,parameters.target_std,
-                      parameters.area_damping_strength,
-                      parameters.std_damping_strength)
+    algorithm = parameters.algorithm
+    if algorithm == monte_carlo.select_for_curvature:
+        metro = algorithm(parameters.target_area,parameters.target_std,
+                          parameters.area_damping_strength,
+                          parameters.std_damping_strength)
+    elif algorithm == monte_carlo.select_for_area:
+        metro = algorithm(parameters.target_area,
+                          parameters.area_damping_strength)
+    else: #raise an error
+        raise TypeError("The algorithm "+algorithm+" is not valid.")
 
     # Now gather data!
     parameters.gather_data_function(metro,
@@ -439,8 +493,7 @@ def sphere_generator(command_line_arguments):
     Takes command line arguments as input. Runs the sphere generator
     program.
     """
-    start_simulation(parse_command_line_arguments(command_line_arguments),
-                     default_algorithm)
+    start_simulation(parse_command_line_arguments(command_line_arguments))
 
 
 # If this program is called from the command line, run it based on the

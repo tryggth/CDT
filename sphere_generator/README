@@ -1,16 +1,16 @@
 sphere_generator/documentation/users_guide.txt
 
-Time-stamp: <2012-09-28 13:48:21 (jonah)>
+Time-stamp: <2012-10-21 16:35:09 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
 This is the user's guide for sphere_generator, a program that
 generates geometries homeomorphic to a 2-sphere out of equilateral
 triangles. Currently you can select for surface area (i.e., the number
-of equilateral triangles) and for the standard deviation of
-volume. The output is a list of triangles defined by their vertices
-(which are numbered). The geometry can be completely reconstructed
-from this intrinsic coordinate system.
+of equilateral triangles) only, or for surface area and for the
+standard deviation of volume. The output is a list of triangles
+defined by their vertices (which are numbered). The geometry can be
+completely reconstructed from this intrinsic coordinate system.
 
 Call sphere_generator from the command line with:
 
@@ -41,6 +41,14 @@ Surface area is the only command line argument you can use without a
 flag. If you use it without a flag, it must be the first argument.
 
 The flags available are:
+
+--select       (Sets the fitness function used for the simulation. The
+                options are std and area. If you use "area", then the
+                simulation only selects for spheres of a given target
+                surface area. It ignores standard deviation. If you
+                choose "std", the simulation selects for spheres of a given
+                standard deviation and a given surface area. Defaults to
+                "area".)
 
 --target-area  (sets the surface area of the sphere. No default.
                 You MUST set this value.)
@@ -73,7 +81,39 @@ The flags available are:
                 simulation to save to a single file every time it saves.
                 The simulation also writes to a progress file so that if
                 it crashes, you can resume with no trouble.)
-                
+
+--micro        (You don't need a value after this flag. It controls when the
+                simulation stops. If the flag is set, and the --one
+                flag is set, the simulation stops when the sphere is
+                close enough to flab based on the conditions for a
+                micrscopically optimal--see the rest of the
+                documentation--if the flag is set and the --many flag
+                is set, the simulation runs until the final sweep but
+                only saves when a sphere is close enough to the
+                micriscopically optimal conditions. "close enough" is
+                defined by the --v5 and --v6 flags. If the flag is not
+                set, the simulation just runs until the final sweep.)
+
+--v5           (The margin of error for microscopically optimal spheres
+                for vertices of order 5. A sphere is "close enough" to
+                micrscopically optimal if
+                12-v5 <= the number of vertices of order 5 <= 12+v5,
+                and
+                n-12-v6 <= the number of vertices of order 6 <= n-12+v6,
+                where n is the total number of vertices, and the order of
+                a vertex is the total number triangles attached to it.
+                The default value is the target area (integer) divided by 10.)
+
+--v6           (The margin of error for microscopically optimal spheres
+                for vertices of order 6. A sphere is "close enough" to
+                micrscopically optimal if
+                12-v5 <= the number of vertices of order 5 <= 12+v5,
+                and
+                n-12-v6 <= the number of vertices of order 6 <= n-12+v6,
+                where n is the total number of vertices, and the order of
+                a vertex is the total number triangles attached to it.
+                The default value is the target area (integer) divided by 10.)
+
 --file         (File is a special flag. The value after it should be a
                 filename ending in either ".boundary2p1" or "boundaryprg2p1".
                 The simulation will load a sphere from that file. If the
@@ -88,28 +128,72 @@ The flags available are:
                 in this case.)
 
 As alluded to in the tags, a sphere_generator.py call will produce one
-of two types of outputs. If the --one flag is used, the program will
-save to two files. One, ending in ".boundary2p1", will contain exactly
-the format required to feed to CDT/2p1-fixed-boundaries. It is of the form
+of several types of outputs. If the --one flag is used, and the
+--micro flag is not, the program will save to three files. One, ending
+in ".boundary2p1", will contain exactly the format required to feed to
+CDT/2p1-fixed-boundaries. It is of the form
 
 ((v1 v2 v3) (v1 v3 v4) ... )
 
 where v1,v2,v3,v4,... are vertex numbers. Each space-separated list of
-3 vertices is a triangle (i.e., a space-like 2-simplex). The other
-file ends in ".boundaryprg2p1". It is of the following format
+3 vertices is a triangle (i.e., a space-like 2-simplex). Another file
+ends in ".boundaryprg2p1". If you select for standard deviation, it is
+of the following format
 
 target-area area-damping target-std std-damping save-every-n-sweeps
 current-sweep/final-sweep
 
-The file name format will be
+If you select for area, it is of the following format
 
-S2_TA0<target-area>_STD0<std>_f0<final-sweep>_<start-date-and-time>.suffix
+target-area area-damping save-every-n-sweeps
+current-sweep/final-sweep
 
-If the --many flag is ued, the program will save a new sphere file
-every time it saves to file, so there's no need for a progress
-file. In this case, the file names are of the following form:
+The last file prints human-readable statistics on the sphere. It gives
+surface area, standard deviation of curvature, and the number of
+vertices of each order. It ends in ".boundarystatistics2p1"
 
-S2_TA0<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_<start-date-and-time>.boundary2p1
+If you select for standard deviation, the file name format will be
+
+S2_TA0<target-area>_STD0<std>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If you select for area, it will be
+
+S2_TA0<target-area>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If the --many flag is used, and the --micro flag is not, the program
+will save a new sphere file every time it saves to file, so there's no
+need for a progress file. There will still be statistics files. In
+this case, if you select for curvature, the file names are of the
+following form:
+
+S2_TA0<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If you select for standard deviation, it will be:
+
+S2_TA0<target-area>_io<current-sweep>_f0<final-sweep>_started<start-date-and-time>.suffix
+
+If the --micro flag is used, the files output will be the same, but the
+formats will be
+
+S2_TAO<target-area>_STD0<std>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+and
+
+S2_TAO<target-area>_STD0<std>_io<current-sweep>_f0<final-sweep>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+respectively if you use select for curvature. If you use select for
+area, they will be
+
+S2_TAO<target-area>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+and
+
+S2_TAO<target-area>_io<current-sweep>_f0<final-sweep>_M-OPTIMAL_V5D0<order_5_damping>_V6D0<order_6_damping>_started<start-time-and-date>.boundary2p1.suffix
+
+respectively. In this case, the program will either save to 1 file and
+stop when the convergence conditions are met, or the program will run
+final-sweep sweeps and only save a file when the file meets the
+convergence conditions.
 
 You can find some examples (with the .example suffix) in the folder
 "output." By default, the files are saved to the pwd (which should

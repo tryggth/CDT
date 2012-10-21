@@ -1,7 +1,7 @@
 """
 output.py
 
-Time-stamp: Time-stamp: <2012-10-18 13:42:14 (jonah)>
+Time-stamp: Time-stamp: <2012-10-21 16:10:41 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -147,7 +147,7 @@ def make_time_string():
 ### DATA GATHERING FUNCTIONS
 ###----------------------------------------------------------------------
 def gather_data_to_1_file(metropolis_state,final_sweep,
-                          order_5_damping,order_6_damping,
+                          order_5_damping=0,order_6_damping=0,
                           initial_sweep=0,
                           save_every_n_sweeps=10):
     """
@@ -186,7 +186,7 @@ def gather_data_to_1_file(metropolis_state,final_sweep,
     print "All done! :)"
 
 def gather_data_to_n_files(metropolis_state, final_sweep,
-                           order_5_damping, order_6_damping,
+                           order_5_damping=0, order_6_damping=0,
                            initial_sweep=0,
                            save_every_n_sweeps=10):
     """
