@@ -3,7 +3,7 @@
 """
 sphere_generator.py
 
-Time-stamp: <2012-10-21 16:33:34 (jonah)>
+Time-stamp: <2012-10-24 13:58:59 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -92,6 +92,20 @@ The flags available are:
                 micriscopically optimal conditions. "close enough" is
                 defined by the --v5 and --v6 flags. If the flag is not
                 set, the simulation just runs until the final sweep.)
+
+--exact        (This flag sets the simulation to save spheres only if they
+                have the same surface area as the target area (plus or
+                minus some margin of error). The simulation checks to see
+                if it should save a sphere every save_every_n_sweeps sweeps,
+                but only saves the sphere if it has the correct surface
+                area. You set the margin of error with a number you give
+                after the flag. If you set this flag, the --micro flag does
+                nothing. The --final flag no longer counts the total number
+                of sweeps. Rather, it counts the number of spheres you want
+                to generate by the end of the simulation. With this flag set,
+                the initial-sweep flag does nothing, and the current sweep
+                in the file name represents the number of spheres saved
+                so far in the simulation.)
 
 --v5           (The margin of error for microscopically optimal spheres
                 for vertices of order 5. A sphere is "close enough" to
@@ -436,6 +450,12 @@ def parse_command_line_arguments(command_line_arguments):
             and "--many" in command_line_arguments:
         print "I can't save to many files and only one!"
         raise ValueError("Contradictory input.")
+    elif "--exact" in command_line_arguments:
+        gather_data_function = output.generate_n_exact_spheres
+        index = command_line_arguments.index("--exact")+1
+        # In this case, v5damping is fitness_damping, as defined
+        # in generate_n_exact_spheres
+        v5damping = int(eval(command_line_arguments[index]))
     else:
         if "--micro" in command_line_arguments:
             gather_data_function = output.stop_at_microscopically_optimal

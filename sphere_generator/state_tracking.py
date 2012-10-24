@@ -318,7 +318,7 @@ class vertex_count():
     then ask it how many vertices are of order n (how many triangles
     are attached to them.
     """
-    def __init__(self, vertex_list=[],imaginary_vertex_list = []):
+    def __init__(self, vertex_list=[], imaginary_vertex_list = []):
         """
         Constructs a vertex_count instance. Calculates the number of
         vertices in the list vertex_list of order n.

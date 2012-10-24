@@ -1,7 +1,7 @@
 """
 output.py
 
-Time-stamp: Time-stamp: <2012-10-21 16:10:41 (jonah)>
+Time-stamp: Time-stamp: <2012-10-24 14:01:25 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -212,8 +212,7 @@ def gather_data_to_n_files(metropolis_state, final_sweep,
                           fname+STATISTICS_SUFFIX)
     while metropolis_state.get_current_sweep() < final_sweep:
         metropolis_state.sweep(save_every_n_sweeps)
-        fname = metropolis_state.make_file_name_v2(final_sweep,start_time)\
-            + output_suffix
+        fname = metropolis_state.make_file_name_v2(final_sweep,start_time)
         write_sphere_to_file(fname+output_suffix)
         write_statistics_file(metropolis_state,
                               st.vertex_count(sd.vertex.instances.values()),
@@ -221,6 +220,71 @@ def gather_data_to_n_files(metropolis_state, final_sweep,
 
     # Print a happy message
     print "All done! :)"
+
+
+def generate_n_exact_spheres(metropolis_state, number_spheres,
+                             fitness_damping=0,order_6_damping=0,
+                             initial_sweep=0, check_every_n_sweeps=10):
+    """
+    Runs a monte carlo simulation using the metropolis state ( a class
+    instance of the descendant class of metropolis).
+
+    Only saves a sphere if it has surface area a(sphere) such that
+    1-fitness_damping <= a(sphere) <= 1+fitness_damping.
+
+    Note that fitness_damping is in the slot usually allocated to
+    order_5_damping.
+
+    Saves number_spheres spheres and then stops. Note that this is in
+    the slot usually allocated for final sweep. We run as many sweeps
+    as necessary.
+
+    Checks to see if a sphere has the correct area (i.e., is exact)
+    every check_every_n_sweeps. This value should probably be smaller
+    than otherwise, since the spheres will be saved less often than
+    they will be checked.
+
+    The parameters order_6_damping and initial_sweep do
+    nothing. They're here for consistency.
+    """
+
+    # The condition for exactness. Takes a metropolis_state
+    is_exact = lambda m: m.get_target_area() - fitness_damping \
+        <= m.current_state.surface_area() \
+        <= m.get_target_area() + fitness_damping
+
+    # The total number of sphere saved
+    sphere_count=0
+
+    # Reset the metropolis state to 0.
+    metropolis_state.reset_current_sweep(0)
+
+    # Calculate the start time
+    start_time = make_time_string()
+
+    # Generate spheres
+    while sphere_count < number_spheres:
+        # Run a sweep
+        metropolis_state.sweep(check_every_n_sweeps)
+        print "Surface area this check: {}".format(metropolis_state.current_state.surface_area())
+        if is_exact(metropolis_state):
+            sphere_count += 1 # Increment the number of exact spheres
+                              # we've found
+            
+            # We treat current sweep as the sphere_count to get more
+            # meaningful information out of our file names.
+            metropolis_state.reset_current_sweep(sphere_count)
+            fname = metropolis_state.make_file_name_v2(number_spheres,
+                                                       start_time)
+            # Save to file
+            write_sphere_to_file(fname+output_suffix)
+            write_statistics_file(metropolis_state,
+                                  st.vertex_count(sd.vertex.instances.values()),
+                                  fname+STATISTICS_SUFFIX)
+
+    # Print a happy message
+    print "All done! :)"
+
 
 def stop_at_microscopically_optimal(metropolis_state, final_sweep,
                                     order_5_damping, order_6_damping,

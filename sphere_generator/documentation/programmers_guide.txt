@@ -1,6 +1,6 @@
 sphere_generator/documentation/programmers_guide.txt
 
-Time-stamp: <2012-10-21 16:36:46 (jonah)>
+Time-stamp: <2012-10-24 13:59:44 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -251,6 +251,9 @@ output.py --- This file contains all the methods necessary to run a
 	      -- gather_data_to_n_files saves to a new file every
 	         save_every_n_sweeps and gathers data for
 		 final_sweep-initial_sweep sweeps.
+	      -- generate_n_exact_spheres generates a number of spheres
+	      	 of with exactly the target surface area, with some margin
+		 of error.
 	      -- stop_at_microscopically_optimal saves to 1 file every
 	      	 save_every_n_sweeps and stops when the sphere is close
 		 enough to  microscopically optimal (see the documentation).
