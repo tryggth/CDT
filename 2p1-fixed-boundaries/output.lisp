@@ -20,20 +20,34 @@
 
 ;;;; Functions that make file names:
 ;;;;-------------------------------------------------------------------------
+;; When running scripts, set this to change the default output directory.
+(defparameter *output-directory* ""
+  "The directory files are saved to. By default, uses ./")
+
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
 (defun generate-filename (&optional (start-sweep 1) 
 			    (end-sweep (+ start-sweep NUM-SWEEPS -1)))
-  (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-on-~A-started~A" 
+  (concatenate 'string *output-directory*
+	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-on-~A-started~A" 
 	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* start-sweep 
-	  end-sweep (hostname) (cdt-now-str)))
+	  end-sweep (hostname) (cdt-now-str))))
 
 ;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-hostname-starttime-currenttime
 (defun generate-filename-v2 (&optional (ssweep 1) (csweep 0) 
 			       (esweep (+ ssweep NUM-SWEEPS -1)))
-  (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-on-~A-start~A-curr~A" 
+  (concatenate 'string *output-directory*
+	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-on-~A-start~A-curr~A" 
 	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
 	  ssweep csweep esweep 
-	  (hostname) SIM-START-TIME (cdt-now-str)))
+	  (hostname) SIM-START-TIME (cdt-now-str))))
+
+(defun generate-filename-v3 nil
+  (concatenate 'string *output-directory*
+	       (format
+		nil
+		"~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-on-~A-start~A" 
+		STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
+		(hostname) SIM-START-TIME)))
 
 ;;;;-------------------------------------------------------------------------
 
@@ -136,6 +150,28 @@
 	 (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
 	   (make-spacetime-file filename)
 	   (make-progress-file filename start-sweep ns end-sweep)))))
+
+;; generate-data-in-time should be called after setting the values for
+;; eps, k0, k3, NUM-SWEEPS and calling one of the
+;; initialize-xx-slices. It generates a single data file and a
+;; progress file after every save-every-n-sweeps and runs for runtime
+;; seconds. You don't need to set NUM-SWEEPS, but it might be useful
+;; to do so to keep track of how many sweeps you hope will be
+;; finished.
+(defun generate-data-in-time (runtime &optional (start-sweep 1))
+  "Generates a single datafile and a single progress file after every
+  SAVE-EVERY-N-SWEEPS. Stops after runtime seconds. An hour is 3600
+   seconds."
+  (let ((filename (generate-filename-v3 start-sweep))
+	(end-sweep (+ start-sweep NUM-SWEEPS -1))
+	(endtime (+ (get-universal-time) runtime)) ; time measured in seconds
+	(current-sweep 0))
+    (while (< (get-universal-time) endtime)
+      (sweep)
+      (incf current-sweep)
+      (when (= 0 (mod current-sweep SAVE-EVERY-N-SWEEPS))
+	(make-spacetime-file filename)
+	(make-progress-file filename start-sweep current-sweep end-sweep)))))
 
 ;; generate-data-v2 is similar to generate-data except it creates a
 ;; fresh data file every SAVE-EVERY-N-SWEEPS. since a fresh datafile

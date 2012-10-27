@@ -935,11 +935,11 @@ function that contains the definition of the action is
 If you change the action, you must change action-exposed. If all you
 change is the functional form of the action, but it is not dependent
 on any new variables, you don't need to change any other function. If
-the number of inputs to the action change, you must edit
-action-exposed, make-action, and \textbf{accept-move?}. We'll discuss
-accept-move? later, since it is part of the Monte Carlo loop. All
-functions relating to generating and setting the action can be found
-in \textbf{action.lisp}.
+the number of inputs to the action or the coupling constants change,
+you must edit action-exposed, make-action, and
+\textbf{accept-move?}. We'll discuss accept-move? later, since it is
+part of the Monte Carlo loop. All functions relating to generating and
+setting the action can be found in \textbf{action.lisp}.
 
 A function not directly related to the action, but nevertheless
 essential to the functioning of the simulation is \textbf{damping},

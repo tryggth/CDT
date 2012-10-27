@@ -1,7 +1,7 @@
 """
 monte_carlo.py
 
-Time-stamp: <2012-10-21 16:37:07 (jonah)>
+Time-stamp: <2012-10-24 14:24:37 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 

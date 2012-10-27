@@ -163,3 +163,12 @@ August 25, 2012 -- Cleaned up the code by moving some files
        	   	   tracking_vectors.lisp, action.lisp, and
        	   	   reset_spacetime.lisp. I also cleaned up
        	   	   montecarlo.lisp and added the output.lisp module.
+
+October 26, 2012 -- Added the capacity to run for some amount of
+	    	    time (useful for allocation on a cluster).
+		    Added the capacity to save to a directory other
+		    than the present working directory (useful for
+		    book-keeping). Retoold action.lisp to gain a
+		    factor of 2 speedup by calculating important
+		    quantities based on coupling constants
+		    once at boot-up and then saving them.

@@ -203,20 +203,25 @@ and set the coupling constants to the correct values.
 Once you've loaded or generated a spacetime, you might want to change
 a couple of parameters, by calling some commands like:
 \begin{lstlisting}
-(setf *eps* 0.05)
-(setf SAVE-EVERY-N-SWEEPS 500)
-(setf NUM-SWEEPS 50000)
+(setf *eps* 0.05) ; Sets the volume damping parameter. 
+(setf SAVE-EVERY-N-SWEEPS 500) ; Sets how often the simulation saves.
+(setf NUM-SWEEPS 50000) ; Sets the total number of time steps.
+ ; Sets the directory files are saved to.
+(setf *output-directory* "/home/user/scratch/")
 \end{lstlisting}
 
 These all work the same as in the previous versions of the CDT
 code. The function ``setf'' changes a parameter as per common lisp
-standards. 
+standards. The only added constant is \textit{*output-directory*},
+which lets you save files to places other than the current working
+directory. By default, files go there.
 \begin{itemize}
 \item *eps*---The damping parameter. Changes the size of the critical surface.
 \item SAVE-EVERY-N-SWEEPS---How often you save a spacetime if you're
   generateing multiple in a single run.
 \item NUM-SWEEPS---The total number of sweeps the simulation goes
   through before finishing.
+\item *output-directory*---The directory to save files.
 \end{itemize}
 
 We also have a family of generate-* functions. These are the top-level
@@ -230,6 +235,13 @@ use-case. They are:
 \item \textbf{generate-data:} Periodically re-writes a single file
   using save-spacetime-to-file and a second file with the current
   progress.
+\item \textbf{generate-data-in-time:} Like generate-data, but stops
+  collection after some number of seconds, given as a single argument
+  in the input. You'll probably want to set NUM-SWEEPS anyway to keep
+  track of the simulation's progress. Example call
+  \begin{lstlisting}
+(generate-data-in-time (* 3600 24)) ; runs for 24 hours
+  \end{lstlisting}
 \item \textbf{generate-data-v2:} Like generate-data, but writes a new
   file each time so progress file is needed.
 \item \textbf{generate-data-v3:} Like generate-data-v2, but generates

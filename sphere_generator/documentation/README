@@ -1,6 +1,6 @@
 sphere_generator/documentation/users_guide.txt
 
-Time-stamp: <2012-10-24 13:57:15 (jonah)>
+Time-stamp: <2012-10-24 14:24:35 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -41,6 +41,14 @@ Surface area is the only command line argument you can use without a
 flag. If you use it without a flag, it must be the first argument.
 
 The flags available are:
+
+--select       (Sets the fitness function used for the simulation. The
+                options are std and area. If you use "area", then the
+                simulation only selects for spheres of a given target
+                surface area. It ignores standard deviation. If you
+                choose "std", the simulation selects for spheres of a given
+                standard deviation and a given surface area. Defaults to
+                "area".)
 
 --target-area  (sets the surface area of the sphere. No default.
                 You MUST set this value.)

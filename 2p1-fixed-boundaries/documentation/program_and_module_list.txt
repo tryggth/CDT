@@ -49,6 +49,13 @@ make_boundary_conditions.py -- function call:
 		    time slices at the chosen indices t_low and t_high 
 		    in the simulation that generated filename as the boundaries.
 
+make_thermalization_scripts.py -- function call:
+		       ./make_thermalization_scripts.py lr filename1 filename2
+
+		       Takes any number of *.boundary or *.boundary2p1 files
+		       and, for each file, autogenerates a script designed
+		       for thermalizing a spacetime with either one or both
+		       boundaries as that file.
 
 
 map_phase_space_parallelized.py -- function call: 
