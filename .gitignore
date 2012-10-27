@@ -71,3 +71,5 @@ _ReSharper*/
 # ignore EMACS cruft
 *.DS_Store
 >>>>>>> Ignore EMACS cruft
+# ignore Data directories
+S3-PERIODIC-*
