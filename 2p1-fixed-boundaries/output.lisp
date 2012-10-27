@@ -171,7 +171,9 @@
       (incf current-sweep)
       (when (= 0 (mod current-sweep SAVE-EVERY-N-SWEEPS))
 	(make-spacetime-file filename)
-	(make-progress-file filename start-sweep current-sweep end-sweep)))))
+	(make-progress-file filename start-sweep current-sweep end-sweep)))
+    (make-spacetime-file filename)
+    (make-progress-file filename start-sweep current-sweep end-sweep)))
 
 ;; generate-data-v2 is similar to generate-data except it creates a
 ;; fresh data file every SAVE-EVERY-N-SWEEPS. since a fresh datafile

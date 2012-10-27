@@ -82,7 +82,7 @@ K3 = 0.75772
 ALPHA = -1
 
 # SAVE_EVERY_N_SWEEPS decides how often a spacetime is saved.
-SAVE_EVERY_N_SWEEPS = 10
+SAVE_EVERY_N_SWEEPS = 2000
 
 # The damping parameter for the Metropolis algorithm.
 EPS = 0.02 # 0.02 is the default
@@ -91,7 +91,7 @@ EPS = 0.02 # 0.02 is the default
 OUTPUT_SUFFIX = ".script.lisp"
 
 # The output directory the lisp thermalization script saves its files to.
-OUTPUT_DIRECTORY = '""' # Default is present working directory.
+OUTPUT_DIRECTORY = '"/lustre/janus_scratch/jonah/"' # for Janus
 
 # The functional form of the script. Don't change this.
 LISP_SCRIPT = """;;;; Lisp script auto generated with
@@ -102,6 +102,7 @@ LISP_SCRIPT = """;;;; Lisp script auto generated with
 (setf NUM-SWEEPS {})
 (setf SAVE-EVERY-N-SWEEPS {})
 (setf *eps* {})
+(setf *output-directory* {})
 
 ;; Initialize spacetime
 {}
@@ -194,6 +195,7 @@ def make_data_taking_command ():
 def make_script (boundary_file,left_boundary=False, right_boundary=False):
     return LISP_SCRIPT.format(boundary_file,
                               NUM_SWEEPS,SAVE_EVERY_N_SWEEPS,EPS,
+                              OUTPUT_DIRECTORY,
                               make_initialization(left_boundary,
                                                   right_boundary),
                               K0,K3,ALPHA,
