@@ -162,7 +162,7 @@
   "Generates a single datafile and a single progress file after every
   SAVE-EVERY-N-SWEEPS. Stops after runtime seconds. An hour is 3600
    seconds."
-  (let ((filename (generate-filename-v3 start-sweep))
+  (let ((filename (generate-filename-v3))
 	(end-sweep (+ start-sweep NUM-SWEEPS -1))
 	(endtime (+ (get-universal-time) runtime)) ; time measured in seconds
 	(current-sweep 0))

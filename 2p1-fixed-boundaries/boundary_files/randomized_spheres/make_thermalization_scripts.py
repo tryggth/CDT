@@ -60,11 +60,11 @@ NUM_TIME_SLICES = 28
 TARGET_VOLUME = 30850
 
 # The spatial topology of the spacetime. Almost always "S2" for sphere.
-SPATIAL_TOPOLOGY = "S2"
+SPATIAL_TOPOLOGY = '"S2"'
 
 # The boundary conditions. I don't know why you'd change these to
 # "PERIODIC," since this script is for open boundary conditions.
-BOUNDARY_CONDITIONS = "OPEN"
+BOUNDARY_CONDITIONS = '"OPEN"'
 
 # The k0 coupling constant. Set this based on the time slices and the
 # target volume. Other data analysis scripts can help you figure out
@@ -82,7 +82,7 @@ K3 = 0.75772
 ALPHA = -1
 
 # SAVE_EVERY_N_SWEEPS decides how often a spacetime is saved.
-SAVE_EVERY_N_SWEEPS = 2000
+SAVE_EVERY_N_SWEEPS = 500
 
 # The damping parameter for the Metropolis algorithm.
 EPS = 0.02 # 0.02 is the default
@@ -98,6 +98,8 @@ LISP_SCRIPT = """;;;; Lisp script auto generated with
 ;;;; make_thermalization_scripts.py
 
 ;;;; Boundary file used to generate script: {}
+
+(load "cdt2p1")
 
 (setf NUM-SWEEPS {})
 (setf SAVE-EVERY-N-SWEEPS {})
@@ -118,31 +120,6 @@ LISP_SCRIPT = """;;;; Lisp script auto generated with
 
 # Function definitions
 #----------------------------------------------------------------------
-def ensure_correct_globals ():
-    "Ensure the global constants are valid. Defensive coding."
-    
-    # Must be an integer
-    DATA_GATHERING_INPUT = int(DATA_GATHERING_INPUT)
-    NUM_SWEEPS = int(NUM_SWEEPS)
-    NUM_TIME_SLICES = int(NUM_TIME_SLICES)
-    TARGET_VOLUME = int(TARGET_VOLUME)
-    SAVE_EVERY_N_SWEEPS = int(SAVE_EVERY_N_SWEEPS)
-
-    # Ensure valid input.
-    if SPATIAL_TOPOLOGY not in ("S2","T2"):
-        raise ValueError("Spatial topology invalid.")
-    if BOUNDARY_CONDITIONS not in ("OPEN","PERIODIC"):
-        raise ValueError("Boundary conditions invalid.")
-    if ALPHA >= 0:
-        raise ValueError("alpha must be negative to preserve lorentzian"
-                         +" structure.")
-    # NUM_TIME_SLICES MUST BE EVEN
-    if NUM_TIME_SLICES % 2 != 0:
-        NUM_TIME_SLICES = NUM_TIME_SLICES - 1
-
-    # Return true if successful.
-    return True
-    
 
 def make_initialization (left_boundary=False, right_boundary=False):
     "Make the initialization part of the script."
@@ -158,9 +135,9 @@ def make_initialization (left_boundary=False, right_boundary=False):
 
     # If the boundaries need to be set, set them.
     if left_boundary:
-        outstring += "\n :initial-spatial-geometry {}".format(left_boundary)
+        outstring += '\n :initial-spatial-geometry "{}"'.format(left_boundary)
     if right_boundary:
-        outstring += "\n :final-spatial-geometry {}".format(right_boundary)
+        outstring += '\n :final-spatial-geometry "{}"'.format(right_boundary)
 
     # Add the closing directory.
     outstring += ")"
@@ -177,8 +154,8 @@ def make_filename (boundary_file_name,
     "Make the output file name."
     
     boundary_file_out = make_boundary_file_out(boundary_file_name)
-    outstring = "AUTO_{}_{}_T0{}_V0{}_B_{}".format(SPATIAL_TOPOLOGY,
-                                                   BOUNDARY_CONDITIONS,
+    outstring = "AUTO_{}_{}_T0{}_V0{}_B_{}".format(SPATIAL_TOPOLOGY[1:-1],
+                                                   BOUNDARY_CONDITIONS[1:-1],
                                                    NUM_TIME_SLICES,
                                                    TARGET_VOLUME,
                                                    boundary_file_out)
@@ -214,6 +191,27 @@ def make_output (boundary_file_name,left_boundary=False,
 
 # Main loop
 if __name__ == "__main__":
+    # Ensure globals correct
+
+    # Must be an integer
+    DATA_GATHERING_INPUT = int(DATA_GATHERING_INPUT)
+    NUM_SWEEPS = int(NUM_SWEEPS)
+    NUM_TIME_SLICES = int(NUM_TIME_SLICES)
+    TARGET_VOLUME = int(TARGET_VOLUME)
+    SAVE_EVERY_N_SWEEPS = int(SAVE_EVERY_N_SWEEPS)
+
+    # Ensure valid input.
+    if SPATIAL_TOPOLOGY not in ('"S2"','"T2"'):
+        raise ValueError("Spatial topology invalid.")
+    if BOUNDARY_CONDITIONS not in ('"OPEN"','"PERIODIC"'):
+        raise ValueError("Boundary conditions invalid.")
+    if ALPHA >= 0:
+        raise ValueError("alpha must be negative to preserve lorentzian"
+                         +" structure.")
+    # NUM_TIME_SLICES MUST BE EVEN
+    if NUM_TIME_SLICES % 2 != 0:
+        NUM_TIME_SLICES = NUM_TIME_SLICES - 1
+        
     print "Making scripts!"
     print "Scriptnames..."
     if "l" in sys.argv[1] and "r" in sys.argv[1]:

@@ -148,8 +148,7 @@ for use in the simulation."
 	 (B3SL-31 (* -1 *2/i* k theta-31-sl)) 
 	 ; term for sum over dihedral angles of (2,2)-simplices
 	 ; attached at each bone
-	 (B3SL-22 (* -1 (/ k *i*) theta-22-sl))
-	 (useless (print "hello world!")))
+	 (B3SL-22 (* -1 (/ k *i*) theta-22-sl)))
 
      (if ret-coup ; if ret-coup, just return debugging info. Otherwise,
 	          ; make the action
