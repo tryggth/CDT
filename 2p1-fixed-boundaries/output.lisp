@@ -24,32 +24,37 @@
 (defparameter *output-directory* ""
   "The directory files are saved to. By default, uses ./")
 
-;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-hostname-currenttime
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-initialBoundary-finalBoundary-hostname-currenttime
 (defun generate-filename (&optional (start-sweep 1) 
 			    (end-sweep (+ start-sweep NUM-SWEEPS -1)))
   (concatenate 'string *output-directory*
-	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-on-~A-started~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* start-sweep 
-	  end-sweep (hostname) (cdt-now-str))))
+	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-IB0~A-FB0~A-on-~A-started~A" 
+	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha*
+	  start-sweep end-sweep
+	  (count-spacelike-triangles-at-time 0)
+	  (count-spacelike-triangles-at-time NUM-T)
+	  (hostname) (cdt-now-str))))
 
-;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-hostname-starttime-currenttime
-(defun generate-filename-v2 (&optional (ssweep 1) (csweep 0) 
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-initialBoundary-finalBoundary-hostname-starttime-currenttime
+(defun generate-filename-v2 (initial-boundary final-boundary
+			     &optional (ssweep 1) (csweep 0) 
 			       (esweep (+ ssweep NUM-SWEEPS -1)))
   (concatenate 'string *output-directory*
-	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-on-~A-start~A-curr~A" 
+	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-IB0~A-FB0~A-on-~A-start~A-curr~A" 
 	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
-	  ssweep csweep esweep 
+	  ssweep csweep esweep
+	  initial-boundary final-boundary
 	  (hostname) SIM-START-TIME (cdt-now-str))))
 
-(defun generate-filename-v3 (initial-boundary final-boundary
-			     &optional (signifier nil))
+(defun generate-filename-v3 (&optional (signifier nil))
   (if signifier
       (concatenate 'string *output-directory*
 		   (format
 		    nil
 		    "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-IB0~A-FB0~A-S0~A-on-~A-start~A" 
 		    STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha*
-		    initial-boundary final-boundary
+		    (count-spacelike-triangles-at-time 0)
+		    (count-spacelike-triangles-at-time NUM-T)
 		    signifier
 		    (hostname) SIM-START-TIME))
             (concatenate 'string *output-directory*
@@ -57,7 +62,8 @@
 		    nil
 		    "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-IB0~A-FB0~A-on-~A-start~A" 
 		    STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha*
-		    initial-boundary final-boundary
+		    (count-spacelike-triangles-at-time 0)
+		    (count-spacelike-triangles-at-time NUM-T)
 		    (hostname) SIM-START-TIME))))
       
 
@@ -175,10 +181,7 @@
   "Generates a single datafile and a single progress file after every
   SAVE-EVERY-N-SWEEPS. Stops after runtime seconds. An hour is 3600
    seconds."
-  (let ((filename (generate-filename-v3
-		   (count-spacelike-triangles-at-time 0)
-		   (count-spacelike-triangles-at-time NUM-T)
-		   signifier))
+  (let ((filename (generate-filename-v3 signifier))
 	(end-sweep (+ start-sweep NUM-SWEEPS -1))
 	(endtime (+ (get-universal-time) runtime)) ; time measured in seconds
 	(current-sweep 0))
@@ -198,15 +201,21 @@
   "Generate a spacetime file every SAVE-EVERY-N-SWEEPS. No progress file is
    generated."
   (setf SIM-START-TIME (cdt-now-str))
-  (let ((end-sweep (+ start-sweep NUM-SWEEPS -1)))
+  (let ((end-sweep (+ start-sweep NUM-SWEEPS -1))
+	(initial-boundary (count-spacelike-triangles-at-time 0))
+	(final-boundary (count-spacelike-triangles-at-time NUM-T)))
     (when (= 1 start-sweep) ;; save the initial spacetime contents if
 			    ;; this is a brand new run
-      (make-spacetime-file (generate-filename-v2 start-sweep 0)))
+      (make-spacetime-file (generate-filename-v2 initial-boundary
+						 final-boundary
+						 start-sweep 0)))
     ; Start the sweeps
     (for (ns start-sweep end-sweep)
 	 (sweep)
 	 (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
-	   (make-spacetime-file (generate-filename-v2 start-sweep ns))))))
+	   (make-spacetime-file (generate-filename-v2 initial-boundary
+						      final-boundary
+						      start-sweep ns))))))
 
 ;; generate-movie-data saves number of simplices every SAVE-EVERY-N-SWEEPS
 (defun generate-movie-data (&optional (start-sweep 1))
