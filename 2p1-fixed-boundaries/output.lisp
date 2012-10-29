@@ -41,13 +41,25 @@
 	  ssweep csweep esweep 
 	  (hostname) SIM-START-TIME (cdt-now-str))))
 
-(defun generate-filename-v3 nil
-  (concatenate 'string *output-directory*
-	       (format
-		nil
-		"~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-on-~A-start~A" 
-		STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
-		(hostname) SIM-START-TIME)))
+(defun generate-filename-v3 (initial-boundary final-boundary
+			     &optional (signifier nil))
+  (if signifier
+      (concatenate 'string *output-directory*
+		   (format
+		    nil
+		    "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-IB0~A-FB0~A-S0~A-on-~A-start~A" 
+		    STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha*
+		    initial-boundary final-boundary
+		    signifier
+		    (hostname) SIM-START-TIME))
+            (concatenate 'string *output-directory*
+		   (format
+		    nil
+		    "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-IB0~A-FB0~A-on-~A-start~A" 
+		    STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha*
+		    initial-boundary final-boundary
+		    (hostname) SIM-START-TIME))))
+      
 
 ;;;;-------------------------------------------------------------------------
 
@@ -158,11 +170,15 @@
 ;; seconds. You don't need to set NUM-SWEEPS, but it might be useful
 ;; to do so to keep track of how many sweeps you hope will be
 ;; finished.
-(defun generate-data-in-time (runtime &optional (start-sweep 1))
+(defun generate-data-in-time (runtime &optional (start-sweep 1)
+					(signifier nil))
   "Generates a single datafile and a single progress file after every
   SAVE-EVERY-N-SWEEPS. Stops after runtime seconds. An hour is 3600
    seconds."
-  (let ((filename (generate-filename-v3))
+  (let ((filename (generate-filename-v3
+		   (count-spacelike-triangles-at-time 0)
+		   (count-spacelike-triangles-at-time NUM-T)
+		   signifier))
 	(end-sweep (+ start-sweep NUM-SWEEPS -1))
 	(endtime (+ (get-universal-time) runtime)) ; time measured in seconds
 	(current-sweep 0))
