@@ -24,28 +24,52 @@
 (defparameter *output-directory* ""
   "The directory files are saved to. By default, uses ./")
 
-;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-initialBoundary-finalBoundary-hostname-currenttime
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-endsweep-initialBoundary-finalBoundary-hostname-starttime
 (defun generate-filename (&optional (start-sweep 1) 
-			    (end-sweep (+ start-sweep NUM-SWEEPS -1)))
-  (concatenate 'string *output-directory*
-	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-IB0~A-FB0~A-on-~A-started~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha*
-	  start-sweep end-sweep
-	  (count-spacelike-triangles-at-time 0)
-	  (count-spacelike-triangles-at-time NUM-T)
-	  (hostname) (cdt-now-str))))
+			    (end-sweep (+ start-sweep NUM-SWEEPS -1))
+			    (signifier nil))
+  (if signifier
+      (concatenate 'string *output-directory*
+		   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-IB0~A-FB0~A-S0~A-on-~A-started~A" 
+			   STOPOLOGY BCTYPE NUM-T N-INIT
+			   *k0* *k3* *eps* *alpha*
+			   start-sweep end-sweep
+			   (count-spacelike-triangles-at-time 0)
+			   (count-spacelike-triangles-at-time NUM-T)
+			   signifier
+			   (hostname) (cdt-now-str)))
+      (concatenate 'string *output-directory*
+		   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-IB0~A-FB0~A-on-~A-started~A" 
+			   STOPOLOGY BCTYPE NUM-T N-INIT
+			   *k0* *k3* *eps* *alpha*
+			   start-sweep end-sweep
+			   (count-spacelike-triangles-at-time 0)
+			   (count-spacelike-triangles-at-time NUM-T)
+			   (hostname) (cdt-now-str)))))
 
-;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-startsweep-currsweep-endsweep-initialBoundary-finalBoundary-hostname-starttime-currenttime
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-INITIALBOUNDARY-FINALBOUNDARY-startsweep-currsweep-endsweep-initialBoundary-finalBoundary-hostname-starttime-currenttime
 (defun generate-filename-v2 (initial-boundary final-boundary
 			     &optional (ssweep 1) (csweep 0) 
-			       (esweep (+ ssweep NUM-SWEEPS -1)))
-  (concatenate 'string *output-directory*
-	       (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-IB0~A-FB0~A-on-~A-start~A-curr~A" 
-	  STOPOLOGY BCTYPE NUM-T N-INIT *k0* *k3* *eps* *alpha* 
-	  ssweep csweep esweep
-	  initial-boundary final-boundary
-	  (hostname) SIM-START-TIME (cdt-now-str))))
+			       (esweep (+ ssweep NUM-SWEEPS -1))
+			       (signifier nil))
+  (if signifier
+      (concatenate 'string *output-directory*
+		   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-IB0~A-FB0~A-S0~A-on-~A-start~A-curr~A" 
+			   STOPOLOGY BCTYPE NUM-T N-INIT
+			   *k0* *k3* *eps* *alpha* 
+			   ssweep csweep esweep
+			   initial-boundary final-boundary
+			   signifier
+			   (hostname) SIM-START-TIME (cdt-now-str)))
+      (concatenate 'string *output-directory*
+		   (format nil "~A-~A-T~3,'0d-V~6,'0d-~A-~A-~A-~A-~9,'0d-~9,'0d-~9,'0d-IB0~A-FB0~A-on-~A-start~A-curr~A" 
+			   STOPOLOGY BCTYPE NUM-T N-INIT
+			   *k0* *k3* *eps* *alpha* 
+			   ssweep csweep esweep
+			   initial-boundary final-boundary
+			   (hostname) SIM-START-TIME (cdt-now-str)))))
 
+;; STOPOLOGY-BCTYPE-NUMT-NINIT-k0-k3-eps-alpha-INITIALBOUNDARY-FINALBOUNDARY-hostname-starttime
 (defun generate-filename-v3 (&optional (signifier nil))
   (if signifier
       (concatenate 'string *output-directory*
@@ -158,11 +182,12 @@
 ;; k0, k3, NUM-SWEEPS and calling one of the initialize-xx-slices. It
 ;; generates a single datafile and a single progress file after every
 ;; save-every-n-sweeps.
-(defun generate-data (&optional (start-sweep 1))
+(defun generate-data (&optional (start-sweep 1) (signifier nil))
   "Generates a single datafile and a single progress file after every
    SAVE-EVERY-N-SWEEPS."
-  (let ((filename (generate-filename start-sweep))
-	(end-sweep (+ start-sweep NUM-SWEEPS -1)))
+  (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))
+	 (filename (generate-filename start-sweep end-sweep signifier)))
+	
     (for (ns start-sweep end-sweep)
 	 (sweep)
 	 (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
@@ -197,7 +222,7 @@
 ;; generate-data-v2 is similar to generate-data except it creates a
 ;; fresh data file every SAVE-EVERY-N-SWEEPS. since a fresh datafile
 ;; is created, there is no need to maintain a seprate progress file.
-(defun generate-data-v2 (&optional (start-sweep 1))
+(defun generate-data-v2 (&optional (start-sweep 1) (signifier nil))
   "Generate a spacetime file every SAVE-EVERY-N-SWEEPS. No progress file is
    generated."
   (setf SIM-START-TIME (cdt-now-str))
@@ -208,21 +233,70 @@
 			    ;; this is a brand new run
       (make-spacetime-file (generate-filename-v2 initial-boundary
 						 final-boundary
-						 start-sweep 0)))
+						 start-sweep 0
+						 end-sweep
+						 signifier))
     ; Start the sweeps
     (for (ns start-sweep end-sweep)
 	 (sweep)
 	 (when (= 0 (mod ns SAVE-EVERY-N-SWEEPS))
 	   (make-spacetime-file (generate-filename-v2 initial-boundary
 						      final-boundary
-						      start-sweep ns))))))
+						      start-sweep ns
+						      end-sweep
+						      signifier)))))))
+
+;; generate-data-in-time-v2 is similar to generate-data-in-time except
+;; it creates a fresh data file every SAVE-EVERY-N-SWEEPS. since a
+;; fresh datafile is created, there is no need to maintain a seprate
+;; progress file.
+(defun generate-data-in-time-v2 (runtime &optional (start-sweep 1)
+					   (signifier nil))
+  "Generate a spacetime file every SAVE-EVERY-N-SWEEPS. No progress file is
+   generated."
+  (setf SIM-START-TIME (cdt-now-str))
+  (let ((end-sweep (+ start-sweep NUM-SWEEPS -1))
+	(initial-boundary (count-spacelike-triangles-at-time 0))
+	(final-boundary (count-spacelike-triangles-at-time NUM-T))
+	(endtime (+ (get-universal-time) runtime))
+	(current-sweep 0))
+    
+    ;; save the initial spacetime contents if this is a brand new run
+    (make-spacetime-file (generate-filename-v2 initial-boundary
+					       final-boundary
+					       start-sweep
+					       current-sweep
+					       end-sweep
+					       signifier))
+
+    ; Start the sweeps
+    (while (< (get-universal-time) endtime)
+      (sweep)
+      (incf current-sweep)
+      (when (= 0 (mod current-sweep SAVE-EVERY-N-SWEEPS))
+	(make-spacetime-file (generate-filename-v2 initial-boundary
+						   final-boundary
+						   start-sweep
+						   current-sweep
+						   end-sweep
+						   signifier))))
+
+    ; When time runs out, save immediately once more.
+    (make-spacetime-file (generate-filename-v2 initial-boundary
+					       final-boundary
+					       start-sweep
+					       current-sweep
+					       end-sweep
+					       signifier))))
+    
 
 ;; generate-movie-data saves number of simplices every SAVE-EVERY-N-SWEEPS
-(defun generate-movie-data (&optional (start-sweep 1))
+(defun generate-movie-data (&optional (start-sweep 1) (signifier nil))
   "Makes a movie file and a progress file. No spacetime data is generated."
   (setf SAVE-EVERY-N-SWEEPS 10)
-  (let ((filename (generate-filename start-sweep))
-	(end-sweep (+ start-sweep NUM-SWEEPS -1)))
+  (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))
+	 (filename (generate-filename start-sweep end-sweep signifier)))
+	
 
     ;; Initialize the movie file
     (make-movie-file filename start-sweep)
@@ -252,10 +326,11 @@
 	(make-progress-file filename start-sweep ns end-sweep)
 	(append-to-movie-file filename)))))
 
-(defun generate-spacetime-and-movie-data (&optional (start-sweep 1))
+(defun generate-spacetime-and-movie-data (&optional (start-sweep 1)
+					    (signifier nil))
   "Generate 3-simplex data and movie data. Keeps a progress file."
   (let* ((end-sweep (+ start-sweep NUM-SWEEPS -1))
-	 (filename (generate-filename start-sweep)))
+	 (filename (generate-filename start-sweep end-sweep signifier)))
     
     ;; open and close the file, for :append to work properly
     ;; record the initial data only if start-sweep = 1
