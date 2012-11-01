@@ -163,28 +163,34 @@ def make_filename (boundary_file_name,
 
     return outstring
 
-def make_data_taking_command ():
+def make_data_taking_command (signifier=False):
     if DATA_GATHERING_FUNCTION == "generate-data-in-time":
-        return DATA_GATHERING_FUNCTION + " " + str(DATA_GATHERING_INPUT)
+        if signifier:
+            return DATA_GATHERING_FUNCTION + " " \
+                + str(DATA_GATHERING_INPUT) + \
+                ' 1 "{}"'.format(signifier)
+        else:
+            return DATA_GATHERING_FUNCTION + " " + str(DATA_GATHERING_INPUT)
     else:
         return DATA_GATHERING_FUNCTION
 
-def make_script (boundary_file,left_boundary=False, right_boundary=False):
+def make_script (boundary_file,left_boundary=False, right_boundary=False,
+                 signifier=False):
     return LISP_SCRIPT.format(boundary_file,
                               NUM_SWEEPS,SAVE_EVERY_N_SWEEPS,EPS,
                               OUTPUT_DIRECTORY,
                               make_initialization(left_boundary,
                                                   right_boundary),
                               K0,K3,ALPHA,
-                              make_data_taking_command())
+                             make_data_taking_command(signifier))
 
 def make_output (boundary_file_name,left_boundary=False,
-                 right_boundary=False):
+                 right_boundary=False,signifier=False):
     outfilename = make_filename(boundary_file_name,left_boundary,
                                 right_boundary)
     print outfilename
     with open(outfilename,'w') as f:
-        f.write(make_script(boundary_file_name,left_boundary,right_boundary))
+        f.write(make_script(boundary_file_name,left_boundary,right_boundary,signifier))
 
 #----------------------------------------------------------------------
 
@@ -216,15 +222,15 @@ if __name__ == "__main__":
     print "Scriptnames..."
     if "l" in sys.argv[1] and "r" in sys.argv[1]:
         for f in sys.argv[2:]:
-            make_output(f,f,f)
+            make_output(f,f,f,sys.argv[1:].index(f))
     elif "l" in sys.argv[1]:
         for f in sys.argv[2:]:
-            make_output(f,f,False)
+            make_output(f,f,False,sys.argv[1:].index(f))
     elif "r" in sys.argv[1]:
         for f in sys.argv[2:]:
-            make_output(f,False,f)
+            make_output(f,False,f,sys.argv[1:].index(f))
     else:
         for f in sys.argv[2:]:
-            make_output(f,False,False)
+            make_output(f,False,False,sys.argv[1:].index(f))
     print "All done! Happy hacking!"
     
