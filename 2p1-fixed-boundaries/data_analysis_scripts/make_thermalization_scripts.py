@@ -30,7 +30,7 @@ python2 make_thermalization_scripts.py l TS2-V64-k1.0-kkk0.7577200487786184d0-to
 makes neigher boundary -
 
 # For each file in the directory, set that file to both boundaries.
-python2 make_thermalization_scripts.py lr ./* 
+python2 make_thermalization_scripts.py lr ./*
 """
 
 # Import modules
@@ -117,13 +117,36 @@ LISP_SCRIPT = """;;;; Lisp script auto generated with
 """
 # ----------------------------------------------------------------------
 
+# Ensure globals correct
+#----------------------------------------------------------------------
+
+# Must be an integer
+DATA_GATHERING_INPUT = int(DATA_GATHERING_INPUT)
+NUM_SWEEPS = int(NUM_SWEEPS)
+NUM_TIME_SLICES = int(NUM_TIME_SLICES)
+TARGET_VOLUME = int(TARGET_VOLUME)
+SAVE_EVERY_N_SWEEPS = int(SAVE_EVERY_N_SWEEPS)
+
+# Ensure valid input.
+if SPATIAL_TOPOLOGY not in ('"S2"','"T2"'):
+    raise ValueError("Spatial topology invalid.")
+if BOUNDARY_CONDITIONS not in ('"OPEN"','"PERIODIC"'):
+    raise ValueError("Boundary conditions invalid.")
+if ALPHA >= 0:
+    raise ValueError("alpha must be negative to preserve lorentzian"
+                     +" structure.")
+# NUM_TIME_SLICES MUST BE EVEN
+if NUM_TIME_SLICES % 2 != 0:
+    NUM_TIME_SLICES = NUM_TIME_SLICES - 1
+#----------------------------------------------------------------------
+
 
 # Function definitions
 #----------------------------------------------------------------------
 
 def make_initialization (left_boundary=False, right_boundary=False):
     "Make the initialization part of the script."
-    
+
     outstring = """(initialize-t-slices-with-v-volume
                     :num-time-slices {}
                     :target-volume {}
@@ -131,7 +154,7 @@ def make_initialization (left_boundary=False, right_boundary=False):
                     :boundary-conditions {}""".format(NUM_TIME_SLICES,
                                                       TARGET_VOLUME,
                                                       SPATIAL_TOPOLOGY,
-                                                      BOUNDARY_CONDITIONS)    
+                                                      BOUNDARY_CONDITIONS)
 
     # If the boundaries need to be set, set them.
     if left_boundary:
@@ -152,7 +175,7 @@ def make_boundary_file_out(filename):
 def make_filename (boundary_file_name,
                    left_boundary=False, right_boundary=False):
     "Make the output file name."
-    
+
     boundary_file_out = make_boundary_file_out(boundary_file_name)
     outstring = "AUTO_{}_{}_T0{}_V0{}_B_{}".format(SPATIAL_TOPOLOGY[1:-1],
                                                    BOUNDARY_CONDITIONS[1:-1],
@@ -182,7 +205,7 @@ def make_script (boundary_file,left_boundary=False, right_boundary=False,
                               make_initialization(left_boundary,
                                                   right_boundary),
                               K0,K3,ALPHA,
-                             make_data_taking_command(signifier))
+                              make_data_taking_command(signifier))
 
 def make_output (boundary_file_name,left_boundary=False,
                  right_boundary=False,signifier=False):
@@ -195,29 +218,10 @@ def make_output (boundary_file_name,left_boundary=False,
 #----------------------------------------------------------------------
 
 
+
 # Main loop
 if __name__ == "__main__":
-    # Ensure globals correct
 
-    # Must be an integer
-    DATA_GATHERING_INPUT = int(DATA_GATHERING_INPUT)
-    NUM_SWEEPS = int(NUM_SWEEPS)
-    NUM_TIME_SLICES = int(NUM_TIME_SLICES)
-    TARGET_VOLUME = int(TARGET_VOLUME)
-    SAVE_EVERY_N_SWEEPS = int(SAVE_EVERY_N_SWEEPS)
-
-    # Ensure valid input.
-    if SPATIAL_TOPOLOGY not in ('"S2"','"T2"'):
-        raise ValueError("Spatial topology invalid.")
-    if BOUNDARY_CONDITIONS not in ('"OPEN"','"PERIODIC"'):
-        raise ValueError("Boundary conditions invalid.")
-    if ALPHA >= 0:
-        raise ValueError("alpha must be negative to preserve lorentzian"
-                         +" structure.")
-    # NUM_TIME_SLICES MUST BE EVEN
-    if NUM_TIME_SLICES % 2 != 0:
-        NUM_TIME_SLICES = NUM_TIME_SLICES - 1
-        
     print "Making scripts!"
     print "Scriptnames..."
     if "l" in sys.argv[1] and "r" in sys.argv[1]:
@@ -233,4 +237,3 @@ if __name__ == "__main__":
         for f in sys.argv[2:]:
             make_output(f,False,False,sys.argv[1:].index(f))
     print "All done! Happy hacking!"
-    
