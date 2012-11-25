@@ -14,7 +14,11 @@
 
 
 # The home directory where the CDT stuff is
-CDTHOME=~/CDT/2p1-fixed-boundaries
+if [ "$(hostname)" = "dewitt" ]; then
+    CDTHOME=/new1/synced_to_github/CDT/2p1-fixed-boundaries
+else 
+    CDTHOME=~/CDT/2p1-fixed-boundaries   
+fi 
 
 # The name of the script we'll use with sbcl
 SCRIPT=extract_action.script.lisp

@@ -41,11 +41,11 @@ import sys # For the operating system/file system commands
 # Important global constants
 #----------------------------------------------------------------------
 # The function used to gather data
-DATA_GATHERING_FUNCTION = "generate-data-in-time"
+DATA_GATHERING_FUNCTION = "generate-data"
 
 # Usually initial sweep. For generate-data-in-time, however, it's the
 # number of seconds we want to generate data for.
-DATA_GATHERING_INPUT = 60*60*23.75 # currently: 23 hours, 45 minutes
+DATA_GATHERING_INPUT = 1 # 60*60*23.75 # currently: 23 hours, 45 minutes
 
 # The total number of sweeps you want. If DATA_GATHERING_FUNCTION is
 # generate-data-in-time, this doesn't do anything other than change
