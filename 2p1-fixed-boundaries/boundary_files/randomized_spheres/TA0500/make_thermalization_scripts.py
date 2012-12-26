@@ -54,7 +54,7 @@ NUM_SWEEPS = 50000
 
 # The number of time slices in the simulation. MUST be an even
 # number. If it isn't even, the program will MAKE it even.
-NUM_TIME_SLICES = 24
+NUM_TIME_SLICES = 20
 
 # The target volume of the spacetime. Doesn't need to be exact.
 TARGET_VOLUME = 30850
