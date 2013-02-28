@@ -45,17 +45,17 @@
 
 (defun make-2simplices (sxtype tmlo tmhi p0 p1 p2 p3)
   "makes all 2-simplices with the specified data iff they don't already exist"
-  (cond ((= 1 sxtype) ; (p0 | p1 p2 p3)
+  (cond ((= *1-3-simplex* sxtype) ; (p0 | p1 p2 p3)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p1 ,p2)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p1 ,p3)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(,tmhi (,p1 ,p2 ,p3)) *SL2SIMPLEX->ID*) 0))
-	((= 2 sxtype) ; (p0 p1 | p2 p3)
+	((= *2-2-simplex* sxtype) ; (p0 p1 | p2 p3)
 	 (setf (gethash `(2 ,tmlo (,p0 ,p1 ,p2)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(2 ,tmlo (,p0 ,p1 ,p3)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p1 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0))
-	((= 3 sxtype) ; (p0 p1 p2 | p3)
+	((= *3-1-simplex* sxtype) ; (p0 p1 p2 | p3)
 	 (setf (gethash `(,tmlo (,p0 ,p1 ,p2)) *SL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(2 ,tmlo (,p0 ,p1 ,p3)) *TL2SIMPLEX->ID*) 0)
 	 (setf (gethash `(2 ,tmlo (,p0 ,p2 ,p3)) *TL2SIMPLEX->ID*) 0)
@@ -63,21 +63,21 @@
 
 (defun make-1simplices (sxtype tmlo tmhi p0 p1 p2 p3)
   "makes all 1-simplices with the specified data iff they don't already exist"
-  (cond ((= 1 sxtype) ;; p0 | p1 p2 p3
+  (cond ((= *1-3-simplex* sxtype) ;; p0 | p1 p2 p3
 	 (setf (gethash `(1 ,tmlo (,p0 ,p1)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p2)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p3)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(,tmhi (,p1 ,p2)) *SL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(,tmhi (,p1 ,p3)) *SL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(,tmhi (,p2 ,p3)) *SL1SIMPLEX->ID*) 0))
-	((= 2 sxtype) ;; p0 p1 | p2 p3
+	((= *2-2-simplex* sxtype) ;; p0 p1 | p2 p3
 	 (setf (gethash `(,tmlo (,p0 ,p1)) *SL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p2)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p3)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p1 ,p2)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p1 ,p3)) *TL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(,tmhi (,p2 ,p3)) *SL1SIMPLEX->ID*) 0))
-	((= 3 sxtype) ;; p0 p1 p2 | p3
+	((= *3-1-simplex* sxtype) ;; p0 p1 p2 | p3
 	 (setf (gethash `(,tmlo (,p0 ,p1)) *SL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(,tmlo (,p0 ,p2)) *SL1SIMPLEX->ID*) 0)
 	 (setf (gethash `(1 ,tmlo (,p0 ,p3)) *TL1SIMPLEX->ID*) 0)
@@ -132,14 +132,14 @@
   (let ((p0 p0tmp) (p1 p1tmp) (p2 p2tmp) (p3 p3tmp) (tmhi tmhitmp))
     (when (and (string= BCTYPE "PERIODIC") (= NUM-T tmhitmp))
       (setf tmhi 0)
-      (cond ((= 1 sxtype)
+      (cond ((= *1-3-simplex* sxtype)
 	     (decf p1 (* N0-PER-SLICE NUM-T)) 
 	     (decf p2 (* N0-PER-SLICE NUM-T)) 
 	     (decf p3 (* N0-PER-SLICE NUM-T)))
-	    ((= 2 sxtype)
+	    ((= *2-2-simplex* sxtype)
 	     (decf p2 (* N0-PER-SLICE NUM-T)) 
 	     (decf p3 (* N0-PER-SLICE NUM-T)))
-	    ((= 3 sxtype)
+	    ((= *3-1-simplex* sxtype)
 	     (decf p3 (* N0-PER-SLICE NUM-T)))))
     ;; set last used point if a new point is used
     ;; Required by David's initialization.lisp code.
@@ -196,21 +196,21 @@
 (defun show-id->3simplex-store ()
   (maphash #'(lambda (3sxid 3sx) 
 	       (cond 
-		 ((= 1 (3sx-type 3sx))
+		 ((= *1-3-simplex* (3sx-type 3sx))
 		  (format t "[~A] (~A ~A ~A (~A|~A ~A ~A) (~A ~A ~A ~A))~%"
 			  3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
 			  (nth-point 3sx 0) (nth-point 3sx 1) 
 			  (nth-point 3sx 2) (nth-point 3sx 3)
 			  (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
 			  (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
-		 ((= 2 (3sx-type 3sx))
+		 ((= *2-2-simplex* (3sx-type 3sx))
 		  (format t "[~A] (~A ~A ~A (~A ~A|~A ~A) (~A ~A ~A ~A))~%"
 			  3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
 			  (nth-point 3sx 0) (nth-point 3sx 1) 
 			  (nth-point 3sx 2) (nth-point 3sx 3)
 			  (nth-neighbor 3sx 0) (nth-neighbor 3sx 1) 
 			  (nth-neighbor 3sx 2) (nth-neighbor 3sx 3)))
-		 ((= 3 (3sx-type 3sx))
+		 ((= *3-1-simplex* (3sx-type 3sx))
 		  (format t "[~A] (~A ~A ~A (~A ~A ~A|~A) (~A ~A ~A ~A))~%"
 			  3sxid (3sx-type 3sx) (3sx-tmlo 3sx) (3sx-tmhi 3sx)
 			  (nth-point 3sx 0) (nth-point 3sx 1) 
@@ -340,9 +340,9 @@
     (maphash #'(lambda (id sx)
 		 (declare (ignore id))
 		 (ecase (3sx-type sx)
-		   (1 (incf 1count))
-		   (2 (incf 2count))
-		   (3 (incf 3count))))
+		   (*1-3-simplex* (incf 1count))
+		   (*2-2-simplex* (incf 2count))
+		   (*3-1-simplex* (incf 3count))))
 	     *ID->3SIMPLEX*)
     (list 1count 2count 3count (+ 1count 2count 3count))))
 

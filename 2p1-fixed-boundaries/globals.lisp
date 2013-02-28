@@ -14,6 +14,14 @@
 (defparameter *RECYCLED-3SX-IDS* '())
 (defparameter *LAST-USED-POINT* 0)
 
+;;; For ease of reading, the following simplex type names are
+;;; implimented. Their use is sporatic.
+;;; TODO: replace all numeric
+;;; references to simplex types with the named constants.
+(defvar *1-3-simplex* 1 "The (1,3)-simplex")
+(defvar *2-2-simplex* 2 "The (2,2)-simplex")
+(defvar *3-1-simplex* 3 "The (3,1)-simplex")
+
 (defmacro next-pt ()
   `(incf *LAST-USED-POINT*))
 (defmacro set-last-used-pt (pt)
