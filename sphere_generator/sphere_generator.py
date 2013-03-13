@@ -3,7 +3,7 @@
 """
 sphere_generator.py
 
-Time-stamp: <2013-03-13 13:39:24 (jonah)>
+Time-stamp: <2013-03-13 13:46:52 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -247,6 +247,8 @@ default_final_sweep = 0 # By default, the simulation makes a random
 default_save_every_n_sweeps = 1
 default_target_std = 0 # By default we want a perfect sphere
 default_algorithm = monte_carlo.select_for_area
+default_v5damping = 0
+default_v6damping = 0
 ##----------------------------------------------------------------------
 
 
@@ -335,6 +337,11 @@ def get_progress_file_info(filename):
         target_std,std_damping = [float(s) for s in data[0][-2:-1]]
     # Gather data function is, of course, gather_data_to_1_file
     gather_data_function = output.gather_data_to_1_file
+    # Same for algorithm
+    algorithm = default_algorithm
+    # v5 and v6 damping don't matter
+    v5damping = default_v5damping
+    v6damping = default_v6damping
     # The filename we want to output is the same file but with
     # *.boundary2p1 at the end.
     filename = filename.rstrip(output.tracking_suffix)+output.output_suffix
@@ -344,6 +351,8 @@ def get_progress_file_info(filename):
                          target_std,std_damping,
                          current_sweep,final_sweep,
                          save_every_n_sweeps,
+                         v5damping,v6damping,
+                         algorithm,
                          gather_data_function)
     return params
 
