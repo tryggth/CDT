@@ -3,7 +3,7 @@
 """
 sphere_generator.py
 
-Time-stamp: <2012-10-30 15:22:04 (jonah)>
+Time-stamp: <2013-03-13 13:39:24 (jonah)>
 
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
 
@@ -326,8 +326,13 @@ def get_progress_file_info(filename):
     # Now, based on position, we can start getting parameters
     current_sweep,final_sweep = [int(i) for i in data[1]]
     target_area = int(data[0][0])
+    area_damping = float(data[0][1])
     save_every_n_sweeps = int(data[0][-1])
-    area_damping,target_std,std_damping = [float(s) for s in data[0][1:-1]]
+    if len(data[0]) == 3:
+        target_std = default_target_std
+        std_damping = default_std_damping
+    else:
+        target_std,std_damping = [float(s) for s in data[0][-2:-1]]
     # Gather data function is, of course, gather_data_to_1_file
     gather_data_function = output.gather_data_to_1_file
     # The filename we want to output is the same file but with
