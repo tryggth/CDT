@@ -743,7 +743,7 @@
 	     (return-from tv)))))
 
 
-(defun initialize-T-slices-with-V-volume (&key 
+
 					  num-time-slices
 					  target-volume
 					  spatial-topology

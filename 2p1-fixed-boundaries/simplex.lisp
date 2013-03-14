@@ -301,10 +301,11 @@
     (maphash #'(lambda (id sx)
 		 (when (and (= (3sx-tmlo sx) (bc-mod tlo)) 
 			    (= (3sx-tmhi sx) (bc-mod thi)))
-		   (ecase (3sx-type sx)
-		     (1 (push id 1ids))
-		     (2 (push id 2ids))
-		     (3 (push id 3ids)))))
+		   (let ((type (3sx-type sx)))
+		     (cond
+		       ((= type *1-3-simplex*) (push id 1ids))
+		       ((= type *2-2-simplex*) (push id 2ids))
+		       ((= type *3-1-simplex*) (push id 3ids))))))
 	     *ID->3SIMPLEX*)
     (values 1ids 2ids 3ids)))
 
@@ -339,10 +340,11 @@
   (let ((1count 0) (2count 0) (3count 0))
     (maphash #'(lambda (id sx)
 		 (declare (ignore id))
-		 (ecase (3sx-type sx)
-		   (*1-3-simplex* (incf 1count))
-		   (*2-2-simplex* (incf 2count))
-		   (*3-1-simplex* (incf 3count))))
+		 (let ((type (3sx-type sx)))
+		   (cond
+		     ((= type *1-3-simplex*) (incf 1count))
+		     ((= type *2-2-simplex*) (incf 2count))
+		     ((= type *3-1-simplex*) (incf 3count)))))
 	     *ID->3SIMPLEX*)
     (list 1count 2count 3count (+ 1count 2count 3count))))
 
