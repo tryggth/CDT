@@ -743,7 +743,7 @@
 	     (return-from tv)))))
 
 
-
+(defun initialize-T-slices-with-V-volume (&key
 					  num-time-slices
 					  target-volume
 					  spatial-topology
@@ -751,7 +751,7 @@
 					  initial-spatial-geometry
 					  final-spatial-geometry)
 
-  ;;set global variables according to parameters
+  ;;set global variables according to paramete
   (setf STOPOLOGY  (string-upcase spatial-topology))
 
   ;;perform initialization based on type of spatial topology
