@@ -585,7 +585,78 @@ t-high is for compatibility. We only care about t-low."
 		       (nth-neighbor v 2) (nth-neighbor v 3) k))
 	   *ID->3SIMPLEX*))
 
+;; This function reads the first line of the spacetime file and makes
+;; a list with all the relevant information in it.
+(defun get-parameters-line-data (line)
+  (with-input-from-string (s line)
+    (loop
+       :for num := (read s nil nil)
+       :while num
+       :collect num)))
+  
+;; What you do with the parameters line data in the legacy case
+(defun set-parameters-from-line-data-legacy (data)
+  (setf BCTYPE (nth 0 data)
+	STOPOLOGY (nth 1 data)
+	NUM-T (nth 2 data) 
+	N-INIT (nth 3 data)
+	*LAST-USED-POINT* (nth 4 data) 
+	*LAST-USED-3SXID* (nth 5 data)
+	N0 (nth 6 data)
+	N1-SL (nth 7 data) 
+	N1-TL (nth 8 data)
+	N2-SL (nth 9 data)
+	N2-TL (nth 10 data)
+	N3-TL-31 (nth 11 data)
+	N3-TL-22 (nth 12 data)
+	*eps* (nth 13 data)
+	;; Since the information for the boundary terms is not stored,
+	;; we set it to zero, making it a zero term in the action.
+	*N1-SL-TOP* 0
+	*N3-22-TOP* 0
+	*N3-31-TOP* 0
+	*N1-SL-BOT* 0
+	*N3-22-BOT* 0
+	*N3-31-BOT* 0)
+  (set-k0-k3-alpha (nth 14 data) (nth 15 data) (nth 16 data)))
+
+;; What you do with parameters line data in the current case
+(defun set-parameters-from-line-data-current (data)
+  (setf BCTYPE            (nth 0  data) 
+	STOPOLOGY         (nth 1  data) 
+	NUM-T             (nth 2  data) 
+	N-INIT            (nth 3  data) 
+	*LAST-USED-POINT* (nth 4  data) 
+	*LAST-USED-3SXID* (nth 5  data)
+	N0                (nth 6  data)
+	N1-SL             (nth 7  data) 
+	N1-TL             (nth 8  data)
+	N2-SL             (nth 9  data)
+	N2-TL             (nth 10 data)
+	N3-TL-31          (nth 11 data)
+	N3-TL-22          (nth 12 data)
+	*N1-SL-TOP*       (nth 13 data)
+	*N3-22-TOP*       (nth 14 data)
+	*N3-31-TOP*       (nth 15 data)
+	*N1-SL-BOT*       (nth 16 data)
+	*N3-22-BOT*       (nth 17 data)
+	*N3-31-BOT*       (nth 18 data)
+	*eps* (nth 19 data))
+  (set-k0-k3-alpha (nth 20 data) (nth 21 data) (nth 22 data)))
+
 (defun parse-parameters-line (line)
+  (let ((data (get-parameters-line-data line))
+	(legacy-length 19))
+    (if (equalp (length data) legacy-length)
+	;; If it's legacy code, use the legacy set mode
+	(set-parameters-from-line-data-legacy data)
+	;; If it's not legacy code, do the expected thing
+	(set-parameters-from-line-data-current data))))
+
+;; This is included for completeness reasons. It is the current way to
+;; set parameters from the parameters line but it isn't legacy
+;; compatible. DO NOT USE!
+(defun parse-parameters-line-not-legacy-compatible (line)
   (with-input-from-string (s line)
     (let ((data (loop
 		   :for num := (read s nil nil)
@@ -612,6 +683,30 @@ t-high is for compatibility. We only care about t-low."
 	    *N3-31-BOT*       (nth 18 data)
 	    *eps* (nth 19 data))
       (set-k0-k3-alpha (nth 20 data) (nth 21 data) (nth 22 data)))))
+
+;; This is the legacy code for setting parameters for continuing old
+;; simulations. It doesn't work for modern simulations. DO NOT USE!
+(defun parse-parameters-line-old (line)
+  (with-input-from-string (s line)
+    (let ((data (loop
+		   :for num := (read s nil nil)
+		   :while num
+		   :collect num)))
+      (setf BCTYPE (nth 0 data)
+	    STOPOLOGY (nth 1 data)
+	    NUM-T (nth 2 data) 
+	    N-INIT (nth 3 data)
+	    *LAST-USED-POINT* (nth 4 data) 
+	    *LAST-USED-3SXID* (nth 5 data)
+	    N0 (nth 6 data)
+	    N1-SL (nth 7 data) 
+	    N1-TL (nth 8 data)
+	    N2-SL (nth 9 data)
+	    N2-TL (nth 10 data)
+	    N3-TL-31 (nth 11 data)
+	    N3-TL-22 (nth 12 data)
+	    *eps* (nth 13 data))
+      (set-k0-k3-alpha (nth 14 data) (nth 15 data) (nth 16 data)))))
 
 (defun parse-simplex-data-line (line)
   (with-input-from-string (s line)

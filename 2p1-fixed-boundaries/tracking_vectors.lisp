@@ -153,6 +153,7 @@
 	*N1-SL-BOT* n4
 	*N3-22-BOT* n5
 	*N3-31-BOT* n6))
+
 (defun update-b-vector (dv)
   "Input list: (DELTA-N1-SL-TOP DELTA-N1-SL-BOT
  DELTA-N3-22-TOP DELTA-N3-22-BOT DELTA-N3-31-TOP DELTA-N3-31-BOT)"
