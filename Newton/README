@@ -1,13 +1,20 @@
 # Newton
 
-FIXME: write description
+3+1 Causal Dynamical Triangulations in Julia
+
+## TODO: Efficient data structure for 4-Simplices and subsimplices
+## TODO: Add masses and stress
 
 ## Usage
 
-FIXME: write
+To run the script, type 'julia <scriptfile.jl'
+
+To generate documentation, type 'julia jocco.jl <file.jl>'.
+
+To run unit tests on a file, go into the test directory and type 'julia <file>-test.jl'
 
 ## License
 
-Copyright (C) 2013 FIXME
+Copyright (C) 2013 Adam Getchell
 
 Distributed under the MIT License, the same as Julia
