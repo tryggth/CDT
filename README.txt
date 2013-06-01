@@ -1,5 +1,7 @@
 Tools and code for Causal Dynamical Triangulations
 
+See http://arxiv.org/abs/hep-th/0105267 for background
+
 Github location: https://github.com/ucdavis/CDT
 
 * dataviz.nb - Mathematica file to convert CDT output files into nice movies
