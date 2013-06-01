@@ -10,11 +10,12 @@ Github location: https://github.com/ucdavis/CDT
 * 2p1 - 2+1 spacetime code (LISP)
 * 3p1 - 3+1 spacetime code (LISP)
 * HL - Horava-Lifshitz code (LISP)
-* Newton - 3+1 code with mass to test the Newtonian limit, written in Clojure, a Lisp running on the JVM (Clojure)
+* Newton - 3+1 code with mass to test the Newtonian limit, and general rewrite of 3p1 code (Julia)
 * runlisp.sh - A shell script to run Lisp jobs on Sun Grid Engine using 'qsub runlisp.sh'
 
 2p1 and 3p1 code by Rajesh Kommu
 HL (Horava-Lifshitz) code by Christian Anderson
+2p1-fixed-boundaries by Jonah Miller
 
 TODO: Complete Newton
 TODO: Update Christian's code for fixed boundary conditions
