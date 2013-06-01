@@ -7,11 +7,11 @@
 
 ## Usage
 
-To run the script, type 'julia <scriptfile.jl'
+To run a script, type 'julia <file>.jl'
 
-To generate documentation, type 'julia jocco.jl <file.jl>'.
+To generate documentation for a script, type 'julia jocco.jl <file.jl>'. The results will be in /docs/<file>.html
 
-To run unit tests on a file, go into the test directory and type 'julia <file>-test.jl'
+To run unit tests on a file, go into /test and type 'julia <file>-test.jl'
 
 ## License
 
