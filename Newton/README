@@ -3,7 +3,9 @@
 3+1 Causal Dynamical Triangulations in Julia
 
 ## TODO: Efficient data structure for 4-Simplices and subsimplices
+## TODO: ... many other tasks to convert 3p1 to Julia
 ## TODO: Add masses and stress
+## TODO: Bellman-Ford algorithm for calculating distance
 
 ## Usage
 
