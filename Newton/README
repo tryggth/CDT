@@ -2,7 +2,7 @@
 
 3+1 Causal Dynamical Triangulations in Julia
 
-Finding the Newtonian Limit in CDT. For background see: https://github.com/acgetchell/Presentations/blob/master/Newtonian%20Limit%20in%20CDT.pdf
+Finding the Newtonian Limit in CDT. For background see: http://www.slideshare.net/acgetchell/newtonian-limit-in-cdt
 
 ## TODO: Efficient data structure for 4-Simplices and subsimplices
 ## TODO: ... many other tasks to convert 3p1 to Julia
