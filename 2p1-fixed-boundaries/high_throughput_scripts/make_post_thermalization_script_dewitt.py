@@ -3,7 +3,7 @@
 """
 make_post_thermalization_script_dewitt.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2013-07-10 15:34:22 (jonah)>
+Time-stamp: <2013-07-10 15:49:57 (jonah)>
 
 This program takes any number of input spacetimes (*.3sx2p1 files) and
 generates a post-themralization script for each one based on the
@@ -64,7 +64,7 @@ LISPSCRIPT="""
 (setf NUM-SWEEPS {num_sweeps})
 
 ; Open the file
-(with-open-fule (f {filename}) (load-spacetime-from-file f))
+(with-open-fule (f "{filename}") (load-spacetime-from-file f))
 
 (generate-data-v2)
 """
