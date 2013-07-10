@@ -3,7 +3,7 @@
 """
 make_post_thermalization_script_dewitt.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2013-07-10 15:18:55 (jonah)>
+Time-stamp: <2013-07-10 15:34:22 (jonah)>
 
 This program takes any number of input spacetimes (*.3sx2p1 files) and
 generates a post-themralization script for each one based on the
@@ -45,7 +45,7 @@ SWEEPS_PER_CORE = ceil(TOTAL_SWEEPS/float(NUM_CORES))
 
 # The script to print with some of the variables inserted.
 LISPSCRIPT="""
-;;; AUTO.{filename}.post_thermalization.script.lisp
+;;;; filename = {filename}
 
 ;;;; auto-generated post-thermalization script.
 
@@ -82,7 +82,10 @@ def make_outfile_name(input_file):
     return "AUTO.{}.post_thermalization.script.lisp".format(input_file)
 
 def make_output(input_file):
-    outfile_name = make_outfile_name(input_file)
+    if "/" in input_file:
+        outfile_name = make_outfile_name(input_file.split("/")[-1])
+    else:
+        outfile_name = make_outfile_name(input_file)
     out_script = make_lisp_script(input_file)
     print outfile_name
     with open(outfile_name,'w') as f:
@@ -92,9 +95,6 @@ def main():
     print "Making scripts!"
     print "Script names are:"
     for i in sys.argv[1:]:
-        # this if statement parses long filenames. Only works in *nix.
-        if "/" in i: 
-            i = i.split("/")[-1]
         make_output(i)
     print "All done! Happy hacking!"
 
