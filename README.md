@@ -21,7 +21,7 @@ HL (Horava-Lifshitz) code by Christian Anderson
 - [x] Merge 2p1 and 2p1-fixed-boundaries. The updated code is called 2p1-fixed-boundaries. Works for open or periodic boundary conditions.
 - [x] Fixed Christian's code to run on Sun Grid Engine
 
-A C++ implementation of [CDT][2] using CGAL, [CDT++][3] is being developed [here][3].
+A C++ implementation of [CDT][2] using CGAL for explicit geometry, [CDT++][3] is being developed [here][3].
 
 [1]: http://arxiv.org/abs/hep-th/0105267
 [2]: https://github.com/ucdavis/CDT
