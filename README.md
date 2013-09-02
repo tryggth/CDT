@@ -14,7 +14,7 @@ See [Dynamically Triangulating Lorentzian Quantum Gravity][1] for background
 * HL - Horava-Lifshitz code (LISP)
 * runlisp.sh - A shell script to run Lisp jobs on Sun Grid Engine using 'qsub runlisp.sh'
 
-2p1 and 3p1 code by Rajesh Kommu
+2p1 and 3p1 code by @rajesh-kommu
 HL (Horava-Lifshitz) code by Christian Anderson
 2p1-fixed-boundaries by Jonah Miller
 
