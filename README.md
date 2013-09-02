@@ -2,8 +2,6 @@ Tools and code for Causal Dynamical Triangulations
 
 See [Dynamically Triangulating Lorentzian Quantum Gravity][1] for background
 
-[Github location][2]
-
 * dataviz.nb - Mathematica file to convert CDT output files into nice movies
 * SurfaceOfResolution.m - Mathematica Algorithms for dataviz.nb
 * gr.nb - Symbolically compute the Einstein tensor
@@ -23,7 +21,7 @@ HL (Horava-Lifshitz) code by Christian Anderson
 - [x] Merge 2p1 and 2p1-fixed-boundaries. The updated code is called 2p1-fixed-boundaries. Works for open or periodic boundary conditions.
 - [x] Fixed Christian's code to run on Sun Grid Engine
 
-A C++ implementation of CDT using CGAL, [CDT++][3] is being developed [here][3].
+A C++ implementation of [CDT][2] using CGAL, [CDT++][3] is being developed [here][3].
 
 [1]: http://arxiv.org/abs/hep-th/0105267
 [2]: https://github.com/ucdavis/CDT
