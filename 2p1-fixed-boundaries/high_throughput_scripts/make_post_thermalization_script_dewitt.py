@@ -3,7 +3,7 @@
 """
 make_post_thermalization_script_dewitt.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2013-07-10 15:49:57 (jonah)>
+Time-stamp: <2013-07-10 16:06:18 (jonah)>
 
 This program takes any number of input spacetimes (*.3sx2p1 files) and
 generates a post-themralization script for each one based on the
@@ -41,7 +41,7 @@ ENSEMBLE_SIZE = 1000 # The number of spacetimes we want total.
 # The total number of sweeps we need to build an ensemble of the size we want.
 TOTAL_SWEEPS = ENSEMBLE_SIZE * SAVE_EVERY_N_SWEEPS
 # The number of sweeps run per core.
-SWEEPS_PER_CORE = ceil(TOTAL_SWEEPS/float(NUM_CORES))
+SWEEPS_PER_CORE = int(ceil(TOTAL_SWEEPS/float(NUM_CORES)))
 
 # The script to print with some of the variables inserted.
 LISPSCRIPT="""
@@ -64,7 +64,7 @@ LISPSCRIPT="""
 (setf NUM-SWEEPS {num_sweeps})
 
 ; Open the file
-(with-open-fule (f "{filename}") (load-spacetime-from-file f))
+(with-open-file (f "{filename}") (load-spacetime-from-file f))
 
 (generate-data-v2)
 """

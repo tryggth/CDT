@@ -67,7 +67,7 @@ class sphere:
     def curvature_std(self):
         """
         Calculates standard deviation of the Gauss curvature over the
-        sphere. 
+        sphere.
         """
         # Make a list of all local curvatures
         local_curvatures = [point.curvature() for \
