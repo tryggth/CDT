@@ -2,7 +2,7 @@
 
 # get_subspacetime.py
 # Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-# Time-stamp: <2013-09-10 18:29:37 (jonah)>
+# Time-stamp: <2013-09-10 18:49:41 (jonah)>
 
 # This program loads a spacetime file and generates a new file based
 # on the old one. The new file is for a spacetime with initial
@@ -98,7 +98,7 @@ def extract_subspacetime(old_file_name,initial_slice,final_slice):
                 simplex=line.split()
                 tmlo=int(simplex[1])
                 tmhi=int(simplex[2])
-                if tmlo > initial_slice and tmhi < final_slice:
+                if tmlo >= initial_slice and tmhi <= final_slice:
                     outfile.write(line)
     return outfile_path
 
