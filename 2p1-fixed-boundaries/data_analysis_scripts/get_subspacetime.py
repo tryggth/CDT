@@ -2,7 +2,7 @@
 
 # get_subspacetime.py
 # Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-# Time-stamp: <2013-09-07 22:40:03 (jonah)>
+# Time-stamp: <2013-09-10 18:29:37 (jonah)>
 
 # This program loads a spacetime file and generates a new file based
 # on the old one. The new file is for a spacetime with initial
@@ -25,9 +25,9 @@
 #
 # my_spacetime.subspacetime-5-10.3sx2p1
 #
-# IMPORTANT. The first line of the file is unchanged. It exists solely
-# as a record of the original simulation. DONT'T RELY ON IT! IT IS NOT
-# ACCURATE!
+# IMPORTANT. Except for the number of time slices, the first line of
+# the file is unchanged. It exists solely as a record of the original
+# simulation. DONT'T RELY ON IT! IT IS NOT ACCURATE!
 
 # Modules
 # ----------------------------------------------------------------------
@@ -49,6 +49,24 @@ def new_file_name(old_file_name,initial_slice,final_slice):
     output=old_file_name[:-6]+subspacetime_designation+old_file_name[-6:]
     return output
     
+def copy_first_line(infile,outfile,num_slices):
+    """
+    Copies the first line from the infile to the outfile. This line
+    contains the simulation parameters. We need to change the number
+    of time slices, or the spectral dimension code fails.
+
+    The information in the first line is as follows (all on one line,
+    space-separated list):
+
+    BCTYPE STOPOLOGY NUM-T N-INIT *LAST-USED-POINT* *LAST-USED-3SXID*
+    N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 N1-SL-BOUNDARY
+    N3-31-BOUNDARY N3-22-BOUNDARY *eps* *k0* *k3* *alpha*
+    """
+    first_line_data=infile.readline().split(' ')
+    first_line_data[2]=str(num_slices)
+    new_first_line=reduce(lambda x,y: "{} {}".format(x,y), first_line_data)
+    outfile.write(new_first_line)
+    return
 
 def extract_subspacetime(old_file_name,initial_slice,final_slice):
     """
