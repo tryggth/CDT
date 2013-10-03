@@ -2,7 +2,11 @@
 
 # get_subspacetime.py
 # Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
+<<<<<<< HEAD
 # Time-stamp: <2013-10-03 16:52:14 (jonah)>
+=======
+# Time-stamp: <2013-09-10 18:49:41 (jonah)>
+>>>>>>> 8822fcaa9f1fe2a69bf9cf807a2603a1aae0865b
 
 # This program loads a spacetime file and generates a new file based
 # on the old one. The new file is for a spacetime with initial
@@ -25,9 +29,9 @@
 #
 # my_spacetime.subspacetime-5-10.3sx2p1
 #
-# IMPORTANT. The first line of the file is unchanged. It exists solely
-# as a record of the original simulation. DONT'T RELY ON IT! IT IS NOT
-# ACCURATE!
+# IMPORTANT. Except for the number of time slices, the first line of
+# the file is unchanged. It exists solely as a record of the original
+# simulation. DONT'T RELY ON IT! IT IS NOT ACCURATE!
 
 # Modules
 # ----------------------------------------------------------------------
@@ -48,6 +52,7 @@ def new_file_name(old_file_name,initial_slice,final_slice):
                                                           final_slice)
     output=old_file_name[:-6]+subspacetime_designation+old_file_name[-6:]
     return output
+<<<<<<< HEAD
 
 def make_output_string(output_list):
     """
@@ -97,6 +102,27 @@ def make_new_first_line(first_line,initial_slice, final_slice):
     line_list = first_line.split(' ')
     line_list[2] = str(final_slice - initial_slice)
     return reduce(lambda x,y: "{} {}".format(x,y),line_list)    
+=======
+    
+def copy_first_line(infile,outfile,num_slices):
+    """
+    Copies the first line from the infile to the outfile. This line
+    contains the simulation parameters. We need to change the number
+    of time slices, or the spectral dimension code fails.
+
+    The information in the first line is as follows (all on one line,
+    space-separated list):
+
+    BCTYPE STOPOLOGY NUM-T N-INIT *LAST-USED-POINT* *LAST-USED-3SXID*
+    N0 N1-SL N1-TL N2-SL N2-TL N3-TL-31 N3-TL-22 N1-SL-BOUNDARY
+    N3-31-BOUNDARY N3-22-BOUNDARY *eps* *k0* *k3* *alpha*
+    """
+    first_line_data=infile.readline().split(' ')
+    first_line_data[2]=str(num_slices)
+    new_first_line=reduce(lambda x,y: "{} {}".format(x,y), first_line_data)
+    outfile.write(new_first_line)
+    return
+>>>>>>> 8822fcaa9f1fe2a69bf9cf807a2603a1aae0865b
 
 def extract_subspacetime(old_file_name,initial_slice,final_slice):
     """
@@ -127,6 +153,7 @@ def extract_subspacetime(old_file_name,initial_slice,final_slice):
             # We copy the line from the old file to the new file if
             # and only if tmlo is greater than initial_slice and tmhi
             # is less than final_slice.
+<<<<<<< HEAD
             #
             # Unfortunately, we need to copy the spacetime
             # carefully. If a simplex has a "neighbor" that's outside
@@ -164,6 +191,14 @@ def extract_subspacetime(old_file_name,initial_slice,final_slice):
                                                        final_slice)):
                                 simplex[i] = 0
                     outfile.write(make_output_string(simplex))
+=======
+            for line in infile:
+                simplex=line.split()
+                tmlo=int(simplex[1])
+                tmhi=int(simplex[2])
+                if tmlo >= initial_slice and tmhi <= final_slice:
+                    outfile.write(line)
+>>>>>>> 8822fcaa9f1fe2a69bf9cf807a2603a1aae0865b
     return outfile_path
 
 def main(system_arguments):
