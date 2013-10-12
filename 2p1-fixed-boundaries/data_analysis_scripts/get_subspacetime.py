@@ -2,7 +2,7 @@
 
 # get_subspacetime.py
 # Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-# Time-stamp: <2013-10-03 16:52:14 (jonah)>
+# Time-stamp: <2013-10-12 19:55:28 (jonah)>
 
 # This program loads a spacetime file and generates a new file based
 # on the old one. The new file is for a spacetime with initial
@@ -32,6 +32,7 @@
 # Modules
 # ----------------------------------------------------------------------
 import sys # For globbing support
+from copy import copy
 # ----------------------------------------------------------------------
 
 
@@ -49,7 +50,7 @@ def new_file_name(old_file_name,initial_slice,final_slice):
     output=old_file_name[:-6]+subspacetime_designation+old_file_name[-6:]
     return output
 
-def make_output_string(output_list):
+def make_output_string(simplex,initial_slice):
     """
     takes a simplex list of the form
 
@@ -58,6 +59,12 @@ def make_output_string(output_list):
 
     and outputs it as a space-separated list that's a string.
     """
+    # The simplex may have the incorrect the incorrect tmhi and tmlo
+    # so wee need to fix that.
+    output_list = copy(simplex)
+    output_list[1] = int(output_list[1])-initial_slice
+    output_list[2] = int(output_list[2])-initial_slice
+
     return reduce(lambda x,y: "{} {}".format(x,y),output_list) + "\n"
 
 def in_bulk(simplex,initial_slice,final_slice):
@@ -152,7 +159,7 @@ def extract_subspacetime(old_file_name,initial_slice,final_slice):
             for simplex_id in simplices.keys():
                 simplex = simplices[simplex_id]
                 if in_bulk(simplex,initial_slice,final_slice):
-                    outfile.write(make_output_string(simplex))
+                    outfile.write(make_output_string(simplex,initial_slice))
                 if on_boundary(simplex,initial_slice,final_slice):
                     for i in range(7,11):
                         if simplex[i] != 0:
@@ -163,7 +170,7 @@ def extract_subspacetime(old_file_name,initial_slice,final_slice):
                                                        initial_slice,
                                                        final_slice)):
                                 simplex[i] = 0
-                    outfile.write(make_output_string(simplex))
+                    outfile.write(make_output_string(simplex,initial_slice))
     return outfile_path
 
 def main(system_arguments):
